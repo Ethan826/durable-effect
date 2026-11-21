@@ -8,7 +8,7 @@ This dossier defines the verification of the deterministic-scheduling design (#2
 
 Each statement is backed by the strongest method that can reach it. The layers, from the most abstract to the code that ships:
 
-1. Kernel-checked proofs in Rocq (formerly Coq) of the core theorems about an abstract executor (S1 to S11), with each fiber modelled as an interaction tree from the Interaction Trees library (Xia et al., POPL 2020). The proof project is in `verification/proofs/`, separate from the package build, in a project-local opam switch with every version pinned. A Rocq port of the skill's `check-axioms.sh` gates it: clean build, no `Admitted`, `admit` or `Axiom` in the sources, the `Print Assumptions` report regenerated and compared, and the theorem list read back from Rocq.
+1. Kernel-checked proofs in Coq 8.20.1 of the core theorems about an abstract executor (S1 to S11), with each fiber modelled as an interaction tree from the Interaction Trees library (Xia et al., POPL 2020). The proof project is in `verification/proofs/`, separate from the package build, in a project-local opam switch with every version pinned. The skill's Coq gate, `check-axioms-coq.sh`, gates it: a source scan for `Admitted`, `admit`, `Axiom`, `Parameter` and `Conjecture`, a clean build, the theorem list read back from Coq, and the `Print Assumptions` report regenerated and compared. The gate's own tests pass, including a checker mutant.
 2. A TLA+ model checked with TLC of the executor together with the parts of Restate and the SDK the proofs abstract away: the journal, suspension, replay, cancellation and crashes at every point. It is bounded evidence, with its grammar and bounds fixed in the file before the first run, gated like oracle 3: it exits non-zero unless every invariant holds, each mutant fails the property it names, the state counts match pinned values, and a named state is reached.
 3. Environment fixtures that check each assumption the proofs make about effect 4.1.5 and the SDK (E1 to E8), against the installed packages. Each fixture asserts its result and has a mutant that makes it fail.
 4. Differential tests that link the implementation to an executable reference model. The reference model is written separately from the implementation and follows the Rocq definitions. fast-check generates programs from a grammar; each program runs on the reference model and on the implementation (real Effect runtime, fake journal), across live and replay attempts with randomised arrival timing, and the traces are compared.
@@ -120,9 +120,23 @@ Oracle 3 is kept as a regression gate for the time rule once #26 gates every cla
 
 The link is differential (layer 4), with live fixtures (layer 5). The Rocq definitions are not extracted into the implementation. The differential tests compare the implementation's traces with an executable reference model that follows the Rocq definitions, on generated programs and randomised arrival schedules. A mismatch means either the implementation or the reference model is wrong, and each one found becomes a fixture. What stays unproved: that effect 4.1.5 and the SDK behave as E1 to E8 state outside the cases the fixtures run, and that the reference model matches the Rocq definitions, which a review checks by reading the two side by side.
 
+## Proof toolchain
+
+The owner chose Coq with Interaction Trees on 2026-11-21, provided the toolchain installed cleanly and the gate ported. The proof project uses a project-local opam switch, with exact versions frozen in `verification/proofs/opam-switch.lock`.
+
+| Package | Version | Why this version |
+|---|---|---|
+| coq | 8.20.1 | The newest version Interaction Trees' CI tests (8.14 to 8.20). Interaction Trees 5.2.1 does not compile on Rocq 9.3, which changed how `fun` binders parse. |
+| coq-itree | 5.2.1 | The latest release. MIT licence; maintained, last pushed 2026-11-02; the library from Xia et al., POPL 2020. |
+| coq-paco | 4.2.3 | Required by Interaction Trees for coinductive proofs |
+| coq-ext-lib | 0.13.2 | Required by Interaction Trees |
+| dune | 3.23.1 | Interaction Trees' build file uses dune's Coq extension, which dune 3.24 removed |
+| ocaml-base-compiler | 5.3.0 | The compiler for the switch |
+
+What it brings in: Interaction Trees' axioms, which the `Print Assumptions` report will list for every theorem that uses them and which need the owner's approval. What it ties us to: Interaction Trees' release cycle for any move to Rocq 9, which is its own dependency review. The Kahn-network development is cited, not imported, because it targets a 2009 version of Coq.
+
 ## Open items
 
 - The owner must approve the statements S1 to S11, the definitions D1 to D9, the restrictions R1 to R7, and the assumptions E1 to E9.
 - Revision 4 of the design must absorb the statement review's design changes: per-executor synchronous turns, the sample issued at delivery, no sample for an abandoned operation and no listener on it, R1 and R2 in column 3, immediate forks, and the end of daemon fibers with the attempt.
-- The owner chose Rocq with Interaction Trees on 2026-11-21, provided the toolchain installs cleanly and the gate ports. Both are being checked. The Kahn-network development is cited, not imported, because it targets a 2009 version of Coq.
-- Interaction Trees, `coq-ext-lib` and `coq-paco` are new dependencies of the proof project and need a dependency-intake record.
+
