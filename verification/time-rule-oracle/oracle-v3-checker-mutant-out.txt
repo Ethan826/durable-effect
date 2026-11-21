@@ -1,0 +1,4 @@
+== floorOnCancel: {"runs":7682052,"replays":153535760}
+FAIL
+  floorOnCancel did not fail P5
+exit=1
