@@ -1,0 +1,2 @@
+forkChild: tasks queued=2, order=["parent after fork","child"]
+Effect.all concurrency 2: tasks queued=0, order=["a","b","parent after all"]

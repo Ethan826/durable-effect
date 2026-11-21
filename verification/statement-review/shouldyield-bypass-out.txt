@@ -1,0 +1,6 @@
+A PreventSchedulerYield=false: exit=Success value=43 violations=["step outside turn (fiber 1)","step outside turn (fiber 1)","step outside turn (fiber 1)"]; step ran with inTurn=false, violations recorded before it=2
+A PreventSchedulerYield=true: exit=Success value=43 violations=["step outside turn (fiber 2)"]; step ran with inTurn=false, violations recorded before it=0
+B action at 1 ms: handler read 1, violations=[]
+B action at 30 ms: handler read 0, violations=[]
+C turn flag per executor: Y violations=["step outside turn (fiber 8)","step outside turn (fiber 8)","step outside turn (fiber 8)","step outside turn (fiber 8)"]
+C turn flag global: Y violations=[]
