@@ -7,6 +7,11 @@ property test against the real code.
 - `time-rule-oracle/oracle.mjs`: brute-force oracle for the logical-time rule. It models Restate's
   journal, a host clock with error, and a crash and replay at every journal index. It shares no
   logic with any implementation. Run `node oracle.mjs` (about 90 s).
+- `time-rule-oracle/oracle-v2.mjs`: revision 2 of the oracle (issue #19), written from scratch.
+  It checks every claim on replays as well as originals, and adds operation failures, retried
+  sample steps, sleeps of zero, negative and infinite duration, deadlines computed from logical
+  time, and replays on a different host. Five mutants show each check can fail. Output is in
+  `oracle-v2-out.txt`; the run takes several minutes.
 - `de-novo-review-1/`: scripts the first de novo reviewer wrote against effect 4.1.5. They need
   `spike/node_modules`, so run `npm ci` in `spike/` first. `leak.mjs` shows a `run` action
   inheriting the durable Clock and Random (F1). `race.mjs` and `race2.mjs` show `Effect.race`

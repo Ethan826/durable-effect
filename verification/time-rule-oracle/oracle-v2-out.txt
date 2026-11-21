@@ -1,0 +1,17 @@
+== adopted: {"runs":2854808,"replays":29411928}
+== noSampleOnFail: {"runs":566820,"replays":4380068,"P7":44692,"P7r":1004024}
+   first P7: {"program":["F"],"trace":[9,9,10]}
+   first P7r: {"program":["F"],"k":2,"trace":[9,9,213]}
+== negDurable: {"runs":4300674,"replays":43780260,"P2r":6002572,"P2":270448}
+   first P2r: {"program":["Sn"],"k":0,"trace":[212,211]}
+   first P2: {"program":["Sn"],"trace":[10,9]}
+== retryLive: {"runs":2854808,"replays":29411928,"P1":3226106,"P5r":1885798}
+   first P1: {"program":[],"k":1,"original":[10],"replay":[209]}
+   first P5r: {"program":["R"],"k":3,"trace":[209,209]}
+== replayNoMax: {"runs":2854808,"replays":29411928,"P2r":7009526,"P1":9770642,"P3r":4363432}
+   first P2r: {"program":["R"],"k":3,"trace":[10,9]}
+   first P1: {"program":["R"],"k":3,"original":[10,10],"replay":[10,9]}
+   first P3r: {"program":["F"],"k":5,"trace":[9,10,10]}
+== replayAhead: {"runs":2854808,"replays":29411928,"P5r":26557120,"P1":26557120}
+   first P5r: {"program":[],"k":1,"trace":[10]}
+   first P1: {"program":[],"k":1,"original":[9],"replay":[10]}
