@@ -1,0 +1,2 @@
+attempt 1 (live):   {"exit":"Success","violations":["clock"]}
+attempt 2 (replay): {"exit":"Success","violations":[]}

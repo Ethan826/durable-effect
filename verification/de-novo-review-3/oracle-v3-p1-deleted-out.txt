@@ -1,0 +1,19 @@
+== adopted: {"runs":7682052,"replays":153535760}
+== floorOnCancel: {"runs":7682052,"replays":153535760,"P5":862432,"P5r":8502464}
+   first P5: {"program":["S5"],"cancelAt":0,"trace":[9,14,14]}
+   first P5r: {"program":["S5"],"cancelAt":0,"k":0,"host":{"err":2,"start":200},"trace":[209,214,214]}
+== noSampleOnCancel: {"runs":3080100,"replays":59947088,"P7":185776,"P7r":7386880}
+   first P7: {"program":["R"],"cancelAt":0,"trace":[9,9,9]}
+   first P7r: {"program":["R"],"cancelAt":0,"k":1,"host":{"err":2,"start":200},"trace":[9,9,209]}
+== noSampleOnCallFail: {"runs":4462116,"replays":85020880,"P7r":7624128,"P7":143336}
+   first P7r: {"program":["G"],"cancelAt":-1,"k":1,"host":{"err":2,"start":200},"trace":[9,9,207]}
+   first P7: {"program":["G"],"cancelAt":-1,"trace":[9,9,10]}
+== hugeToRestate: {"runs":8523160,"replays":169405024,"P9":883072,"P9r":16456960,"P5r":7860736}
+   first P9: {"program":["SB"],"cancelAt":-1,"trace":[9,4105]}
+   first P9r: {"program":["SB"],"cancelAt":-1,"k":0,"host":{"err":2,"start":200},"trace":[209,4305]}
+   first P5r: {"program":["SB"],"cancelAt":-1,"k":2,"host":{"err":2,"start":200},"trace":[9,4105]}
+== replayAhead: {"runs":7682052,"replays":153535760,"P5r":138171656}
+   first P5r: {"program":[],"cancelAt":-1,"k":1,"host":{"err":2,"start":200},"trace":[10]}
+PASS
+node oracle-v3-p1-deleted.mjs  377.82s user 1.41s system 100% cpu 6:18.72 total
+exit=0

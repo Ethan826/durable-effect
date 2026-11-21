@@ -1,0 +1,26 @@
+Effect.sleep                                     exit=Success  violations=none
+Effect.timed                                     exit=Success  violations=none
+DateTime.now                                     exit=Success  violations=none
+Effect.log (default logger)                      exit=Success  violations=none
+Effect.withSpan                                  exit=Success  violations=none
+Effect.fn named                                  exit=Success  violations=none
+retry jittered exponential                       exit=Success  violations=none
+retry times                                      exit=Success  violations=none
+repeat spaced recurs                             exit=Success  violations=none
+repeat during                                    exit=Success  violations=none
+ensuring finalizer reads clock                   exit=Success  violations=none
+acquireRelease scoped                            exit=Success  violations=none
+forEach sequential                               exit=Success  violations=none
+forEach concurrency 1                            exit=Success  violations=none
+all concurrency 1                                exit=Success  violations=none
+Effect.cached                                    exit=Success  violations=rand@fiber#33
+Effect.cachedWithTTL                             exit=Success  violations=millis@fiber#36
+forkChild + pure + join                          exit=Success  violations=none
+forkChild pure with Effect.fn named              exit=Success  violations=nanos@fiber#42
+forkChild pure with withSpan                     exit=Success  violations=nanos@fiber#45
+forkChild failing (pure)                         exit=Success  violations=none
+Effect.timeout pure                              exit=Success  violations=none
+Effect.withLogSpan + log                         exit=Success  violations=none
+Effect.orElse/catch                              exit=Success  violations=none
+Effect.callback resumed from setTimeout then clock exit=Success  violations=none
+Effect.promise then clock                        exit=Success  violations=none

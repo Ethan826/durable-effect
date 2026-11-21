@@ -1,0 +1,2 @@
+attempt 1 (live):   {"out":{"progressAtCompletion":20000,"childFinished":true,"draw":"0.841"},"trace":["run fetch","run fast-path"],"violations":[]}
+attempt 2 (replay): {"out":{"progressAtCompletion":4089,"childFinished":false,"draw":"0.841"},"trace":["run fetch","run slow-path","JOURNAL MISMATCH: expected run fast-path"],"violations":[]}

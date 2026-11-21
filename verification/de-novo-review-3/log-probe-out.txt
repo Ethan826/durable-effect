@@ -1,0 +1,2 @@
+[19:00:00.001] INFO (#2): fork line
+clock reads by fiber: root, OTHER

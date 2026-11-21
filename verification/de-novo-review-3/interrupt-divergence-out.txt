@@ -1,0 +1,2 @@
+attempt 1 (live):   {"exit":"interrupted (design: cancelled, terminal)","violations":["abandoned run a"]}
+attempt 2 (replay): {"exit":"interrupted (design: cancelled, terminal)","violations":[]}
