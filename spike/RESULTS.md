@@ -2,12 +2,12 @@
 
 Milestone 1 of [PLANNING.md](../PLANNING.md), run 2026-11-21.
 
-**Versions:** effect 4.1.5, @effect/platform-node 4.1.5, @restatedev/restate-sdk 1.18.4, @t0ster/restate-effect 0.9.0, restate-server 1.8.1 (npm binary, no Docker), Node 26.6.0, TypeScript 7.0.2.
+The spike pinned effect 4.1.5, @effect/platform-node 4.1.5, @restatedev/restate-sdk 1.18.4, @t0ster/restate-effect 0.9.0, and restate-server 1.8.1 (the npm binary, without Docker), and ran on Node 26.6.0 with TypeScript 7.0.2.
 
-**Setup:** The server ran with `RESTATE_WORKER__INVOKER__INACTIVITY_TIMEOUT=0s`, which is what the testcontainers `alwaysReplay` option sets. The invocation suspends after every await, so each step starts a new attempt that replays everything before it. `src/durable.ts` wraps a handler and provides two services:
+The server ran with `RESTATE_WORKER__INVOKER__INACTIVITY_TIMEOUT=0s`, which is what the testcontainers `alwaysReplay` option sets. The invocation suspends after every await, so each step starts a new attempt that replays everything before it. `src/durable.ts` wraps a handler and provides two services:
 
-- **Clock.** One journaled sample (`Restate.run("clock-sample")`) at entry and one after each durable sleep. Reads between samples return the last sample. `Clock.sleep` is `Restate.sleep`. Monotonic time is the maximum sample seen so far.
-- **Random.** One ISAAC stream per attempt, seeded with the invocation id (`Random.withSeed`).
+- `Clock` takes one journaled sample (`Restate.run("clock-sample")`) at entry and one after each durable sleep, and returns the last sample between them. `Clock.sleep` is `Restate.sleep`. Monotonic time is the maximum sample seen so far.
+- `Random` is one ISAAC stream per attempt, seeded with the invocation id (`Random.withSeed`).
 
 No change to t0ster/restate-effect was needed. `Effect.provideService` over its handler Effect is enough. `src/trace.ts` logs every clock read, random draw, sleep delay and typed failure for each attempt, and `scripts/inspect.mjs` checks that each attempt's trace is a prefix of the final attempt's.
 
@@ -33,10 +33,10 @@ No change to t0ster/restate-effect was needed. `Effect.provideService` over its 
 
 ## Not covered
 
-- **Telemetry.** Spans and log timestamps created inside the handler now read the logical clock. The handler's own server span is created outside the override and keeps real time. Nobody has inspected the actual span output.
-- **Refreshes.** The refresh after a `run` completes, after calls or awakeables, and after a durable join is not implemented. Only entry and post-sleep refreshes exist.
-- **Concurrency, `Effect.timeout`, and the lint/type gap probes.** All out of scope for this spike.
-- **Restate in normal mode.** Every run used always-replay, which is the stricter mode, and there was no comparison against a run without forced suspension.
+- Spans and log timestamps created inside the handler read the logical clock. The handler's own server span is created outside the override and keeps real time. Nobody has inspected the actual span output.
+- The spike doesn't sample the clock after a `run` completes, after calls or awakeables, or after a durable join. It samples only at entry and after sleeps.
+- Concurrency, `Effect.timeout` and the lint and type gap probes were out of scope.
+- Every run used always-replay, which is the stricter mode, and there was no comparison against a run without forced suspension.
 
 ## Reproduce
 

@@ -1,0 +1,8 @@
+attempt 1 (live):   {
+  out: [ 'A draws 0.546', 'B draws 0.133, reads L=1000' ],
+  violation: 'none'
+}
+attempt 2 (replay): {
+  out: [ 'A draws 0.133', 'B draws 0.546, reads L=1030' ],
+  violation: 'none'
+}

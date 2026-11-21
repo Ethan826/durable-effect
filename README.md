@@ -25,7 +25,7 @@ replay exactly. The design keeps that mechanism and settles what time means
 inside a handler.
 
 Each attempt keeps a logical time computed from journaled clock samples, so a
-replay sees the same values. A journaled step samples the clock when the attempt
+replay reads the same values. A journaled step samples the clock when the attempt
 starts and again after every `run`, sleep or call. Time advances at each awaited
 durable operation and stays fixed between them, the model Temporal and Azure
 Durable Functions use. It never decreases, and after a sleep it has grown by at
@@ -44,7 +44,7 @@ its bounds and the oracle results behind it.
 | Path | What it holds |
 | --- | --- |
 | `spike/` | A throwaway integration spike against a real Restate server. Results are in [spike/RESULTS.md](spike/RESULTS.md). |
-| `verification/` | Models and probes for the design's algorithmic claims: the time-rule oracle and the scripts from the first de novo review. See [verification/README.md](verification/README.md). |
+| `verification/` | Models and probes for the design's algorithmic claims: two time-rule oracles and the scripts from the de novo reviews. See [verification/README.md](verification/README.md). |
 | `PLANNING.md` | The original plan, partly superseded. Where it disagrees with the issues, the issues are current. |
 | `INVESTIGATION.md` | The investigation that checked the first plan against Effect and Restate source. |
 | `AGENTS.md` | Instructions and project rules for agents working in the repository. |
@@ -66,36 +66,39 @@ scripts/cases.sh backward '{"samples":[5000,2000]}'
 [spike/RESULTS.md](spike/RESULTS.md) lists the versions used and how to run the
 crash-window case.
 
-The time-rule oracle takes about 90 seconds. From `verification/time-rule-oracle/`:
+The first time-rule oracle takes about 90 seconds and the second takes several
+minutes. From `verification/time-rule-oracle/`:
 
 ```sh
 node oracle.mjs
+node oracle-v2.mjs
 ```
 
-The scripts in `verification/de-novo-review-1/` need `spike/node_modules`, so run
+The scripts in `verification/de-novo-review-*/` need `spike/node_modules`, so run
 `npm ci` in `spike/` first. [verification/README.md](verification/README.md) says
 what each one shows.
 
 ## Prior art and credit
 
 - [t0ster/restate-effect](https://github.com/t0ster/restate-effect) (MIT). The
-  design re-implements several of its ideas: typed errors carried in
+  design re-implements several of its ideas: typed errors encoded in
   `TerminalError` metadata, the one-pending-operation guard and the
   abandoned-operation rule, the `onDefect` policy, and contracts and serving.
   durable-effect does not depend on it or copy its code.
-- Temporal. Workflow time that advances only when the code awaits, a seeded
-  PRNG, and real time for telemetry beside deterministic time.
-- Azure Durable Functions (Durable Task). Orchestration time taken
-  from the latest `OrchestratorStarted` timestamp, timers computed from that
-  time, and GUIDs derived from the instance id.
+- Temporal, whose workflow time advances only when the code awaits, whose
+  sandbox replaces `Math.random` with a seeded PRNG, and which exposes real time
+  for telemetry beside deterministic time.
+- Azure Durable Functions (Durable Task), which takes orchestration time from
+  the latest `OrchestratorStarted` timestamp, computes timers from that time, and
+  derives GUIDs from the instance id.
 
 The provenance table in [#1](https://github.com/Ethan826/durable-effect/issues/1)
 names the source of every algorithmic component.
 
 ## Contributing
 
-Read [AGENTS.md](AGENTS.md) first. Designs and decisions live in GitHub issues,
-not in committed files.
+Read [AGENTS.md](AGENTS.md) first. Designs and decisions are GitHub issues, not
+committed files.
 
 ## License
 

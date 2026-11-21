@@ -1,0 +1,12 @@
+N=100
+attempt 1 (live):   DEFECT (sticky violation: abandoned sleep(40)) [ 'live sleep(40)', 'VIOLATION abandoned sleep(40)' ] 15.8ms
+journal after attempt 1: [ 'sleep(40)' ]
+attempt 2 (replay): branch: timed out [ 'replay sleep(40)', 'live sample' ] 3.5ms
+N=200
+attempt 1 (live):   DEFECT (sticky violation: abandoned sleep(40)) [ 'live sleep(40)', 'VIOLATION abandoned sleep(40)' ] 12.9ms
+journal after attempt 1: [ 'sleep(40)' ]
+attempt 2 (replay): branch: timed out [ 'replay sleep(40)', 'live sample' ] 2.3ms
+N=300
+attempt 1 (live):   branch: timed out [ 'live sleep(40)', 'live sample' ] 42.6ms
+journal after attempt 1: [ 'sleep(40)', 'sample' ]
+attempt 2 (replay): branch: timed out [ 'replay sleep(40)', 'replay sample' ] 3.7ms

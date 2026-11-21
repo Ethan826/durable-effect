@@ -15,31 +15,31 @@ Designs and implementation plans live in GitHub issues, not in committed files (
 
 ## Project rules
 
-- **Standalone.** Build on `@restatedev/restate-sdk` directly. Never add a dependency on
+- Build on `@restatedev/restate-sdk` directly. Never add a dependency on
   `@t0ster/restate-effect`. Its design ideas may be re-implemented with credit; its code is not
   copied.
-- **Tooling.** Use bun for install, scripts and tests. Tests that check behaviour on a specific
+- Use bun for install, scripts and tests. Tests that check behaviour on a specific
   runtime (Node support) run on that runtime. `spike/` is throwaway and uses npm and Node.
-- **Pinned versions.** Pin exact versions of every dependency and commit the lockfile. Treat an
+- Pin exact versions of every dependency and commit the lockfile. Treat an
   upgrade as a review.
-- **Code style.** Follow the effect-v4 and readable-functional-code skills (typescript.md):
+- Follow the effect-v4 and readable-functional-code skills (typescript.md):
   - no v3 Effect names, no throwing in core code, decode instead of asserting;
   - at most depth 3, 8 branches, 30 lines and 8 local bindings per declaration;
   - at most 250 lines per module and 80 columns per line;
   - arrow functions and named steps;
   - TSDoc on every export, checked by a syntax-tree gate;
   - never a lint-disable comment.
-- **Tests first.** Follow test-first. Gates and lints must be shown able to fail (gate-integrity).
-- **Algorithmic parts are verified.** Any component that decides, orders or guarantees something
+- Follow test-first. Gates and lints must be shown able to fail (gate-integrity).
+- Any component that decides, orders or guarantees something
   (the time rule, the guard, replay behaviour) is checked by an oracle or property test that shares
-  no logic with the implementation, and carries a provenance entry naming its published source
+  no logic with the implementation, and has a provenance entry naming its published source
   (compose-published-primitives).
-- **Novel work gets a de novo review.** New or changed algorithmic designs, and the claims made
+- New or changed algorithmic designs, and the claims made
   about them, are reviewed by an independent reviewer who decides each claim afresh from primary
   evidence and gives no deference to the author's reasoning (adversarial-procedure-review). Check
   each finding against the evidence before acting on it. Close it with a fixture or oracle property,
   not a document edit.
-- **Prose is reviewed before it is published.** Run the humanized-prose-review skill on every
+- Run the humanized-prose-review skill on every
   piece of prose another person will read (design docs, issues and comments, READMEs, this file,
   commit messages, PR descriptions) before filing, committing or publishing it. Put the most
   significant catalog entries in the commit body.
