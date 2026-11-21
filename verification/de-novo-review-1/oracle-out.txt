@@ -1,0 +1,20 @@
+
+== draftA: {"runs":5027586,"P1":0,"P2":0,"P3":0,"P4":0,"P5":1132104,"P6":1975260,"P7":2909196}
+  first P7 counterexample: {"program":["S1"],"choice":[{"err":0,"inc":0},{"err":-1,"inc":0}],"trace":[10,11]}
+  first P5 counterexample: {"program":["Sh"],"choice":[{"err":-1,"inc":0},{"err":-1,"inc":0}],"trace":[9,9.5]}
+  first P6 counterexample: {"program":["Sh"],"choice":[{"err":-1,"inc":0},{"err":-1,"inc":0}],"trace":[9,9.5]}
+
+== fixedA: {"runs":5027586,"P1":0,"P2":0,"P3":0,"P4":0,"P5":0,"P6":0,"P7":2243014}
+  first P7 counterexample: {"program":["S1"],"choice":[{"err":0,"inc":0},{"err":-1,"inc":0}],"trace":[10,11]}
+
+== approachC: {"runs":5027586,"P1":0,"P2":0,"P3":0,"P4":0,"P5":0,"P6":0,"P7":2228982}
+  first P7 counterexample: {"program":["S1"],"choice":[{"err":0,"inc":0},{"err":-1,"inc":0}],"trace":[10,11]}
+
+== noFloor: {"runs":5027586,"P1":0,"P2":0,"P3":2575710,"P4":0,"P5":0,"P6":0,"P7":22936}
+  first P3 counterexample: {"program":["S1"],"choice":[{"err":0,"inc":0},{"err":-1,"inc":0}],"trace":[10,10]}
+  first P7 counterexample: {"program":["R","R"],"choice":[{"err":1,"inc":0},{"err":0,"inc":0},{"err":-1,"inc":0}],"trace":[11,11,11]}
+
+== liveRead: {"runs":5027586,"P1":24964566,"P2":0,"P3":0,"P4":0,"P5":0,"P6":0,"P7":2243014}
+  first P1 counterexample: {"program":[],"k":1,"original":[9],"replay":[513]}
+  first P7 counterexample: {"program":["S1"],"choice":[{"err":0,"inc":0},{"err":-1,"inc":0}],"trace":[10,10]}
+node oracle-copy.mjs  57.60s user 0.87s system 70% cpu 1:22.40 total

@@ -1,5 +1,7 @@
 # durable-effect: planning
 
+> **Status, 2026-11-21.** Planning has moved to GitHub issues. Epic #21 tracks v1, and #1 holds its design. Where this file and the issues disagree, the issues are current. In particular, durable-effect no longer builds on restate-effect (#2), and the time rule in #1 replaces the clock design below.
+
 Revised after [INVESTIGATION.md](INVESTIGATION.md). The investigation checked the design against Effect and Restate source and found that several claims in the first draft were wrong or unproven. This version adopts its replay contract, narrows the first target to sequential handlers, and makes a live integration spike the first milestone.
 
 ## Goal
