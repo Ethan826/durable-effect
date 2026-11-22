@@ -212,13 +212,17 @@ Proof.
     intros Hp. eapply arrival_ext_trans; [apply H|]. apply H4. revert Hp.
     destruct x as [xp xq xsb xaw xw xh xl xn xc xd xlv xre xv xt xpr xmi xf].
     destruct xp; cbn; congruence.
-  - assert (H : forall b, arrival_ext I b x (set_live x (live x ++ [f]))).
-    { intros b. destruct x as [xp xq xsb xaw xw xh xl xn xc xd xlv xre xv xt xpr xmi xf].
+  - set (x1 := match phase x with PDone => x | _ => emit x (ARegister f) end).
+    assert (H : forall b, arrival_ext I b x (set_live x1 (live x1 ++ [f]))).
+    { intros b. subst x1.
+      destruct x as [xp xq xsb xaw xw xh xl xn xc xd xlv xre xv xt xpr xmi xf].
       arrival_ext_by. }
     destruct (IH (match phase x with PClosing _ => true | _ => false end)
-                 (set_live x (live x ++ [f]))) as [H3 H4].
+                 (set_live x1 (live x1 ++ [f]))) as [H3 H4].
     split; [eapply arrival_ext_trans; [apply H|exact H3]|].
-    intros Hp. eapply arrival_ext_trans; [apply H|]. apply H4. exact Hp.
+    intros Hp. eapply arrival_ext_trans; [apply H|]. apply H4. revert Hp. subst x1.
+    destruct x as [xp xq xsb xaw xw xh xl xn xc xd xlv xre xv xt xpr xmi xf].
+    destruct xp; cbn; congruence.
 Qed.
 
 Lemma arrival_on_notify_ext : forall I x sb r, arrival_ext I true x (on_notify I x sb r).
