@@ -14,6 +14,294 @@ Closed under the global context
 Closed under the global context
 == Durable.Compare.old_parent_reads_before_finalizer
 Closed under the global context
+== Durable.StepAwait.step_ainv_cleared
+Closed under the global context
+== Durable.StepAwait.step_ainv_head
+Closed under the global context
+== Durable.StepAwait.step_ainv_mono
+Closed under the global context
+== Durable.StepAwait.step_ainv_release
+Closed under the global context
+== Durable.StepAwait.step_ainv_same
+Closed under the global context
+== Durable.StepAwait.step_ainv_start
+Closed under the global context
+== Durable.StepAwait.step_close_stays
+Closed under the global context
+== Durable.StepAwait.step_follows_active
+Closed under the global context
+== Durable.StepAwait.step_issue_op_stays
+Closed under the global context
+== Durable.StepAwait.step_issue_sample_stays
+Closed under the global context
+== Durable.StepAwait.step_issue_stays
+Closed under the global context
+== Durable.StepAwait.step_mono_app
+Closed under the global context
+== Durable.StepAwait.step_nodup_new
+Closed under the global context
+== Durable.StepAwait.step_pair_eqb_refl
+Closed under the global context
+== Durable.StepAwait.step_pair_eqb_true
+Closed under the global context
+== Durable.StepAwait.step_release_sub_sop
+Closed under the global context
+== Durable.StepAwait.step_sinv_event
+Closed under the global context
+== Durable.StepAwait.step_sinv_interp
+Closed under the global context
+== Durable.StepAwait.step_sinv_mono
+Closed under the global context
+== Durable.StepAwait.step_sinv_same
+Closed under the global context
+== Durable.StepAwait.step_slot_follows
+Closed under the global context
+== Durable.StepAwait.step_slot_not_sop
+Closed under the global context
+== Durable.StepAwait.step_start_tokens_app
+Closed under the global context
+== Durable.StepAwait.step_violate_stays
+Closed under the global context
+== Durable.StepAwaitTurn.step_ainv_deliver
+Closed under the global context
+== Durable.StepAwaitTurn.step_ainv_sub_none
+Closed under the global context
+== Durable.StepAwaitTurn.step_elog_fst
+Closed under the global context
+== Durable.StepAwaitTurn.step_s4
+Closed under the global context
+== Durable.StepAwaitTurn.step_sinv_after_sample
+Closed under the global context
+== Durable.StepAwaitTurn.step_sinv_boundary
+Closed under the global context
+== Durable.StepAwaitTurn.step_sinv_initial
+Closed under the global context
+== Durable.StepAwaitTurn.step_sinv_issue_sample
+Closed under the global context
+== Durable.StepAwaitTurn.step_sinv_iterate
+Closed under the global context
+== Durable.StepAwaitTurn.step_sinv_on_cancel
+Closed under the global context
+== Durable.StepAwaitTurn.step_sinv_on_notify
+Closed under the global context
+== Durable.StepAwaitTurn.step_sinv_set_micro
+Closed under the global context
+== Durable.StepAwaitTurn.step_sinv_set_progress
+Closed under the global context
+== Durable.StepAwaitTurn.step_sinv_step
+Closed under the global context
+== Durable.StepAwaitTurn.step_waiter_none
+Closed under the global context
+== Durable.StepInv.step_apply_sample_cases
+Closed under the global context
+== Durable.StepInv.step_close_active
+Closed under the global context
+== Durable.StepInv.step_close_open
+Closed under the global context
+== Durable.StepInv.step_close_phase
+Closed under the global context
+== Durable.StepInv.step_close_trace
+Closed under the global context
+== Durable.StepInv.step_close_violated
+Closed under the global context
+== Durable.StepInv.step_head_state_iinv
+Closed under the global context
+== Durable.StepInv.step_iinv_close
+Closed under the global context
+== Durable.StepInv.step_iinv_emit
+Closed under the global context
+== Durable.StepInv.step_iinv_enqueue
+Closed under the global context
+== Durable.StepInv.step_iinv_set_awaiter
+Closed under the global context
+== Durable.StepInv.step_iinv_set_draws
+Closed under the global context
+== Durable.StepInv.step_iinv_violate
+Closed under the global context
+== Durable.StepInv.step_in_snoc
+Closed under the global context
+== Durable.StepInv.step_interp_iinv
+Closed under the global context
+== Durable.StepInv.step_inv_after_sample
+Closed under the global context
+== Durable.StepInv.step_inv_at_boundary
+Closed under the global context
+== Durable.StepInv.step_inv_at_boundary_sub
+Closed under the global context
+== Durable.StepInv.step_inv_close
+Closed under the global context
+== Durable.StepInv.step_inv_emit
+Closed under the global context
+== Durable.StepInv.step_inv_enqueue
+Closed under the global context
+== Durable.StepInv.step_inv_finish
+Closed under the global context
+== Durable.StepInv.step_inv_finish_verdict
+Closed under the global context
+== Durable.StepInv.step_inv_initial
+Closed under the global context
+== Durable.StepInv.step_inv_issue
+Closed under the global context
+== Durable.StepInv.step_inv_issue_op
+Closed under the global context
+== Durable.StepInv.step_inv_issue_sample
+Closed under the global context
+== Durable.StepInv.step_inv_iterate
+Closed under the global context
+== Durable.StepInv.step_inv_notify_sample
+Closed under the global context
+== Durable.StepInv.step_inv_on_cancel
+Closed under the global context
+== Durable.StepInv.step_inv_on_cut
+Closed under the global context
+== Durable.StepInv.step_inv_on_foreign
+Closed under the global context
+== Durable.StepInv.step_inv_on_notify
+Closed under the global context
+== Durable.StepInv.step_inv_reachable
+Closed under the global context
+== Durable.StepInv.step_inv_same
+Closed under the global context
+== Durable.StepInv.step_inv_set_awaiter
+Closed under the global context
+== Durable.StepInv.step_inv_set_cursor
+Closed under the global context
+== Durable.StepInv.step_inv_set_draws
+Closed under the global context
+== Durable.StepInv.step_inv_set_fseen
+Closed under the global context
+== Durable.StepInv.step_inv_set_held_false
+Closed under the global context
+== Durable.StepInv.step_inv_set_live
+Closed under the global context
+== Durable.StepInv.step_inv_set_logical
+Closed under the global context
+== Durable.StepInv.step_inv_set_micro
+Closed under the global context
+== Durable.StepInv.step_inv_set_phase_done
+Closed under the global context
+== Durable.StepInv.step_inv_set_progress
+Closed under the global context
+== Durable.StepInv.step_inv_set_queue
+Closed under the global context
+== Durable.StepInv.step_inv_set_root_exit
+Closed under the global context
+== Durable.StepInv.step_inv_set_sub_none
+Closed under the global context
+== Durable.StepInv.step_inv_set_waiter
+Closed under the global context
+== Durable.StepInv.step_inv_step
+Closed under the global context
+== Durable.StepInv.step_inv_violate
+Closed under the global context
+== Durable.StepInv.step_issue_op_active
+Closed under the global context
+== Durable.StepInv.step_issue_phase
+Closed under the global context
+== Durable.StepInv.step_on_event_iinv
+Closed under the global context
+== Durable.StepInv.step_on_release_iinv
+Closed under the global context
+== Durable.StepInv.step_on_start_iinv
+Closed under the global context
+== Durable.StepInv.step_open_no_violation
+Closed under the global context
+== Durable.StepInv.step_release_sub_cases
+Closed under the global context
+== Durable.StepInv.step_run_head_eq
+Closed under the global context
+== Durable.StepInv.step_run_head_inv
+Closed under the global context
+== Durable.StepInv.step_violate_active
+Closed under the global context
+== Durable.StepInv.step_violate_open
+Closed under the global context
+== Durable.StepInv.step_violate_phase
+Closed under the global context
+== Durable.StepInv.step_xs
+Closed under the global context
+== Durable.StepLog.step_answers_of_ok
+Closed under the global context
+== Durable.StepLog.step_answers_ok_app
+Closed under the global context
+== Durable.StepLog.step_closed_iterate
+Closed under the global context
+== Durable.StepLog.step_closed_step
+Closed under the global context
+== Durable.StepLog.step_drive_elog
+Closed under the global context
+== Durable.StepLog.step_elog_register
+Closed under the global context
+== Durable.StepLog.step_ilog_register
+Closed under the global context
+== Durable.StepLog.step_log_cases
+Closed under the global context
+== Durable.StepLog.step_open_log_is_drive
+Closed under the global context
+== Durable.StepLog.step_play_ilog
+Closed under the global context
+== Durable.StepSingle.step_boundary_sub_cursor
+Closed under the global context
+== Durable.StepSingle.step_closing_step
+Closed under the global context
+== Durable.StepSingle.step_released_sample_unreachable
+Closed under the global context
+== Durable.StepSingle.step_s11
+Closed under the global context
+== Durable.StepSingle.step_s5
+Closed under the global context
+== Durable.StepSingle.step_s5_exit
+Closed under the global context
+== Durable.StepSingle.step_s6
+Closed under the global context
+== Durable.StepSingle.step_s7
+Closed under the global context
+== Durable.StepTurn.step_after_sample_cursor
+Closed under the global context
+== Durable.StepTurn.step_apply_sample_cursor
+Closed under the global context
+== Durable.StepTurn.step_close_cursor
+Closed under the global context
+== Durable.StepTurn.step_foreign
+Closed under the global context
+== Durable.StepTurn.step_head_state_closed
+Closed under the global context
+== Durable.StepTurn.step_interp_closed
+Closed under the global context
+== Durable.StepTurn.step_issue_cursor
+Closed under the global context
+== Durable.StepTurn.step_issue_op_cursor
+Closed under the global context
+== Durable.StepTurn.step_issue_op_trace
+Closed under the global context
+== Durable.StepTurn.step_issue_trace
+Closed under the global context
+== Durable.StepTurn.step_nce_close
+Closed under the global context
+== Durable.StepTurn.step_nce_emit
+Closed under the global context
+== Durable.StepTurn.step_nce_refl
+Closed under the global context
+== Durable.StepTurn.step_nce_same
+Closed under the global context
+== Durable.StepTurn.step_nce_trans
+Closed under the global context
+== Durable.StepTurn.step_nce_violate
+Closed under the global context
+== Durable.StepTurn.step_on_cancel_cursor
+Closed under the global context
+== Durable.StepTurn.step_on_event_closed
+Closed under the global context
+== Durable.StepTurn.step_on_notify_cursor
+Closed under the global context
+== Durable.StepTurn.step_on_release_closed
+Closed under the global context
+== Durable.StepTurn.step_quiet_boundary
+Closed under the global context
+== Durable.StepTurn.step_violate_cursor
+Closed under the global context
+== Durable.StepTurn.step_violate_fresh
+Closed under the global context
 == Durable.Witnesses.blocked_root_is_violation
 Closed under the global context
 == Durable.Witnesses.cancel_during_initial_sample_is_held
