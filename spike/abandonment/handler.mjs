@@ -28,6 +28,20 @@ const handler = restate.service({
       await ctx.sleep(1000);
       return "done";
     },
+    // The handler returns while a subscribed operation is still pending, as a detached fiber's
+    // wait would be at the end of an attempt.
+    returnsWithPending: async (ctx) => {
+      note("returnsWithPending");
+      ctx.sleep(3000).then(() => console.log("pending completed"), (e) => console.log("pending rejected", e.constructor.name));
+      await ctx.run("last step", () => 1);
+      return "done";
+    },
+    // The handler returns at once while a subscribed operation is still pending.
+    returnsAtOnce: async (ctx) => {
+      note("returnsAtOnce");
+      ctx.sleep(3000).then(() => console.log("pending completed"), (e) => console.log("pending rejected", e.constructor.name));
+      return "done";
+    },
     // The abandoned operation is joined into the current wait with a combinator.
     combined: async (ctx) => {
       note("combined");

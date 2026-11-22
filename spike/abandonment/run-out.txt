@@ -2,6 +2,8 @@ unsubscribed result "done"
 subscribedLonger result "done"
 subscribedShorter result "done"
 combined result "done"
+returnsWithPending result "done"
+returnsAtOnce result "done"
 ATTEMPT unsubscribed 1
 ATTEMPT subscribedLonger 1
 [Abandon/subscribedLonger] WARN: Error when processing a Restate context operation.
@@ -27,3 +29,9 @@ ATTEMPT combined 2
  Error: awaitNext already pending
 [Abandon/combined] INFO: Replaying invocation.
 ATTEMPT combined 3
+ATTEMPT returnsWithPending 1
+[Abandon/returnsWithPending] WARN: Error when processing a Restate context operation.
+ Error: awaitNext already pending
+[Abandon/returnsWithPending] INFO: Replaying invocation.
+ATTEMPT returnsWithPending 2
+ATTEMPT returnsAtOnce 1

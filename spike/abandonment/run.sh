@@ -11,8 +11,8 @@ trap cleanup EXIT
   "$server" --no-logo --listen-mode tcp --bind-ip 127.0.0.1 --bind-port 19893) > "$state/server.log" 2>&1 & server_pid=$!
 for _ in $(seq 1 40); do curl -fsS http://127.0.0.1:19890/health >/dev/null 2>&1 && break; sleep .25; done
 curl -fsS -H 'Content-Type: application/json' -d '{"uri":"http://127.0.0.1:19892"}' http://127.0.0.1:19890/deployments > /dev/null
-for h in unsubscribed subscribedLonger subscribedShorter combined; do
+for h in unsubscribed subscribedLonger subscribedShorter combined returnsWithPending returnsAtOnce; do
   printf '%s result ' "$h"; curl -sS --max-time 30 -H 'Content-Type: application/json' -d 'null' "http://127.0.0.1:19891/Abandon/$h"; echo
 done
-sleep 3
+sleep 5
 grep -E "ATTEMPT|old |awaitNext|WARN|Replaying" "$state/sdk.log" | sed -E 's/\[restate\]\[[^]]*\]//; s/\[inv_[^]]*\]//'
