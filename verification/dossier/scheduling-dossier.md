@@ -1,23 +1,24 @@
 # Deterministic scheduling dossier
 
-Approvals: statements (revision 2), approved by the owner on 2026-11-21 (#28) / dossier, not yet approved (rule: the default of two, because AGENTS.md sets none).
+Approvals:
+- statements: #37 revision 9, approved by the owner on 2026-11-22. That approval covers the statements as #37 words them. The Coq forms below are the main session's rendering of them. An independent review against #37 (step 2 review, 2026-11-22) approved them with fixes, which are applied. One fix, S9's overflow condition, changed #37's S9 wording, by the owner's decision of 2026-11-22;
+- dossier: not yet approved. The rule is the default of two approvals, because AGENTS.md sets none.
 
-This dossier defines the verification of the deterministic-scheduling design (#25, #27) and the time rule (#5) that it builds on. It follows the proof-dossier skill. The statements below are drafts for the owner's approval. No proof, model or implementation work starts on them until they are approved, and nothing built on them is adopted until the completed dossier is approved.
+Revision 3 of the dossier, for the model revision of #37. It replaces revision 2, whose statements were proved about a model that leaves out behaviour the design relies on (#30, findings #31 to #36). Revision 2 is kept in git history (4bbdd96); its statements and refutations are summarised under "Superseded: revision 2". Where this dossier and #37 disagree, #37 wins.
 
-## Verification layers
+## Verification links
 
-Each statement is backed by the strongest method that can reach it. The layers, from the most abstract to the code that ships:
+#37 sets five links, each established a different way:
 
-1. Kernel-checked proofs in Coq 8.20.1 of the core theorems about an abstract executor (S1 to S11), with each fiber modelled as an interaction tree from the Interaction Trees library (Xia et al., POPL 2020). The proof project is in `verification/proofs/`, separate from the package build, in a project-local opam switch with every version pinned. The project's pinned copy of the skill's Coq gate, `verification/proofs/gate/check-axioms-coq.sh`, gates it: a source scan for `Admitted`, `admit`, `Axiom`, `Parameter`, `Conjecture` and switched-off kernel checks, a clean build, the theorem list read back from Coq, an audit of the assumptions of every constant the modules declare, and the `Print Assumptions` report regenerated and compared. The gate's own tests pass, including a checker mutant.
-2. A TLA+ model checked with TLC of the executor together with the parts of Restate and the SDK the proofs abstract away: the journal, suspension, replay, cancellation and crashes at every point. It is bounded evidence, with its grammar and bounds fixed in the file before the first run, gated like oracle 3: it exits non-zero unless every invariant holds, each mutant fails the property it names, the state counts match pinned values, and a named state is reached.
-3. Environment fixtures that check each assumption the proofs make about effect 4.1.5 and the SDK (E1 to E8), against the installed packages. Each fixture asserts its result and has a mutant that makes it fail.
-4. Differential tests that link the implementation to an executable reference model. The reference model is written separately from the implementation and follows the Rocq definitions. fast-check generates programs from a grammar; each program runs on the reference model and on the implementation (real Effect runtime, fake journal), across live and replay attempts with randomised arrival timing, and the traces are compared.
-5. Live fixtures against a real Restate server in always-replay mode, with crashes injected at every journal index, for the cases the reviews found (F1 to F8, N1 to N6, D1 to D8) and for each statement's distinguishing example.
-6. De novo reviews of the statements before approval, of the completed proofs and model, and of the model-to-implementation gap, each by an independent reviewer who decides every claim from primary evidence.
+| Link | How it is established | State |
+|---|---|---|
+| The theorems about the executor model, for every runtime meeting the interface | Proved in Coq | Statements written (`verification/proofs/Executor/Statements.v`); no proof started |
+| Effect 4.1.5 meets each interface property | Conformance tests with failing mutants, bounded evidence; checked at runtime where the interface table says so | Grammar and bounds fixed below; not started |
+| The SDK and Restate behave as the executor model assumes | Live fixtures against SDK 1.18.4, bounded evidence | Listed below; not started |
+| The TypeScript executor implements the Coq executor model | Differential tests against the Coq executor extracted to JavaScript, bounded evidence | Not started; the executor is written as a total function so that it can be extracted |
+| The real stack replays deterministically | Property tests of S1's and S2's conclusions on the real executor, Effect and a fake journal, and Restate's own replay check | Not started |
 
-Revision 2 adds three checks the statement review found missing: fixtures that check the TLA+ model's account of the SDK against SDK 1.18.4 (the progress loops, when `run` actions execute, and which promise receives a cancellation); a review that reads the Rocq and TLA+ models side by side and records how each definition corresponds; and live fixtures for design rule 8 (actions on the default scheduler) and for the attempt-end interruption running inside a turn.
-
-Every test and check in layers 2 to 5 follows the gate-integrity skill's standard block: it asserts its results, fails on empty input against a declared inventory, has a scan floor with a named member, and has a checker mutant and case mutants.
+The proof project is in `verification/proofs/`, separate from the package build, in a project-local opam switch with every version pinned. The project's pinned copy of the skill's Coq gate, `verification/proofs/gate/check-axioms-coq.sh`, gates it: a source scan for `Admitted`, `admit`, `Axiom`, `Parameter`, `Conjecture` and switched-off kernel checks, a clean build, the theorem list read back from Coq, an audit of the assumptions of every constant the modules declare, and the `Print Assumptions` report regenerated and compared. Every test and check in the other links follows the gate-integrity skill's standard block: it asserts its results, fails on empty input against a declared inventory, has a scan floor with a named member, and has a checker mutant and case mutants.
 
 ## Prior art
 
@@ -35,114 +36,164 @@ Findings:
 
 Conclusion: no published result, mechanized or on paper, states S1 for cooperative fibers with run-to-quiescence delivery, or treats journaled clock and random samples within replay. S1, S3 to S8 and S10 must be derived. S2 cites Burckhardt et al. for its structure and is derived for this executor.
 
+The model revision of #37 adds two sources. Interaction Trees is no longer used by the new model: a task's run is a finite tree of the executor's events (`Script`), which needs no coinduction. The fiber runtime as a parameter of the proofs follows the owner's decision on #37 (third comment). The search of 2026-11-21 did not look for results stated over a runtime given only by an interface; that search is an open item.
+
+## The runtime interface
+
+`verification/proofs/Executor/Runtime.v`. A runtime is a state, an equivalence on states, an initial state for a program and seed, and a function that runs one task (start the root, run a queued task, deliver a result, a cancellation or a defect, request an interruption). Running a task gives a `Script`: events (start a durable operation with a token, release, queue a task with a priority, fiber exited, root exit), and questions the executor answers (clock, draw, and at a fiber's first run whether to interrupt it before its first step).
+
+| Property | Coq form | Used by | Why this form |
+|---|---|---|---|
+| I1. Determinism | `I1`: the equivalence is an equivalence, and from equivalent states a task gives related scripts; S1, S2 and S10 start from any state equivalent to the initial one | S1, S2, S3, S10 | A Coq runtime is a function, so equal states give equal scripts already. The equivalence makes the property the one the conformance suite tests: Effect's states in two processes are equivalent but not equal |
+| I2. Closed world | By construction | All | A script reaches the outside only through its events and questions |
+| I3. Guarded entry | By construction | S1, S3, S5 | A foreign resume or interruption is an input of the executor, which never passes it to the runtime |
+| I4. Release at unwind | `I4`: from any reachable state, a fiber that starts a durable operation reports nothing until the await ends by a delivery, a cancellation, a defect or its own release; and no token is started twice | S4, S11, X5, P3, P7, P8 | The token half is not in #37's wording; it is what "identified by an await token" requires, and P7 is false without it |
+| I5. Visible pending work | Not stated | none | No Coq statement depends on it. It is what makes S6's violation correct for Effect, which only the conformance suite can check |
+| I6. Exit reporting | `I6`: at most one root exit report; a second is also a violation the executor checks | S7, X6 | "After cleanup" is not stated, for I5's reason. "Exactly once" cannot hold over every task sequence, since a sequence may end before the root finishes; a runtime that never reports an exit meets `I6` and `I8`, and every verdict is then `VDefect` |
+| I7. Lifetime identities | `I7`: no identity registered twice; dependence on the state alone follows from I1 | S10 | |
+| I8. Fiber registry | `I8`: every entry attributed to a fiber follows its registration and none follows its exit | X6 | Registration is a question, so the executor can interrupt a fiber that registers during closing before its first step |
+| I9. Finite tasks | By construction | X6, all statements about turns | `Script` is inductive, so every task returns. Whether Effect's tasks return is the conformance suite's question |
+
+`Meets R` is the conjunction of `I1`, `I4`, `I6`, `I7` and `I8`. The properties quantify over every sequence of tasks, including sequences the executor never produces, so a runtime must also behave sensibly on those. The review of step 2 showed a trivial runtime meets `Meets`, and that the concrete runtime did not, because a second `StartRoot` restarted the root; the concrete runtime now ignores it. Proving `Meets concrete` is a proof obligation of step 3, and until it is proved the witnesses do not show that `Meets` is met by an interesting runtime.
+
 ## Definitions
 
-These are written informally here. Approval covers their meaning, and the Rocq definitions must match them. Revision 2 of the statements follows the statement review (ledger on #28).
+The executor model is `verification/proofs/Executor/Exec.v`, written as one total step function over a first-order state, beside the runtime's state and never inside it (X1 to X6). Its inputs (X1): the exogenous journal entries in the order Restate persisted them, the commands already persisted, foreign inputs placed by the executor's progress, the seeded random stream and the runtime's seed. What may differ between two attempts with the same inputs: when entries arrive, where the attempt is cut, and when a later attempt stops a closing after a cut. Revision 3's executor, for S9, is `Rev3.v`, written from revision 3's design text separately from `Exec.v`; it shares only the trace's types. The concrete runtime for the witnesses is `Concrete.v`.
 
-- **D1. Fiber.** A deterministic state machine. Each step is one of: a pure step; fork a fiber, either queued (its first step is a task on the queue, as with `Effect.forkChild`) or immediate (it runs nested inside the forking step until it blocks, as concurrent `Effect.forEach` and parallel scope finalizers do); read the clock; draw a random number; start a durable operation with a kind and arguments; await a durable operation; interrupt another fiber; run a finalizer; or finish. The next step depends only on the fiber's state and the values it has received. A fiber does not observe fiber ids.
-- **D2. Program.** A root fiber's initial state, together with every fiber forked from it, transitively. A program has no state shared with code outside its executor's turns (restriction R1).
-- **D3. Journal.** A finite sequence of entries: a command (a durable operation's kind and arguments, or a sample request), a completion (a value or a failure for an earlier command), a cancellation, or a sample value.
-- **D4. Environment.** It chooses each completion's value, each sample value, whether and when a cancellation arrives, when the attempt ends (suspension or crash), and, for the time rule, the true time and each host's clock error at every sample. In a live attempt it also chooses when each completion arrives. In a replay attempt it first supplies the journal prefix's entries in order, then behaves as in a live attempt. A mixed attempt is a replay attempt that continues live; the next attempt replays its journal.
-- **D5. Executor.** One per attempt. It has one queue of tasks for all of the program's fibers, run in turns. A turn belongs to one executor and runs as one synchronous JavaScript job, with no `await` inside it, until the queue is empty. When the operation a fiber awaits has completed, the executor delivers its result at the start of the next turn: it issues the time rule's sample command inside that turn, then resumes the fiber. An abandoned operation (its fiber was interrupted) is not delivered and gets no sample, and the executor stops listening to it. The attempt-end interruption also runs as a turn. The time rule of revision 4, one seeded random stream, and the violations of #25 and #27 complete the definition.
-- **D6. Trace.** The executor's externally visible actions in order: commands issued with their arguments, deliveries, clock values read, random values drawn, interruptions and finalizers run, violations, and the attempt's exit (success, failure, defect, suspension or crash).
-- **D7. Arrival schedule.** In a live attempt, the points in the executor's run at which each completion arrives. Attempts with the same values may have different arrival schedules.
-- **D8. Turn boundary.** A point between two turns of the same executor, at which its queue is empty.
-- **D9. Replay point.** For a replay of `J[0..k)`, the longest prefix of the replay's trace that consumes only entries of `J[0..k)`.
+Definitional choices, for the review and the dossier approval:
 
-Definitional choices to review:
-
-- The queue's order is priority first, then queue order, as in effect 4.1.5's `MixedScheduler`. The proofs assume that order is a function of the order tasks were queued.
-- At most one durable operation is awaited at a time. With more, the order of delivery would need its own statement.
-- Programs are finite, but fibers may loop. Statements about a whole attempt are about every finite prefix of it.
-- Cancellation is delivered to the awaited durable operation, and reported once (fixture on #20). E5b covers abandoned operations.
-- `L` is an integer. Every sleep longer than 2³¹ − 1 ms is a chain of durable sleeps of at most 2³¹ − 1 ms (#24, D7), and an infinite sleep is an endless chain.
-
-Definitional choices the Coq model added, for the dossier review (`verification/proofs/Scheduling/`):
-
-- The attempt's end is counted in progress steps, which exclude steps that wait for an arrival. Counted in raw steps, the same point would mean different amounts of work in a live attempt and its replay, and S1 would be false for a reason unrelated to the design.
-- S1 and S2 compare finite traces by prefix: any two runs are prefixes of each other. That is the dossier's choice that statements about a whole attempt are about every finite prefix.
-- The sample at delivery is taken in the same step as the delivery. In the implementation it is a journaled step that must complete, but delivery happens only at an empty queue, so no other fiber can run while it is awaited, and taking it at once gives the same interleaving.
-- Fibers share memory through `ReadRef` and `WriteRef`, standing for Effect's `Ref`, `Deferred` and `Queue`. Without them the model could not express review 3's D1, and S1 would hold vacuously for it.
-- The attempt-end turn records an interruption of every unfinished fiber and exits; finalizers that run after the attempt has ended are not modelled, because they can issue no durable operation.
-- Resumes from outside Restate are absent from D4's environment, so S1 to S4 and S6 to S11 quantify over it. S5 is stated over an extended environment that adds them.
-- A fiber has at most one task in the queue, and a task whose fiber is no longer `Ready` is dropped without running. A fiber that interrupts itself goes on running its finalizer in the same task, as Effect does.
-- Revision 3's executor, needed for S9, is the same executor with two switches changed (a `Policy`), so the two cannot drift apart: revision 3 sends a sleep of up to 2⁵³ − 1 ms whole and hangs where revision 4 records a violation.
+1. A task's script is a finite tree, so I9 holds by construction in the model.
+2. I1 is stated with an equivalence on runtime states, and S1, S2 and S10 start from any state equivalent to the initial one.
+3. Slices are not modelled. Foreign inputs and cuts may come between any two steps that act, which includes every point where a slice can end; the slice boundaries themselves cannot change a trace, which the review of #37 revision 9 backed with identical traces at slice sizes 1, 2,048 and unbounded.
+4. Foreign inputs, cuts and the stop of a closing after a cut are placed by `progress`, the count of executor steps that acted: a task, an entry consumed, a local turn or the end of closing. A step that waits is not counted, so the placement does not depend on when entries arrive. Counted by tasks only, a cut could not fall while a sample was pending.
+5. A fiber's registration is a question (`Register`) that the executor answers; during closing it answers "interrupt before the first step", as the adapter's creation hook calls `interruptUnsafe` at registration (X6.3). An earlier draft reported registration as an event, and the witness for a fork queued at the root's exit showed the fork's first step running before its interruption.
+6. No await token is started twice in an attempt (I4).
+7. A crash inside a task is modelled by trace prefixes: every statement compares finite prefixes, and cuts fall only between steps.
+8. A fiber cannot unwind while the sample after its operation is pending: the sample is issued at a turn boundary, and nothing runs until it is applied (step 2 review, F4; argument, to be a lemma in step 3). If it could, the sample would stay subscribed and be retired unapplied, with no credit, as the design's time rule says of a released operation. An earlier draft applied it and credited its chunk, which contradicted the design.
+9. A release drops any delivery already queued for that await, including a 0 ms sleep's, which an earlier draft left in the queue (step 2 review, F6).
+10. The trace records three things beyond what #37's trace lists, because the statements need them: `AStart` for each durable start, the fiber and token each command was issued for, and `L` and the credited chunk with each applied sample. The journal is only the commands' kinds and the samples' readings.
+11. A sleep of 0 ms or less issues nothing and is delivered by a queued task; it does not make its fiber the awaiter for S4.
+12. A transient sample failure is an `Ended` cut.
+13. The executor records only the first violation (X6). A foreign input during closing after the root's exit is a first violation and makes the verdict `VDefect`; #37 does not say this case.
+14. A replay that would issue a command different from the persisted one ends at once with `VMismatch`, without closing. The comparison is Restate's: a command's kind and a run's name, but not a run's arguments or a sleep's duration (#37's link table). An earlier draft compared durations too, which would have made the differential tests demand mismatches the SDK never raises.
+15. The initial sample is awaited before the root starts, so the root starts with `L` set (X2).
+16. Closing drops queued deliveries, discards a held cancellation, and queues the interruption of every live fiber before any task already queued.
+17. In the concrete runtime, interrupting a fiber waits for its exit, as Effect's `Fiber.interrupt` does (#34), and a cancellation or defect delivered to a fiber whose finalizer is already running ends the fiber. An earlier draft unwound the fiber into the same finalizer again, which the witness for a refused start in closing showed looping.
+18. Revision 3's executor credits a whole sleep of up to 2⁵³ − 1 ms as one floor; under S9's condition no sleep is longer than one link, so the floors coincide. It records a terminal sample failure as the same violation, since both designs make it a defect.
+19. `StartRoot` after the root exists does nothing in the concrete runtime (step 2 review, F3).
 
 ## Restrictions table
 
 | Restriction | Why believed harmless | Challenge example |
 |---|---|---|
-| R1. No code outside the executor's turns writes state a handler fiber reads | Handler state is local to the invocation. Shared state across invocations is outside the guarantee, column 3 of the design. | A `run` action that updates a handler `Ref` in its closure, or a service `Ref` built once in the runtime. The statement review showed the handler reads 1 or 0 depending on timing, with no violation. |
-| R2. Handler fibers keep the handler's `Scheduler` and `PreventSchedulerYield = false` | Overriding either is outside the guarantee, column 3 | With `PreventSchedulerYield` set, a step outside a turn takes effect before any violation is recorded (statement review, probe A) |
-| R3. A fiber does not observe fiber ids | Ids come from one counter shared by the whole process, so they differ between attempts | `Effect.fiberId` printed in a log or used as a key |
-| R4. One awaited durable operation at a time | v1 scope; more than one is #10 | `Effect.all` over two `run` steps, which v1 rejects with a defect |
-| R5. Task order is a function of queue order | `MixedScheduler` drains buckets in priority then queue order (`Scheduler.ts:217-271`) | An immediate fork, which runs nested and queues nothing; D1 models it as its own kind of step |
-| R6. The environment acts only through completions, samples, cancellation, attempt end and host time | Every other source is a violation or outside the guarantee | A `run` action's side effects, journaled only by their result |
-| R7. Daemon and detached fibers end with the attempt | The executor and its dispatcher end with the attempt | A `forkDetach` fiber still running when the attempt suspends; the design must interrupt it |
+| R1. No code outside the executor's slices writes state a handler fiber reads | Handler state is local to the invocation; shared state across invocations is outside the guarantee (column 3) | A `run` action, which can now run between two slices of a turn, updating a handler `Ref`; a finalizer of an ended attempt touching a semaphore a replay waits on (#37 revision 9 review) |
+| R2. Handler fibers keep the handler's `Scheduler`, `PreventSchedulerYield = false` and `MaxOpsBeforeYield` | Overriding any of them is outside the guarantee (column 3) | With `PreventSchedulerYield` set, a step outside a slice takes effect before any violation is recorded |
+| R3. A fiber does not observe fiber ids, or span or trace ids | Effect draws them from a process-wide counter or `Math.random`, so they differ between attempts; lint (#13) | A handler that branches on a span id drew 1 or 2 times (#37, final review) |
+| Hashing. Control flow does not depend on `HashSet` or `HashMap` iteration order, or `Equal` or `Hash` over values hashed by reference | Effect's `Hash.random` differs between processes; lint (#13) | Three processes gave three orders over `Data.TaggedError` values (#37, fifth review) |
+| R4. One fiber awaits a durable operation or waits for the slot at a time | v1 scope; more is #10 | `Effect.all` of a timeout around pure work and a durable sleep |
+| R5. No task priority other than 0 | A priority other than 0 is a violation, so task order is queue order | `Effect.yieldNowWith(1)` |
+| R6. The environment acts only through notifications, the cancel signal, cuts and foreign inputs | Every other source is a violation or outside the guarantee | A `run` action's side effects, journaled only by their result |
+| R7. A separate Effect runtime is not started inside handler code | Outside the guarantee (column 3) | A runtime started inside a turn can resume a handler fiber within it (#37, first review) |
+| R8. Handler code does not run synchronous code that never returns | Outside the guarantee (column 3); I9 | A loop inside one `Effect.sync` |
 
 ## Statements
 
-All are unresolved until proved or checked. Revision 2 corrects S1, S2, S3, S4, S7, S8 and S9 and adds S11.
+Labels and status for `verification/proofs/Executor/Statements.v`. Every statement is unresolved until proved; none is proved. The distinguishing examples are the witnesses in `Witnesses.v` and `Compare.v`.
 
-| Id | Statement | Target label | Method | Status | Distinguishing example |
+| Id | Statement (#37) | Coq | Target label | Status | Distinguishing example |
 |---|---|---|---|---|---|
-| S1 | Arrival independence. For any program that satisfies R1 to R3, and any two environments that supply the same completion values, sample values and cancellation, and end the attempt at the same point, the executor produces the same trace, whatever the two arrival schedules. If the attempts end at different points, the traces agree up to the earlier end. | derived | Rocq; TLC | proved (`s1`, `s1_end`); TLC not started | Review 3, D1: the child's progress at delivery was 20,000 live and 4,089 on replay under the old executor |
-| S2 | Replay determinism. For any attempt, live, replay or mixed, with journal `J`, and any `k ≤ |J|`, a replay of `J[0..k)` produces the same trace as the original up to the replay point (D9), and every command it issues at journal index `i < k` equals `J[i]`. | derived | Rocq (from S1 and D4); TLC with crashes at every index | proved (`s2`); TLC not started | Review 2, N2: `Effect.timeout` around pure work took different branches live and on replay |
-| S3 | Violations are trace events. Whether an attempt records a violation, and where in its trace, is determined by the program and the values supplied, except for a resume not issued by this executor: from outside Restate, or from another invocation. | derived | Rocq; TLC | proved (`s3`); TLC not started | Review 3, D2; statement review, probe C (a semaphore shared between invocations) |
-| S4 | Single await. At most one durable operation is awaited at any point. A second is a violation recorded at a point fixed by S3, its command is never issued, and its action never runs. | derived | Rocq | proved (`s4`) | `Effect.all([run a, run b], { concurrency: 2 })` fails at the same point in every attempt, and the journal holds only `a` |
-| S5 | Resumes not issued by the executor are detected. Assuming E1 and E2 and restriction R2, if a handler fiber takes a step outside a turn of its executor, the executor records a violation before that step's effect appears in the trace. | derived, relative to E1, E2 and R2 | Rocq, with E1 and E2 as hypotheses; fixtures for E1 and E2 | proved (`s5`, `s5_detects`) | `Effect.promise(() => fetch(...))` in a handler fails before the fetched value is used; with `PreventSchedulerYield` set, outside the guarantee |
-| S6 | Blocked means blocked forever. If the queue is empty, no durable operation or sample is awaited, and the root fiber has not finished, then nothing the environment supplies resumes any fiber, so the violation never preempts a durable result. | derived | Rocq | proved (`s6`) | `Effect.never` fails at once; a fiber awaiting a durable sleep whose result hasn't arrived does not fail |
-| S7 | Delivery. If the operation a fiber awaits has completed and its executor reaches a turn boundary, the next turn delivers that result. Every turn after the first starts with exactly one delivery or the attempt-end interruption, and nothing else. | derived | Rocq; TLC liveness under weak fairness | proved (`s7`, `s7_turns`); liveness by TLC not started | A completion that arrives during a long turn is delivered at that turn's end; an abandoned operation's completion is never delivered |
-| S8 | Time rule. `L` satisfies the time rule's claims P1 to P9 as restated in revision 4 of the design, for every arrival schedule: P9 becomes "a sleep above 2³¹ − 1 ms is a chain of durable sleeps of at most 2³¹ − 1 ms each, and an infinite sleep never completes", and P7 excludes abandoned operations. **P5 as approved is refuted**: see S8′. | derived for P2, P3, P4, P6, P8 and P9; P1 from S2; P5 and P7 under D4's host-time model | Rocq; oracle 3 kept as a regression gate after #26 | the Coq statement proved (`s8`): P2, P3, P4, P8 and P9, with S8′ for P5; P1 follows from S2; P6 and P7 have no Coq statement yet | Oracle 3's mutants, each of which must fail its claim |
-| S8′ | P5, corrected. `L` is at most the latest sample's true time plus the largest host error, plus the server-clock lead once for every durable sleep, when true time never decreases and each timer fires at most the lead early in true time. Replaces S8's P5; approved by the owner on 2026-11-21 (#29). | derived | Rocq (`S8_upper`) | proved (`s8_upper`) | Two 1 ms sleeps with no true time passing and a 1 ms lead: `L` is 102 against a single-lead bound of 101 (`p5_single_lead_refuted`) |
-| S9 | Single-fiber equivalence. For any program with one fiber that never blocks without a durable operation awaited and never sleeps longer than 2³¹ − 1 ms, the journal and the trace under the scheduled executor equal those under revision 3's executor. Outside those conditions they differ only as follows: rule 5 turns a hang into a defect, and long sleeps become chains. | derived | Rocq (both executors defined); TLC | proved (`s9`) with the Coq condition the owner approved on 2026-11-21, which replaces the one in #28 that an infinite sleep satisfied vacuously (`s9_old_condition_too_weak`); TLC not started | A sequential retry loop with jitter gives the same journal under both; `Effect.never` hangs under revision 3 and fails here |
-| S10 | Random replay. The sequence of random values each fiber draws is determined by the program and the values supplied. | derived, from S1 | Rocq | proved (`s10`) | Review 3's variant of D1 in which a branch adds or skips a draw |
-| S11 | Abandonment is silent. An abandoned operation's completion, or a cancellation delivered to it, changes no trace. | derived, relative to E5b | Rocq; fixture for E5b | proved (`s11`), in the form for every step the owner approved on 2026-11-21; the E5b fixture not started | `Effect.timeout` around pure work, whose abandoned durable timer completes later |
+| S1 | Two attempts with the same inputs agree up to their common cut, whatever the arrival schedule | `S1` | derived | not started | `released_operation_live_same`, `new_d1_live_equals_replay`; negative control `values_change_traces` |
+| S2 | A replay reissues the persisted commands or fails with a mismatch, and agrees with the original up to the common cut | `S2` | derived; cites Burckhardt et al. for its structure | not started | `crash_replay_completes`; negative control `different_journal_mismatches` |
+| S3 | A violation is at the same position wherever both traces reach it | `S3` | derived | not started | `foreign_position_matters` |
+| S4 | One awaiter and one subscription; a second start is a violation with no command | `S4` | derived | not started; an earlier form was refuted (see below) | `two_operations_at_once`, `unwound_waiter_is_removed` |
+| S5 | A foreign resume or interruption is recorded before any change, and the attempt exits `Defect` | `S5`, `S5_exit` | derived | not started | `foreign_resume_is_violation`, `foreign_interrupt_is_violation` |
+| S6 | The next transition at a turn boundary, by state | `S6` | derived | not started | `blocked_root_is_violation`, `held_cancellation_reaches_waiter` |
+| S7 | One cause per turn; the earliest eligible entry is handled next | `S7` | derived | not started | `cancel_during_sample_replaces_it` |
+| S8 | The time rule's claims P1 to P9 | `P2` to `P9`; P1 from S2 | derived; P5 under its hypotheses | not started | `long_sleep_is_a_chain`, `cancelled_link_credits_nothing`, `overflow_is_violation` |
+| S9 | Agreement with revision 3's executor under its conditions; they differ only when the cancel signal reaches a sample | `S9`, `S9_cancel` | derived | not started; an earlier form was refuted (see below) | `single_fiber_agrees_with_rev3`, `rev3_cancel_during_sample_is_defect`, `overflow_separates_rev3` |
+| S10 | Each fiber's draws agree up to the common cut | `S10` | derived, from S1 | not started | `values_change_traces` |
+| S11 | The subscription is the latest command; a retired command's notification changes nothing; closing consumes and issues nothing | `S11` | derived | not started | `cancel_during_sample_replaces_it` (the late value 99) |
 
-## Environment assumptions
+Notes on the Coq forms, for the review:
 
-The proofs treat these as hypotheses. Each one gets a fixture against the pinned packages (layer 3), with a mutant, and is checked again on every upgrade of effect or the SDK.
+- S4's second half, S6 and S7 are stated over the step function from reachable states, since turns are not objects in the model.
+- P7's second half, about the host's reading at an operation's completion, is P4 under the host's own hypothesis and has no separate Coq statement.
+- P5 states the early-fire hypothesis between consecutive applied samples, for credited chunks only (#35).
+- S9's conditions are read from the new executor's trace, the inputs and the schedule. Beyond #37's list they require no cut and a first attempt, because revision 3's executor models neither (replay is S2's subject for both), and no `L` above 2⁵³ − 1, because that is a violation here and not under revision 3 (`overflow_separates_rev3`). #37's S9 was amended to match.
+- Some forms say less than #37's wording, and the proofs will not recover the difference: S7 does not say "exactly one cause" or treat cuts and foreign inputs as causes; P7 asks for some applied sample after the operation's last command, which is the operation's own only through the single subscription; S10 compares each fiber's draws by prefix, which is what "the same sequence up to the common cut" means for finite prefixes; and I4 covers "before cleanup" only for cleanup the log attributes to the fiber.
 
-| Id | Assumption | Source to check | Fixture |
-|---|---|---|---|
-| E1 | The run loop calls `scheduler.shouldYield(fiber)` before every operation, except the first operation after an automatic yield and except when `PreventSchedulerYield` is set (R2) | `internal/effect.ts:696-707`; `Scheduler.ts:321`; `setContext` at `:803-805` | Count `shouldYield` calls against counted operations in generated programs |
-| E2 | Effect's own code inside a handler never resumes a fiber from a microtask or timer it creates itself, so every resume of a handler fiber comes from a turn of its executor or a callback outside Effect | effect 4.1.5 `internal/`: the statement review found timers only in the default `ClockImpl.sleep` (replaced in handlers), the scheduler's `setImmediate` and the runtime's keep-alive interval | Run every row of the design's "replays correctly" column under the scheduled executor with a detector that fails on any step outside a turn |
-| E3 | A queued fork's first step is a task on the parent's dispatcher (`internal/effect.ts:5648`), an immediate fork runs nested (`:5238`, `:4105`), and `yieldNow` queues a task (`:777`) | as cited | The statement review's `fork-immediate.mjs`, kept as a gate |
-| E4 | An asynchronous `Effect.callback` resume calls `fiber.evaluate` directly, and so does an interruption triggered by an `AbortSignal` (`:5797-5803`) | `internal/effect.ts:1222-1228`, `:5797-5803` | A callback resumed from a timer and an abort, each observed outside a turn |
-| E5 | The SDK reports a cancellation once, to an awaited operation, and later journaled steps succeed | Fixture on #20 | `spike/src/cancel-fixture.ts`, kept as a gate |
-| E5b | When the executor stops listening to an abandoned operation, a cancellation goes to the awaited operation and not to the abandoned one. Each promise with a continuation runs its own progress loop (`promises.js:35-37, 255-264`). | SDK 1.18.4 source; unverified | A live fixture with an abandoned durable sleep and an awaited operation, cancelled through the admin API |
-| E6 | On replay, the SDK resolves a journaled completion asynchronously, after the command has been issued | `restate-sdk/dist/promises.js` | A replay that records when each completion resolves |
-| E7 | The SDK truncates fractional sleep durations and wraps durations of 2⁶⁴ ms or more modulo 2⁶⁴ | `restate-sdk-core/dist/duration.js`; fixture on #20 | Kept as a gate, so an SDK change is noticed |
-| E8 | `Fiber.getCurrent()` reports the running fiber, including across nested inline evaluation | `internal/effect.ts:675-736`; review 3 | Nested-evaluation probe |
-| E9 | A `run` action executes later, in the SDK's progress loop, not when `ctx.run` is called | `restate-sdk/dist/context_impl.js:235-300` | A trace of when the action starts relative to the handler's turn |
+Refuted forms, kept (step 2 review, files in the review's scratch directory, each machine-checked):
+
+- S9 and S9_cancel as first written. A trivial runtime that meets `Meets` refutes both: a cut, a persisted journal that differs, a terminal sample failure and an initial sample of 2⁵³ + 3 each separate the two executors (`S9_false`, `S9_cancel_false`).
+- S4 as first written. Its second clause quantified over every state, and a state with an awaiter and an earlier violation recorded no `SecondOp` (`S4_false`); its first clause lacked `Meets`, and a runtime that reused a token broke it (`S4_clause1_false_without_Meets`).
+
+## The SDK side: live fixtures
+
+The environment assumptions of revision 2 map onto the interface and the fixtures. E1 and E4 now fall under I3, E2 under I2, E3 under I5 and E8 under I8, and the conformance suite tests them. E5b is refuted (#31) and replaced by the executor-owned subscription. E5, E6, E7 and E9 stay as SDK fixtures. #37 lists the live fixtures against SDK 1.18.4, each with a mutant that must make it fail:
+
+- a released operation held while a second fiber waits for the slot, across suspension and replay, with no error-driven retries;
+- a cancel signal while a released operation holds the slot, delivered to the waiting fiber with its command never issued;
+- a cancel signal with nothing subscribed, reaching the next command's wait;
+- the negative control: a subscription abandoned without the slot, which must fail;
+- the journal of a cancellation during a sample, with the late notification; a cancellation during the initial sample;
+- a terminal and a transient sample failure; a crash during a sample; callbacks after closing;
+- a handler ending with a released `run` step that never executes;
+- the earliest eligible entry winning at a turn boundary, live and on replay;
+- a forced suspension; a forced suspension during a long turn of pure work; a finalizer that runs in the closing after a suspension; a busy handler ended by Restate's abort timeout; and an uninterruptible finalizer loop whose closing stops when the next attempt starts.
+
+## The conformance suite: grammar and bounds
+
+Fixed here before the first run (#37). The suite generates programs with fast-check from the combinators in the design's "replays correctly" column, runs each under the executor's dispatcher, clock and random services with a scripted journal, and checks each interface property. Every property has the mutants #37 names, each a runtime adapter that breaks it and must make its test fail.
+
+Grammar. A program is a root fiber and up to three forked fibers. Each fiber's body is a sequence of one to six statements drawn from:
+
+- a durable `run` step of one of three kinds; a durable sleep of 0, 1 or 5 ms;
+- a `Clock` read; a `Random` draw;
+- `Effect.yieldNow`;
+- a loop of N steps with N in {1, 2, 2,049, 5,000}, so that a loop crosses `MaxOpsBeforeYield`;
+- `Effect.repeat` or `Effect.retry` with a zero-delay schedule of N steps, N as above;
+- `Effect.timeout` around pure work, with a 1 or 5 ms timeout, and the pure work a loop as above;
+- `Effect.race` of two pure loops, and of a durable operation against a pure loop;
+- `Effect.fail` and `Effect.die`, caught or uncaught;
+- `Effect.retry` and `Effect.repeat` with a 1 ms `spaced` schedule, plain or `jittered`, of up to three steps;
+- `Effect.timed`, `DateTime.now`, a log line, and `Effect.fn` with a span;
+- a call to another handler; `Effect.never`; and two fibers each awaiting a deferred the other completes, a deadlock;
+- `Effect.all` over pure work and at most one durable operation, with concurrency 2 or unbounded;
+- `Effect.forEach` with concurrency unbounded over 1 to 8 elements, each a loop as above, not nested inside another immediate fork;
+- `Effect.cached` around a loop;
+- `Ref.update` and `Ref.get` on one of two shared refs; `Deferred.succeed` and `Deferred.await` on one of two shared deferreds; `Queue.offer` and `Queue.take` on one shared queue;
+- `Effect.forkChild` or `Effect.forkDetach` of another fiber's body; `Fiber.join`, `Fiber.interrupt` and `Fiber.poll` on a forked fiber;
+- `Effect.uninterruptible` around a sub-sequence; `Effect.ensuring` and `Effect.acquireRelease` with a finalizer that is a sub-sequence of up to two statements, and may yield.
+
+Nesting depth is at most three.
+
+Journals. Each program runs against scripted journals in which every notification's value is drawn from {0, 1, 2}, and the cancel signal is absent or placed before any one of the first four notifications. Foreign resumes and interruptions are generated separately, for I3's tests.
+
+For I1, after each program ends, the test runs three further tasks from each final state, a queued task, a delivery and an interruption request, and their logs must match too, so that a private bit set early and read late is caught.
+
+Runs. Each property runs 1,000 programs for each of the pinned fast-check seeds 1 to 5, so 5,000 programs per property, and every mutant must fail within that budget. For I1 and I2, each program runs in three fresh Node processes and once more in a process that has already run another program from the same seed. I9's bound for a task is `MaxOpsBeforeYield` times the widest immediate fork plus one: 2,048 × 9 operations under this grammar, which allows no immediate fork inside another. Whether Effect's other combinators in the grammar fork immediately, and so nest, is to be checked against effect 4.1.5's source before the first run.
+
+This is bounded evidence. A property that passes here holds for these programs and these journals, not for every program.
 
 ## Non-vacuity
 
-Witnesses, each closed by evaluation in the kernel (`verification/proofs/Scheduling/Witnesses.v`):
+Witnesses, each closed by evaluation in the kernel (`vm_compute`), none using an axiom:
 
-- `d1_same_trace`: review 3's D1, a root that reads a cell a child writes 3,000 times (with an automatic yield) and branches on it, gives the same trace under a late live arrival and under replay.
-- `d1_reads_final_value`: in that trace the branch saw the child's final value.
-- `values_change_traces`: a negative control. Different sample values give different traces, so S1 does not hold because traces ignore their inputs.
+- `Witnesses.v`, 29 theorems on the concrete runtime: the slot after a release (#31) and its live run; a held cancellation; an unobserved cancellation; a cancellation during a sample (#32) and during the initial sample; a terminal sample failure; a crash during a sample and its replay; a journal mismatch; two operations at once; a priority other than 0 (#33); a blocked root; foreign resume, foreign interruption and a resume for a token not awaited; overflow of `L`; a masked await; interruption waiting for a finalizer (#34); a cancelled root; a fork registering during closing; a start refused during closing; finalizers after a suspension; a long sleep as a chain; a cancelled link that credits nothing (#35); agreement with revision 3; and two negative controls.
+- `Witnesses2.v`, 10 theorems added after the step 2 review: the stop of a closing when the next attempt starts; an `Ended` cut; a cut during closing; a foreign input during closing; a waiter that unwinds; an infinite sleep; a chain cancelled midway; a 0 ms sleep; overflow separating revision 3; and a 0 ms sleep's delivery dropped on release.
+- `Compare.v`, 8 theorems: #31, #34.1 and #34.2 on the old model (showing each finding) and on the new one, and review 3's D1 on the new model, whose old run is `d1_same_trace`.
 
-Refuted, and kept:
+Each witness states the expected trace or the fact it checks, and a mutated expected trace fails to compile, which was checked once by hand.
 
-- S11 against the model before its fourth fix. A root awaited one operation; one environment cancelled it and the other completed it. After two steps the operation was in `abandoned`, so S11's hypotheses held, but the traces differed (`CancelDelivered 0 0; Interrupted 0` against `Delivered 0 0 (Some (Value 7))`). `deliver` interrupted the fiber while the cancelled operation was still awaited, and `interrupt_fiber` recorded it as abandoned, against D5's meaning of the word. The refutation theorems were checked in the kernel and removed with the fix, which `cancelled_not_abandoned` now covers. The Coq form of S11 approved in #28 also concluded only for steps up to the abandonment; the owner approved the form for every step on 2026-11-21, and `abandonment_is_silent` is an instance of it.
-
-- P5 as approved (S8). `p5_single_lead_refuted`: two 1 ms sleeps whose timers fire with no true time passing leave `L` at 102 while true time is 100, beyond the single-lead bound of 101. The corrected statement is S8′.
-
-Four model bugs were found by running the model or by proving: it had no shared memory, so it could not express D1; and a fiber whose Coq fuel ran out at the same moment as its operation budget was stored without being queued again, so the child in D1 never finished. Both are fixed, and D1's witnesses cover both. The third: interrupting a fiber that was already queued queued it a second time, and the second task re-ran a fiber that had since blocked, so a program with one durable operation recorded `SecondAwait`. The fix queues a handle at most once (`enqueue`) and drops a queued task whose fiber is not `Ready` (`run_head`); the owner approved it on 2026-11-21, and `queued_twice_no_second_await` covers it. The fourth, found when S11 was refuted: a delivered cancellation was counted as an abandonment. `deliver` now stops awaiting a cancelled operation before it interrupts the fiber (`cancel`); the owner approved the fix on 2026-11-21.
+Not witnessed: a second root exit (`SecondExit`), which the concrete runtime never reports; and the fifth and sixth reviews' findings about a foreign-resumed continuation running during closing and its target changing the closing trace, which the model cannot express, because a foreign input never reaches the runtime (I3, by construction).
 
 ## Axioms report
 
-`verification/proofs/axioms-report.txt`, regenerated by the project's pinned gate, `verification/proofs/gate/check-axioms-coq.sh`, from `verification/proofs/theorems.txt`. Every theorem so far is closed under the global context: no axiom, including none from Interaction Trees, which the model uses only for its core `itree` type. The gate passes: 18 modules, 241 theorems, 553 constants audited, report unchanged. Before #36 the gate audited only the listed theorems, so a module-level hypothesis used by a definition passed it; no proof here was affected.
-
-## Oracles
-
-Oracle 3 is kept as a regression gate for the time rule once #26 gates every claim. The TLC model's grammar and bounds will be written here before its first run.
+`verification/proofs/axioms-report.txt`, regenerated by the project's pinned gate from `verification/proofs/theorems.txt`. Every theorem is closed under the global context: no axiom. The gate passes: 26 modules, 288 theorems, 1,312 constants audited, report unchanged. The new model's files declare no `Axiom`, `Parameter` or `Hypothesis`; the runtime is a record field of the statements, not an axiom.
 
 ## Model-to-implementation gap
 
-The link is differential (layer 4), with live fixtures (layer 5). The Rocq definitions are not extracted into the implementation. The differential tests compare the implementation's traces with an executable reference model that follows the Rocq definitions, on generated programs and randomised arrival schedules. A mismatch means either the implementation or the reference model is wrong, and each one found becomes a fixture. What stays unproved: that effect 4.1.5 and the SDK behave as E1 to E8 state outside the cases the fixtures run, and that the reference model matches the Rocq definitions, which a review checks by reading the two side by side.
+Per #37's implementation link. The Coq executor model will be extracted through OCaml and js_of_ocaml, and fast-check will drive it and the TypeScript executor with the same streams of runtime events and exogenous inputs, comparing their whole states at every step. Every Coq witness also runs on the extracted executor, compared with `vm_compute`. None of this exists yet. What the link cannot detect, and what covers it: the adapter's mapping from Effect to the interface's events (the conformance suite); how the TypeScript executor calls the SDK (the live fixtures and the end-to-end tests); process-level nondeterminism (the conformance suite's separate processes); errors in extraction itself (the extracted-against-`vm_compute` check); and sequences the generators leave out (only the end-to-end tests' determinism check).
 
 ## Proof toolchain
 
@@ -159,12 +210,14 @@ The owner chose Coq with Interaction Trees on 2026-11-21, provided the toolchain
 
 What it brings in: Interaction Trees' axioms, which the `Print Assumptions` report will list for every theorem that uses them and which need the owner's approval. What it ties us to: Interaction Trees' release cycle for any move to Rocq 9, which is its own dependency review. The Kahn-network development is cited, not imported, because it targets a 2009 version of Coq.
 
+Interaction Trees is now used only by the superseded revision 2 model in `Scheduling/`, which stays in the project so that `Compare.v` can run the earlier findings on it.
+
+## Superseded: revision 2
+
+Revision 2's statements S1 to S11 and S8′ were proved about the model in `verification/proofs/Scheduling/` (241 theorems at 0050227). The fourth de novo review (#30) found that model leaves out behaviour the design relies on: a pending sample (#32), the SDK's single pending subscription (#31), turn boundaries for cuts and foreign resumes (#33), Effect's interruption and exits (#34), and the forms of six statements (#35). Those theorems therefore do not count as the verification. They and the model stay in the project, unchanged, as the old side of `Compare.v`. Its two refutations stay on record: S11 before the model's fourth fix, and P5 as first approved (`p5_single_lead_refuted`), which S8′ replaced and #37's P5 keeps.
+
 ## Open items
 
-- The fourth de novo review (#30) rejected the verification at ca22341. Its findings are #31 to #36; until they are closed, the theorems are about a model that leaves out behaviour the design relies on.
-- The owner should review the definitional choices the Coq model added, at the latest when approving the completed dossier.
-- S9 needs its single-fiber hypothesis. In an evaluation, not a proof, a root that forks a child sleeping forever and then awaits an operation records `SecondAwait` under revision 4 and succeeds under revision 3, with S9's other hypotheses holding.
-- S1 holds without its hypothesis that arrival schedules are monotone (`s1_any_schedule`). The executor reads the schedule only at a turn boundary with an operation awaited, to choose between delivering and waiting, and waiting changes nothing a trace records. So S1 follows from D5's turn structure, and its value for the implementation rests on the differential tests (layer 4) showing that the implementation keeps that structure.
-- Three behaviours of the Coq model found while proving, for that review. Interrupting the root through a cancellation ends the attempt with `Exited Succeeded`, because the model has no interrupted exit. `Interrupt` does not wait for the target's finalizer, so the interrupting fiber can read a cell before the finalizer writes it; whether Effect's `Fiber.interrupt` waits in effect 4.1.5 is not yet checked against its source. In S5's extended environment, a resume aimed at a fiber that is not waiting outside makes the step wait, so a source that does this at every step stops all progress.
-- Revision 4 of the design must absorb the statement review's design changes: per-executor synchronous turns, the sample issued at delivery, no sample for an abandoned operation and no listener on it, R1 and R2 in column 3, immediate forks, and the end of daemon fibers with the attempt.
-
+- Step 3's proof obligations beyond the statements: `Meets concrete`, and the lemma behind definitional choice 8.
+- A prior-art search for correctness results stated over a runtime given only by an interface.
+- The owner's review of the definitional choices, at the latest when approving the completed dossier.

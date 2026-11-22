@@ -1,4 +1,5 @@
 -R Scheduling Scheduling
+-R Executor Durable
 Scheduling/Model.v
 Scheduling/Executor.v
 Scheduling/Statements.v
@@ -17,3 +18,11 @@ Scheduling/Abandonment.v
 Scheduling/SingleFiberLemmas.v
 Scheduling/SingleFiber.v
 Scheduling/TimeRule.v
+Executor/Runtime.v
+Executor/Exec.v
+Executor/Concrete.v
+Executor/Rev3.v
+Executor/Statements.v
+Executor/Witnesses.v
+Executor/Witnesses2.v
+Executor/Compare.v
