@@ -8,3 +8,6 @@ _opam/
 .nia.cache
 Makefile.conf
 CoqMakefile.conf
+Makefile.coq
+Makefile.coq.conf
+.Makefile.coq.d

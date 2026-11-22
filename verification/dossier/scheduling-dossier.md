@@ -1,6 +1,6 @@
 # Deterministic scheduling dossier
 
-Approvals: statements, not yet approved / dossier, not yet approved (rule: the default of two, because AGENTS.md sets none).
+Approvals: statements (revision 2), approved by the owner on 2026-11-21 (#28) / dossier, not yet approved (rule: the default of two, because AGENTS.md sets none).
 
 This dossier defines the verification of the deterministic-scheduling design (#25, #27) and the time rule (#5) that it builds on. It follows the proof-dossier skill. The statements below are drafts for the owner's approval. No proof, model or implementation work starts on them until they are approved, and nothing built on them is adopted until the completed dossier is approved.
 
@@ -57,6 +57,16 @@ Definitional choices to review:
 - Cancellation is delivered to the awaited durable operation, and reported once (fixture on #20). E5b covers abandoned operations.
 - `L` is an integer. Every sleep longer than 2³¹ − 1 ms is a chain of durable sleeps of at most 2³¹ − 1 ms (#24, D7), and an infinite sleep is an endless chain.
 
+Definitional choices the Coq model added, for the dossier review (`verification/proofs/Scheduling/`):
+
+- The attempt's end is counted in progress steps, which exclude steps that wait for an arrival. Counted in raw steps, the same point would mean different amounts of work in a live attempt and its replay, and S1 would be false for a reason unrelated to the design.
+- S1 and S2 compare finite traces by prefix: any two runs are prefixes of each other. That is the dossier's choice that statements about a whole attempt are about every finite prefix.
+- The sample at delivery is taken in the same step as the delivery. In the implementation it is a journaled step that must complete, but delivery happens only at an empty queue, so no other fiber can run while it is awaited, and taking it at once gives the same interleaving.
+- Fibers share memory through `ReadRef` and `WriteRef`, standing for Effect's `Ref`, `Deferred` and `Queue`. Without them the model could not express review 3's D1, and S1 would hold vacuously for it.
+- The attempt-end turn records an interruption of every unfinished fiber and exits; finalizers that run after the attempt has ended are not modelled, because they can issue no durable operation.
+- Resumes from outside Restate are absent from D4's environment, so S1 to S4 and S6 to S11 quantify over it. S5 is stated over an extended environment that adds them.
+- Revision 3's executor, needed for S9, is the same executor with two switches changed (a `Policy`), so the two cannot drift apart: revision 3 sends a sleep of up to 2⁵³ − 1 ms whole and hangs where revision 4 records a violation.
+
 ## Restrictions table
 
 | Restriction | Why believed harmless | Challenge example |
@@ -82,7 +92,8 @@ All are unresolved until proved or checked. Revision 2 corrects S1, S2, S3, S4, 
 | S5 | Resumes not issued by the executor are detected. Assuming E1 and E2 and restriction R2, if a handler fiber takes a step outside a turn of its executor, the executor records a violation before that step's effect appears in the trace. | derived, relative to E1, E2 and R2 | Rocq, with E1 and E2 as hypotheses; fixtures for E1 and E2 | not started | `Effect.promise(() => fetch(...))` in a handler fails before the fetched value is used; with `PreventSchedulerYield` set, outside the guarantee |
 | S6 | Blocked means blocked forever. If the queue is empty, no durable operation or sample is awaited, and the root fiber has not finished, then nothing the environment supplies resumes any fiber, so the violation never preempts a durable result. | derived | Rocq | not started | `Effect.never` fails at once; a fiber awaiting a durable sleep whose result hasn't arrived does not fail |
 | S7 | Delivery. If the operation a fiber awaits has completed and its executor reaches a turn boundary, the next turn delivers that result. Every turn after the first starts with exactly one delivery or the attempt-end interruption, and nothing else. | derived | Rocq; TLC liveness under weak fairness | not started | A completion that arrives during a long turn is delivered at that turn's end; an abandoned operation's completion is never delivered |
-| S8 | Time rule. `L` satisfies the time rule's claims P1 to P9 as restated in revision 4 of the design, for every arrival schedule: P9 becomes "a sleep above 2³¹ − 1 ms is a chain of durable sleeps of at most 2³¹ − 1 ms each, and an infinite sleep never completes", and P7 excludes abandoned operations. | derived for P2, P3, P4, P6, P8 and P9; P1 from S2; P5 and P7 under D4's host-time model | Rocq; oracle 3 kept as a regression gate after #26 | not started | Oracle 3's mutants, each of which must fail its claim |
+| S8 | Time rule. `L` satisfies the time rule's claims P1 to P9 as restated in revision 4 of the design, for every arrival schedule: P9 becomes "a sleep above 2³¹ − 1 ms is a chain of durable sleeps of at most 2³¹ − 1 ms each, and an infinite sleep never completes", and P7 excludes abandoned operations. **P5 as approved is refuted**: see S8′. | derived for P2, P3, P4, P6, P8 and P9; P1 from S2; P5 and P7 under D4's host-time model | Rocq; oracle 3 kept as a regression gate after #26 | not started | Oracle 3's mutants, each of which must fail its claim |
+| S8′ | P5, corrected. `L` is at most the latest sample's true time plus the largest host error, plus the server-clock lead once for every durable sleep, when true time never decreases and each timer fires at most the lead early in true time. Proposed to replace S8's P5; awaits the owner's approval. | derived | Rocq (`S8_upper`) | not started | Two 1 ms sleeps with no true time passing and a 1 ms lead: `L` is 102 against a single-lead bound of 101 (`p5_single_lead_refuted`) |
 | S9 | Single-fiber equivalence. For any program with one fiber that never blocks without a durable operation awaited and never sleeps longer than 2³¹ − 1 ms, the journal and the trace under the scheduled executor equal those under revision 3's executor. Outside those conditions they differ only as follows: rule 5 turns a hang into a defect, and long sleeps become chains. | derived | Rocq (both executors defined); TLC | not started | A sequential retry loop with jitter gives the same journal under both; `Effect.never` hangs under revision 3 and fails here |
 | S10 | Random replay. The sequence of random values each fiber draws is determined by the program and the values supplied. | derived, from S1 | Rocq | not started | Review 3's variant of D1 in which a branch adds or skips a draw |
 | S11 | Abandonment is silent. An abandoned operation's completion, or a cancellation delivered to it, changes no trace. | derived, relative to E5b | Rocq; fixture for E5b | not started | `Effect.timeout` around pure work, whose abandoned durable timer completes later |
@@ -106,11 +117,21 @@ The proofs treat these as hypotheses. Each one gets a fixture against the pinned
 
 ## Non-vacuity
 
-Each theorem must come with witnesses: programs that satisfy its hypotheses and produce nontrivial traces (D1, N1, N2 and D2 from the reviews, as instances), and negative controls that the model rejects (the old executor's behaviour on the same programs, defined in Rocq and shown to violate S1 and S2).
+Witnesses, each closed by evaluation in the kernel (`verification/proofs/Scheduling/Witnesses.v`):
+
+- `d1_same_trace`: review 3's D1, a root that reads a cell a child writes 3,000 times (with an automatic yield) and branches on it, gives the same trace under a late live arrival and under replay.
+- `d1_reads_final_value`: in that trace the branch saw the child's final value.
+- `values_change_traces`: a negative control. Different sample values give different traces, so S1 does not hold because traces ignore their inputs.
+
+Refuted, and kept:
+
+- P5 as approved (S8). `p5_single_lead_refuted`: two 1 ms sleeps whose timers fire with no true time passing leave `L` at 102 while true time is 100, beyond the single-lead bound of 101. The corrected statement is S8′.
+
+Two model bugs were found by running the model before any proof: it had no shared memory, so it could not express D1; and a fiber whose Coq fuel ran out at the same moment as its operation budget was stored without being queued again, so the child in D1 never finished. Both are fixed, and D1's witnesses cover both.
 
 ## Axioms report
 
-Not started. The proof project will commit `axioms-report.txt` and `theorems.txt`, and the Rocq port of `check-axioms.sh` will gate them. Any axiom the `Print Assumptions` report lists needs the owner's approval, including the ones Interaction Trees and paco rely on, which the report will name.
+`verification/proofs/axioms-report.txt`, regenerated by the proof-dossier skill's `check-axioms-coq.sh` from `verification/proofs/theorems.txt`. Every theorem so far is closed under the global context: no axiom, including none from Interaction Trees, which the model uses only for its core `itree` type. The gate passes: 4 modules, 4 theorems, report unchanged.
 
 ## Oracles
 
@@ -137,6 +158,6 @@ What it brings in: Interaction Trees' axioms, which the `Print Assumptions` repo
 
 ## Open items
 
-- The owner must approve the statements S1 to S11, the definitions D1 to D9, the restrictions R1 to R7, and the assumptions E1 to E9.
+- The owner must approve S8′, which replaces S8's refuted P5, and should review the definitional choices the Coq model added.
 - Revision 4 of the design must absorb the statement review's design changes: per-executor synchronous turns, the sample issued at delivery, no sample for an abandoned operation and no listener on it, R1 and R2 in column 3, immediate forks, and the end of daemon fibers with the attempt.
 

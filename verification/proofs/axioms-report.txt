@@ -1,0 +1,8 @@
+== Scheduling.Witnesses.d1_reads_final_value
+Closed under the global context
+== Scheduling.Witnesses.d1_same_trace
+Closed under the global context
+== Scheduling.Witnesses.p5_single_lead_refuted
+Closed under the global context
+== Scheduling.Witnesses.values_change_traces
+Closed under the global context
