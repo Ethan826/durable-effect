@@ -6,3 +6,5 @@ Scheduling/Witnesses.v
 Scheduling/SingleStepLemmas.v
 Scheduling/SingleStepInvariants.v
 Scheduling/SingleStep.v
+Scheduling/ExecutorLemmas.v
+Scheduling/Arrival.v
