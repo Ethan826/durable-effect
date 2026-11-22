@@ -28,6 +28,14 @@ Closed under the global context
 Closed under the global context
 == Scheduling.Arrival.stutter_end
 Closed under the global context
+== Scheduling.Determinism.compatible_nth
+Closed under the global context
+== Scheduling.Determinism.draws_of_prefix
+Closed under the global context
+== Scheduling.Determinism.s10
+Closed under the global context
+== Scheduling.Determinism.s3
+Closed under the global context
 == Scheduling.ExecutorLemmas.deliver_prefix
 Closed under the global context
 == Scheduling.ExecutorLemmas.deliver_set_micro
@@ -97,6 +105,54 @@ Closed under the global context
 == Scheduling.ExecutorLemmas.violate_set_micro
 Closed under the global context
 == Scheduling.ExecutorLemmas.with_fibers_set_micro
+Closed under the global context
+== Scheduling.Replay.beyond_app
+Closed under the global context
+== Scheduling.Replay.beyond_mono
+Closed under the global context
+== Scheduling.Replay.cut_app_clean
+Closed under the global context
+== Scheduling.Replay.cut_app_dirty
+Closed under the global context
+== Scheduling.Replay.cut_clean
+Closed under the global context
+== Scheduling.Replay.cut_cons_clean
+Closed under the global context
+== Scheduling.Replay.cut_cons_dirty
+Closed under the global context
+== Scheduling.Replay.cut_frozen
+Closed under the global context
+== Scheduling.Replay.cut_mono
+Closed under the global context
+== Scheduling.Replay.deliver_diverge
+Closed under the global context
+== Scheduling.Replay.deliver_env
+Closed under the global context
+== Scheduling.Replay.deliver_shape
+Closed under the global context
+== Scheduling.Replay.deliver_sleep_env
+Closed under the global context
+== Scheduling.Replay.diverge_lists
+Closed under the global context
+== Scheduling.Replay.frozen_below
+Closed under the global context
+== Scheduling.Replay.lockstep
+Closed under the global context
+== Scheduling.Replay.prefix_common
+Closed under the global context
+== Scheduling.Replay.replay_cut_mono
+Closed under the global context
+== Scheduling.Replay.resume_trace
+Closed under the global context
+== Scheduling.Replay.run_fiber_env
+Closed under the global context
+== Scheduling.Replay.run_head_env
+Closed under the global context
+== Scheduling.Replay.s2
+Closed under the global context
+== Scheduling.Replay.sample_lists
+Closed under the global context
+== Scheduling.Replay.step_diverge
 Closed under the global context
 == Scheduling.SingleStep.deliver_sleep_logical
 Closed under the global context
