@@ -1,0 +1,13 @@
+replay {"value":37,"synchronous":false}
+wrap "completed"
+wait cancel 
+wait result {"cancelled":"CancelledError","a":11,"b":12}
+sample cancel 
+sample result {"cancelled":"CancelledError","retrySample":23}
+two:unsubscribed cancel 
+two:unsubscribed result {"cancelled":"CancelledError"}
+two:subscribed cancel 
+two:subscribed result {"cancelled":false}
+ Error: awaitNext already pending
+ Error: awaitNext already pending
+old rejected CancelledError false

@@ -1,0 +1,31 @@
+versions 4.1.5 1.18.4
+priority [ 'yield p=-1', 'queued p=0', 'second queued p=0' ]
+E3/E8 [
+  'inline child identity',
+  'parent restored',
+  'queued child',
+  'parent after yield'
+]
+interrupt [ [ 'after interrupt:', 1 ] ]
+E1/E4 callback [ 'guard outside', 'callback body' ]
+E1/E4 abort [
+  'guard outside',
+  'guard outside',
+  'guard outside',
+  'guard outside',
+  'abort finalizer',
+  'guard outside'
+]
+E2 cache case [ 'cache body' ]
+E6 SDK JS layer sync after attaching -> replayed journaled value
+E5b mocked VM [ [ 'progress', 1 ], [ 'progress', 2 ] ] [ [ 1, 'CancelledError', false ] ]
+E9 mocked VM [
+  [ 'command', 'review' ],
+  'returned from run',
+  'progress executes closure',
+  'action'
+]
+E7 JS conversion 1
+number precision 9007199254740992 9007199254740992 0
+normal finalizer [ 'normal' ]
+attempt root fiber ids 11 12

@@ -1,0 +1,172 @@
+     = ([SampleCommand 0; Sampled 0 100; Command 0 0 4 11; 
+         SampleCommand 1; Sampled 1 100; Delivered 0 0 (Some (Value 9));
+         Command 1 0 4 42; SampleCommand 2; Sampled 2 100;
+         Delivered 1 0 (Some (Value 9)); ClockRead 0 100; 
+         Exited Succeeded],
+        [SampleCommand 0; Sampled 0 100; Command 0 0 4 11; 
+         SampleCommand 1; Sampled 1 100; Delivered 0 0 (Some (Value 9));
+         Command 1 0 4 42; SampleCommand 2; Sampled 2 100;
+         Delivered 1 0 (Some (Value 9)); ClockRead 0 100; 
+         Exited Succeeded],
+        [SampleCommand 0; Sampled 0 100; Command 0 0 4 11],
+        [SampleCommand 0; Sampled 0 100; Command 0 0 4 11; 
+         SampleCommand 1; Sampled 1 100; Delivered 0 0 (Some (Value 9));
+         Command 1 0 4 42])
+     : list Action * list Action * list Action * list Action
+     = ([SampleCommand 0; Sampled 0 100; Command 0 0 4 11; 
+         Interrupted 0; Interrupted 1; Exited Suspended], [1],
+        [SampleCommand 0; Sampled 0 100; Command 0 0 4 11; Exited Crashed])
+     : list Action * list nat * list Action
+     = ([SampleCommand 0; Sampled 0 100; Command 0 0 4 11; 
+         SampleCommand 1; Sampled 1 100; Delivered 0 0 (Some (Value 9));
+         ClockRead 0 100; Exited Succeeded],
+        [SampleCommand 0; Sampled 0 100; Command 0 0 4 11; 
+         SampleCommand 1; Sampled 1 100], [SampleCommand 0],
+        [SampleCommand 0; Sampled 0 100; Command 0 0 4 11; Exited Crashed],
+        [SampleCommand 0; Sampled 0 100; Command 0 0 4 11; 
+         SampleCommand 1; Sampled 1 100; Delivered 0 0 (Some (Value 9));
+         ClockRead 0 100; Exited Succeeded])
+     : list Action * list Action * list Action * list Action * list Action
+     = ([SampleCommand 0; Sampled 0 100; Command 0 0 4 11;
+         Violated SecondAwait; Exited Defect],
+        [SampleCommand 0; Sampled 0 100; Command 0 0 4 11],
+        [SampleCommand 0; Sampled 0 100; Command 0 0 4 11;
+         Violated SecondAwait; Exited Defect], true,
+        [SampleCommand 0; Sampled 0 100; Command 0 0 4 11; 
+         SampleCommand 1; Sampled 1 100; CancelDelivered 0 0; 
+         Interrupted 0; Exited Succeeded])
+     : list Action * list Action * list Action * bool * list Action
+     = ([SampleCommand 0; Sampled 0 100; Command 0 0 4 11;
+         Violated StepOutsideTurn; Exited Defect],
+        [SampleCommand 0; Sampled 0 100; Command 0 0 4 11;
+         Violated StepOutsideTurn; Exited Defect],
+        [SampleCommand 0; Sampled 0 100],
+        [SampleCommand 0; Sampled 0 100; Violated BlockedWithNothingAwaited;
+         Exited Defect], [SampleCommand 0; Sampled 0 100; Command 0 0 4 11])
+     : list Action * list Action * list Action * list Action * list Action
+     = ([SampleCommand 0; Sampled 0 100; Command 0 0 4 11],
+        [SampleCommand 0; Sampled 0 100; Command 0 0 4 11; 
+         SampleCommand 1; Sampled 1 100; Delivered 0 0 (Some (Value 9))],
+        [SampleCommand 0; Sampled 0 100; Command 0 0 4 11; 
+         SampleCommand 1; Sampled 1 100; Delivered 0 0 (Some (Value 9));
+         Exited Crashed],
+        [SampleCommand 0; Sampled 0 100; SleepCommand 0 0 2147483647;
+         SampleCommand 1; Sampled 1 100; SleepCommand 1 0 1], [],
+        [SampleCommand 0; Sampled 0 100; SleepCommand 0 0 2147483647;
+         SampleCommand 1; Sampled 1 100; SleepCommand 1 0 1; 
+         SampleCommand 2; Sampled 2 100; Delivered 1 0 None;
+         ClockRead 0 2147483748; Exited Succeeded])
+     : list Action * list Action * list Action * list Action * list nat *
+       list Action
+     = ([SampleCommand 0; Sampled 0 100; Command 0 0 4 11; 
+         SampleCommand 1; Sampled 1 90; Delivered 0 0 (Some (Value 9));
+         ClockRead 0 100; Exited Succeeded],
+        [SampleCommand 0; Sampled 0 100; Command 0 0 4 11; 
+         SampleCommand 1; Sampled 1 100; Delivered 0 0 (Some (Failure 9));
+         ClockRead 0 100; Exited Succeeded],
+        [SampleCommand 0; Sampled 0 100; SleepCommand 0 0 2147483647;
+         SampleCommand 1; Sampled 1 100; CancelDelivered 0 0; 
+         Interrupted 0; Exited Succeeded],
+        [SampleCommand 0; Sampled 0 100; SleepCommand 0 0 2147483647;
+         SampleCommand 1; Sampled 1 100; SleepCommand 1 0 2147483647;
+         SampleCommand 2; Sampled 2 100; SleepCommand 2 0 2147483647;
+         SampleCommand 3; Sampled 3 100; SleepCommand 3 0 2147483647;
+         SampleCommand 4; Sampled 4 100; SleepCommand 4 0 2147483647],
+        [SampleCommand 0; Sampled 0 100; SleepCommand 0 0 1; 
+         SampleCommand 1; Sampled 1 100; Delivered 0 0 None;
+         SleepCommand 1 0 1; SampleCommand 2; Sampled 2 100;
+         Delivered 1 0 None; ClockRead 0 102; Exited Succeeded],
+        [SampleCommand 0; Sampled 0 100; ClockRead 0 100; Exited Succeeded])
+     : list Action * list Action * list Action * list Action * list Action *
+       list Action
+     = ([SampleCommand 0; Sampled 0 100; Command 0 0 4 11; 
+         SampleCommand 1; Sampled 1 100; Delivered 0 0 (Some (Value 9));
+         ClockRead 0 100; Exited Succeeded],
+        [SampleCommand 0; Sampled 0 100; Command 0 0 4 11; 
+         SampleCommand 1; Sampled 1 100; Delivered 0 0 (Some (Value 9));
+         ClockRead 0 100; Exited Succeeded],
+        [SampleCommand 0; Sampled 0 100], [SampleCommand 0; Sampled 0 100],
+        [SampleCommand 0; Sampled 0 100; Violated BlockedWithNothingAwaited;
+         Exited Defect], [SampleCommand 0; Sampled 0 100],
+        [SampleCommand 0; Sampled 0 100; SleepCommand 0 0 2147483648;
+         SampleCommand 1; Sampled 1 100; Delivered 0 0 None;
+         ClockRead 0 2147483748; Exited Succeeded],
+        [SampleCommand 0; Sampled 0 100],
+        [SampleCommand 0; Sampled 0 100; Command 0 0 4 11; 
+         SampleCommand 1; Sampled 1 100; CancelDelivered 0 0; 
+         Interrupted 0; Exited Succeeded])
+     : list Action * list Action * list Action * list Action * list Action *
+       list Action * list Action * list Action * list Action
+     = ([SampleCommand 0; Sampled 0 100; Command 0 0 4 11; 
+         Drawn 1 7; SampleCommand 1; Sampled 1 100;
+         Delivered 0 0 (Some (Value 9)); Drawn 0 7; 
+         Exited Succeeded],
+        [SampleCommand 0; Sampled 0 100; Command 0 0 4 11; 
+         Drawn 1 7; SampleCommand 1; Sampled 1 100;
+         Delivered 0 0 (Some (Value 9)); Drawn 0 7; 
+         Exited Succeeded], [7; 8], [7; 8])
+     : list Action * list Action * list nat * list nat
+     = ([0],
+        [SampleCommand 0; Sampled 0 100; Command 0 1 4 12; 
+         Interrupted 1; Command 1 0 4 11; SampleCommand 1; 
+         Sampled 1 100; Delivered 1 0 (Some (Value 9)); 
+         ClockRead 0 100; Exited Succeeded],
+        [SampleCommand 0; Sampled 0 100; Command 0 1 4 12; 
+         Interrupted 1; Command 1 0 4 11; SampleCommand 1; 
+         Sampled 1 100; Delivered 1 0 (Some (Value 9)); 
+         ClockRead 0 100; Exited Succeeded],
+        [SampleCommand 0; Sampled 0 100; Command 0 1 4 12; 
+         Interrupted 1; Command 1 0 4 11; SampleCommand 1; 
+         Sampled 1 100; Delivered 1 0 (Some (Value 9)); 
+         ClockRead 0 100; Exited Succeeded])
+     : list nat * list Action * list Action * list Action
+     = ([SampleCommand 0; Sampled 0 100; Command 0 1 4 12], true,
+        [SampleCommand 0; Sampled 0 100; Exited Succeeded],
+        [SampleCommand 0; Sampled 0 100; Command 0 1 4 12; 
+         Interrupted 1; Command 1 0 4 0; ClockRead 1 100; 
+         SampleCommand 1; Sampled 1 100; Delivered 1 0 (Some (Value 9));
+         Exited Succeeded],
+        [SampleCommand 0; Sampled 0 100; ClockRead 1 100; 
+         Drawn 0 7; Exited Succeeded])
+     : list Action * bool * list Action * list Action * list Action
+     = ([SampleCommand 0; Sampled 0 100],
+        [SampleCommand 0; Sampled 0 100; Drawn 1 7; 
+         ClockRead 2 100; Exited Succeeded],
+        [SampleCommand 0; Sampled 0 100; Command 0 0 4 11; 
+         SampleCommand 1; Sampled 1 100; Delivered 0 0 (Some (Value 9));
+         Exited Succeeded],
+        [SampleCommand 0; Sampled 0 100; Command 0 0 4 11; 
+         Interrupted 0; Exited Suspended])
+     : list Action * list Action * list Action * list Action
+     = ([SampleCommand 0; Sampled 0 9007199254740992; 
+         SleepCommand 0 0 1; SampleCommand 1; Sampled 1 9007199254740992;
+         Delivered 0 0 None; ClockRead 0 9007199254740993; 
+         Exited Succeeded],
+        (Some (AwaitSleep 0 0 2147483647 (Remaining 1)), false, 100%Z))
+     : list Action * (option Awaited * bool * Z)
+     = (100%Z, 110%Z, false)
+     : Z * Z * bool
+     = ([SampleCommand 0; Sampled 0 100; Command 0 0 4 11; SampleCommand 1],
+        Some (0, 0))
+     : list Action * option (nat * nat)
+     = ([0],
+        [SampleCommand 0; Sampled 0 100; Violated StepOutsideTurn;
+         Exited Defect],
+        [SampleCommand 0; Sampled 0 100; ClockRead 0 100; Exited Succeeded],
+        [SampleCommand 0; Sampled 0 100; Command 0 0 4 11; 
+         SampleCommand 1; Sampled 1 100; Delivered 0 0 (Some (Value 9));
+         ClockRead 0 100; Exited Succeeded],
+        [SampleCommand 0; Sampled 0 100; Command 0 0 4 11; 
+         SampleCommand 1; Sampled 1 100; Delivered 0 0 (Some (Value 9));
+         ClockRead 0 100; Exited Succeeded])
+     : list nat * list Action * list Action * list Action * list Action
+     = ([SampleCommand 0; Sampled 0 100; Command 0 0 4 13; 
+         SampleCommand 1; Sampled 1 100; Delivered 0 0 (Some (Value 9));
+         Command 1 0 4 11; Violated SecondAwait; Exited Defect],
+        [SampleCommand 0; Sampled 0 100; Command 0 0 4 13])
+     : list Action * list Action
+     = ([SampleCommand 0; Sampled 0 100; Command 0 0 4 11; Exited Crashed],
+        [SampleCommand 0; Sampled 0 100; Command 0 0 4 11; 
+         SampleCommand 1; Sampled 1 100; Delivered 0 0 (Some (Value 9));
+         Interrupted 0; Exited Suspended])
+     : list Action * list Action
