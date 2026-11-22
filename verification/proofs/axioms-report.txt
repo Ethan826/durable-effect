@@ -462,6 +462,8 @@ Closed under the global context
 Closed under the global context
 == Scheduling.SingleStepLemmas.violate_holds
 Closed under the global context
+== Scheduling.TimeRule.s8
+Closed under the global context
 == Scheduling.Witnesses.abandonment_is_silent
 Closed under the global context
 == Scheduling.Witnesses.cancelled_not_abandoned
