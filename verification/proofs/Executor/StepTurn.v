@@ -209,10 +209,17 @@ Proof.
       - split; [fields; congruence | apply step_nce_refl]. }
     destruct Hy as [P1 N1]; destruct (IH (stream I (draws x)) _ P1) as [P2 N2]; split; auto.
     eapply step_nce_trans; eauto.
-  - assert (P1 : phase (set_live x (live x ++ [f])) <> POpen) by (fields; auto).
+  - set (y := match phase x with PDone => x | _ => emit x (ARegister f) end).
+    assert (Hy : phase y <> POpen /\ no_cmd_ext x y).
+    { unfold y; destruct (phase x) eqn:E; [congruence | |];
+        (split; [fields; congruence | try apply step_nce_emit; try apply step_nce_refl]);
+        reflexivity. }
+    destruct Hy as [P0 N0].
+    assert (P1 : phase (set_live y (live y ++ [f])) <> POpen) by (fields; auto).
     destruct (IH (match phase x with PClosing _ => true | _ => false end) _ P1) as [P2 N2];
       split; [exact P2 |].
-    apply (step_nce_trans _ (set_live x (live x ++ [f])));
+    apply (step_nce_trans _ y); [exact N0 |].
+    apply (step_nce_trans _ (set_live y (live y ++ [f])));
       [apply step_nce_same; reflexivity | exact N2].
 Qed.
 
