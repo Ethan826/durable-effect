@@ -1,6 +1,6 @@
-== Scheduling.Abandonment.deliver_after
-Closed under the global context
 == Scheduling.Abandonment.Inv0_initial
+Closed under the global context
+== Scheduling.Abandonment.deliver_after
 Closed under the global context
 == Scheduling.Abandonment.no_delivery
 Closed under the global context
@@ -10,41 +10,41 @@ Closed under the global context
 Closed under the global context
 == Scheduling.AbandonmentLemmas.After_closed
 Closed under the global context
-== Scheduling.AbandonmentLemmas.deliver_hold
+== Scheduling.AbandonmentLemmas.Has_closed
+Closed under the global context
+== Scheduling.AbandonmentLemmas.Inv0_closed
+Closed under the global context
+== Scheduling.AbandonmentLemmas.J_tick
 Closed under the global context
 == Scheduling.AbandonmentLemmas.deliver_J
+Closed under the global context
+== Scheduling.AbandonmentLemmas.deliver_hold
 Closed under the global context
 == Scheduling.AbandonmentLemmas.end_attempt_hold
 Closed under the global context
 == Scheduling.AbandonmentLemmas.fold_interrupt_hold
 Closed under the global context
-== Scheduling.AbandonmentLemmas.Has_closed
-Closed under the global context
 == Scheduling.AbandonmentLemmas.hold_tick
 Closed under the global context
 == Scheduling.AbandonmentLemmas.interrupt_hold
 Closed under the global context
-== Scheduling.AbandonmentLemmas.Inv0_closed
+== Scheduling.AbandonmentLemmas.iterate_J
 Closed under the global context
 == Scheduling.AbandonmentLemmas.iterate_add
 Closed under the global context
 == Scheduling.AbandonmentLemmas.iterate_hold
 Closed under the global context
-== Scheduling.AbandonmentLemmas.iterate_J
-Closed under the global context
-== Scheduling.AbandonmentLemmas.J_tick
-Closed under the global context
 == Scheduling.AbandonmentLemmas.reachable_J
 Closed under the global context
 == Scheduling.AbandonmentLemmas.run_fiber_hold
 Closed under the global context
-== Scheduling.AbandonmentLemmas.run_head_hold
-Closed under the global context
 == Scheduling.AbandonmentLemmas.run_head_J
 Closed under the global context
-== Scheduling.AbandonmentLemmas.step_hold
+== Scheduling.AbandonmentLemmas.run_head_hold
 Closed under the global context
 == Scheduling.AbandonmentLemmas.step_J
+Closed under the global context
+== Scheduling.AbandonmentLemmas.step_hold
 Closed under the global context
 == Scheduling.Arrival.end_attempt_finished
 Closed under the global context
@@ -54,9 +54,9 @@ Closed under the global context
 Closed under the global context
 == Scheduling.Arrival.interrupt_fiber_trace
 Closed under the global context
-== Scheduling.Arrival.replay_prefix
-Closed under the global context
 == Scheduling.Arrival.replay_S
+Closed under the global context
+== Scheduling.Arrival.replay_prefix
 Closed under the global context
 == Scheduling.Arrival.replays_compatible
 Closed under the global context
@@ -108,9 +108,9 @@ Closed under the global context
 Closed under the global context
 == Scheduling.ExecutorLemmas.interrupt_fiber_set_micro
 Closed under the global context
-== Scheduling.ExecutorLemmas.iterate_prefix
-Closed under the global context
 == Scheduling.ExecutorLemmas.iterate_S
+Closed under the global context
+== Scheduling.ExecutorLemmas.iterate_prefix
 Closed under the global context
 == Scheduling.ExecutorLemmas.prefix_app
 Closed under the global context
@@ -244,6 +244,8 @@ Closed under the global context
 Closed under the global context
 == Scheduling.S8Upper.sleeps_sample
 Closed under the global context
+== Scheduling.S8UpperLemmas.U_closed
+Closed under the global context
 == Scheduling.S8UpperLemmas.end_attempt_frame
 Closed under the global context
 == Scheduling.S8UpperLemmas.find_fiber_in
@@ -272,8 +274,6 @@ Closed under the global context
 Closed under the global context
 == Scheduling.S8UpperLemmas.sleeps_snoc
 Closed under the global context
-== Scheduling.S8UpperLemmas.U_closed
-Closed under the global context
 == Scheduling.SingleFiber.cancel_SF
 Closed under the global context
 == Scheduling.SingleFiber.deliver_SF
@@ -298,9 +298,11 @@ Closed under the global context
 Closed under the global context
 == Scheduling.SingleFiber.turn_one
 Closed under the global context
+== Scheduling.SingleFiber.violate_SF
+Closed under the global context
 == Scheduling.SingleFiber.violate_in
 Closed under the global context
-== Scheduling.SingleFiber.violate_SF
+== Scheduling.SingleFiberLemmas.SF_intro
 Closed under the global context
 == Scheduling.SingleFiberLemmas.fiber_ok_set
 Closed under the global context
@@ -318,7 +320,11 @@ Closed under the global context
 Closed under the global context
 == Scheduling.SingleFiberLemmas.run_fiber_one
 Closed under the global context
-== Scheduling.SingleFiberLemmas.SF_intro
+== Scheduling.SingleStep.Lfix_closed
+Closed under the global context
+== Scheduling.SingleStep.Pre_closed
+Closed under the global context
+== Scheduling.SingleStep.Pre_snoc
 Closed under the global context
 == Scheduling.SingleStep.deliver_sleep_logical
 Closed under the global context
@@ -329,12 +335,6 @@ Closed under the global context
 == Scheduling.SingleStep.interrupt_trace
 Closed under the global context
 == Scheduling.SingleStep.iterate_ends_detected
-Closed under the global context
-== Scheduling.SingleStep.Lfix_closed
-Closed under the global context
-== Scheduling.SingleStep.Pre_closed
-Closed under the global context
-== Scheduling.SingleStep.Pre_snoc
 Closed under the global context
 == Scheduling.SingleStep.s4
 Closed under the global context
@@ -374,12 +374,6 @@ Closed under the global context
 Closed under the global context
 == Scheduling.SingleStepInvariants.C_plain
 Closed under the global context
-== Scheduling.SingleStepInvariants.cleared_some
-Closed under the global context
-== Scheduling.SingleStepInvariants.in_snoc
-Closed under the global context
-== Scheduling.SingleStepInvariants.iterate_holds
-Closed under the global context
 == Scheduling.SingleStepInvariants.M_closed
 Closed under the global context
 == Scheduling.SingleStepInvariants.M_closed_turn
@@ -390,6 +384,22 @@ Closed under the global context
 Closed under the global context
 == Scheduling.SingleStepInvariants.N_snoc
 Closed under the global context
+== Scheduling.SingleStepInvariants.W_closed
+Closed under the global context
+== Scheduling.SingleStepInvariants.W_closed_turn
+Closed under the global context
+== Scheduling.SingleStepInvariants.W_nil
+Closed under the global context
+== Scheduling.SingleStepInvariants.W_quiet
+Closed under the global context
+== Scheduling.SingleStepInvariants.W_start
+Closed under the global context
+== Scheduling.SingleStepInvariants.cleared_some
+Closed under the global context
+== Scheduling.SingleStepInvariants.in_snoc
+Closed under the global context
+== Scheduling.SingleStepInvariants.iterate_holds
+Closed under the global context
 == Scheduling.SingleStepInvariants.open_cons
 Closed under the global context
 == Scheduling.SingleStepInvariants.open_nil
@@ -398,9 +408,9 @@ Closed under the global context
 Closed under the global context
 == Scheduling.SingleStepInvariants.reachable_C
 Closed under the global context
-== Scheduling.SingleStepInvariants.reachable_holds
-Closed under the global context
 == Scheduling.SingleStepInvariants.reachable_W
+Closed under the global context
+== Scheduling.SingleStepInvariants.reachable_holds
 Closed under the global context
 == Scheduling.SingleStepInvariants.single_await_snoc
 Closed under the global context
@@ -415,16 +425,6 @@ Closed under the global context
 == Scheduling.SingleStepInvariants.step_unfold
 Closed under the global context
 == Scheduling.SingleStepInvariants.turn_holds
-Closed under the global context
-== Scheduling.SingleStepInvariants.W_closed
-Closed under the global context
-== Scheduling.SingleStepInvariants.W_closed_turn
-Closed under the global context
-== Scheduling.SingleStepInvariants.W_nil
-Closed under the global context
-== Scheduling.SingleStepInvariants.W_quiet
-Closed under the global context
-== Scheduling.SingleStepInvariants.W_start
 Closed under the global context
 == Scheduling.SingleStepLemmas.cancel_holds
 Closed under the global context
