@@ -274,6 +274,52 @@ Closed under the global context
 Closed under the global context
 == Scheduling.S8UpperLemmas.U_closed
 Closed under the global context
+== Scheduling.SingleFiber.cancel_SF
+Closed under the global context
+== Scheduling.SingleFiber.deliver_SF
+Closed under the global context
+== Scheduling.SingleFiber.end_attempt_SF
+Closed under the global context
+== Scheduling.SingleFiber.finish_SF
+Closed under the global context
+== Scheduling.SingleFiber.initial_SF
+Closed under the global context
+== Scheduling.SingleFiber.reachable_SF
+Closed under the global context
+== Scheduling.SingleFiber.resume_SF
+Closed under the global context
+== Scheduling.SingleFiber.run_head_one
+Closed under the global context
+== Scheduling.SingleFiber.s9
+Closed under the global context
+== Scheduling.SingleFiber.step_one
+Closed under the global context
+== Scheduling.SingleFiber.tick_SF
+Closed under the global context
+== Scheduling.SingleFiber.turn_one
+Closed under the global context
+== Scheduling.SingleFiber.violate_in
+Closed under the global context
+== Scheduling.SingleFiber.violate_SF
+Closed under the global context
+== Scheduling.SingleFiberLemmas.fiber_ok_set
+Closed under the global context
+== Scheduling.SingleFiberLemmas.find_one
+Closed under the global context
+== Scheduling.SingleFiberLemmas.find_one_inv
+Closed under the global context
+== Scheduling.SingleFiberLemmas.interrupt_one
+Closed under the global context
+== Scheduling.SingleFiberLemmas.no_forks_cases
+Closed under the global context
+== Scheduling.SingleFiberLemmas.no_forks_ret
+Closed under the global context
+== Scheduling.SingleFiberLemmas.put_one
+Closed under the global context
+== Scheduling.SingleFiberLemmas.run_fiber_one
+Closed under the global context
+== Scheduling.SingleFiberLemmas.SF_intro
+Closed under the global context
 == Scheduling.SingleStep.deliver_sleep_logical
 Closed under the global context
 == Scheduling.SingleStep.deliver_trace
