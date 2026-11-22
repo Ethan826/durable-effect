@@ -1,3 +1,97 @@
+== Durable.Compare.new_cancelled_root_is_interrupted
+Closed under the global context
+== Durable.Compare.new_d1_live_equals_replay
+Closed under the global context
+== Durable.Compare.new_d1_reads_final_value
+Closed under the global context
+== Durable.Compare.new_parent_reads_after_finalizer
+Closed under the global context
+== Durable.Compare.new_waits_for_released_operation
+Closed under the global context
+== Durable.Compare.old_cancelled_root_succeeds
+Closed under the global context
+== Durable.Compare.old_issues_second_while_first_pending
+Closed under the global context
+== Durable.Compare.old_parent_reads_before_finalizer
+Closed under the global context
+== Durable.Witnesses.blocked_root_is_violation
+Closed under the global context
+== Durable.Witnesses.cancel_during_initial_sample_is_held
+Closed under the global context
+== Durable.Witnesses.cancel_during_sample_replaces_it
+Closed under the global context
+== Durable.Witnesses.cancelled_link_credits_nothing
+Closed under the global context
+== Durable.Witnesses.cancelled_root_exits_interrupted
+Closed under the global context
+== Durable.Witnesses.crash_during_sample_cuts
+Closed under the global context
+== Durable.Witnesses.crash_replay_completes
+Closed under the global context
+== Durable.Witnesses.different_journal_mismatches
+Closed under the global context
+== Durable.Witnesses.foreign_interrupt_is_violation
+Closed under the global context
+== Durable.Witnesses.foreign_position_matters
+Closed under the global context
+== Durable.Witnesses.foreign_resume_is_violation
+Closed under the global context
+== Durable.Witnesses.fork_registering_in_closing_never_steps
+Closed under the global context
+== Durable.Witnesses.held_cancellation_reaches_waiter
+Closed under the global context
+== Durable.Witnesses.interrupt_waits_for_finalizer
+Closed under the global context
+== Durable.Witnesses.long_sleep_is_a_chain
+Closed under the global context
+== Durable.Witnesses.masked_await_is_delivered
+Closed under the global context
+== Durable.Witnesses.nonzero_priority_is_violation
+Closed under the global context
+== Durable.Witnesses.overflow_is_violation
+Closed under the global context
+== Durable.Witnesses.released_operation_holds_slot
+Closed under the global context
+== Durable.Witnesses.released_operation_live_same
+Closed under the global context
+== Durable.Witnesses.rev3_cancel_during_sample_is_defect
+Closed under the global context
+== Durable.Witnesses.single_fiber_agrees_with_rev3
+Closed under the global context
+== Durable.Witnesses.start_in_closing_is_refused
+Closed under the global context
+== Durable.Witnesses.suspension_runs_finalizers
+Closed under the global context
+== Durable.Witnesses.terminal_sample_failure_is_defect
+Closed under the global context
+== Durable.Witnesses.two_operations_at_once
+Closed under the global context
+== Durable.Witnesses.unawaited_resume_is_violation
+Closed under the global context
+== Durable.Witnesses.unobserved_cancel_reaches_next_command
+Closed under the global context
+== Durable.Witnesses.values_change_traces
+Closed under the global context
+== Durable.Witnesses2.chain_cancelled_midway
+Closed under the global context
+== Durable.Witnesses2.cut_during_closing_continues
+Closed under the global context
+== Durable.Witnesses2.ended_cut_closes
+Closed under the global context
+== Durable.Witnesses2.foreign_during_closing_is_defect
+Closed under the global context
+== Durable.Witnesses2.infinite_sleep_is_endless_chain
+Closed under the global context
+== Durable.Witnesses2.next_attempt_stops_closing
+Closed under the global context
+== Durable.Witnesses2.overflow_separates_rev3
+Closed under the global context
+== Durable.Witnesses2.unwound_waiter_is_removed
+Closed under the global context
+== Durable.Witnesses2.zero_sleep_issues_nothing
+Closed under the global context
+== Durable.Witnesses2.zero_sleep_release_drops_delivery
+Closed under the global context
 == Scheduling.Abandonment.Inv0_initial
 Closed under the global context
 == Scheduling.Abandonment.deliver_after
