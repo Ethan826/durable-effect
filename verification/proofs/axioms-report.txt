@@ -1,3 +1,11 @@
+== Scheduling.AbandonmentRefuted.cancelled_counted_abandoned
+Closed under the global context
+== Scheduling.AbandonmentRefuted.differ_only_at_first
+Closed under the global context
+== Scheduling.AbandonmentRefuted.s11_all_steps_refuted
+Closed under the global context
+== Scheduling.AbandonmentRefuted.s11_refuted
+Closed under the global context
 == Scheduling.Arrival.end_attempt_finished
 Closed under the global context
 == Scheduling.Arrival.end_attempt_trace
@@ -153,6 +161,74 @@ Closed under the global context
 == Scheduling.Replay.sample_lists
 Closed under the global context
 == Scheduling.Replay.step_diverge
+Closed under the global context
+== Scheduling.S8Upper.chunk_bound
+Closed under the global context
+== Scheduling.S8Upper.delivery_facts
+Closed under the global context
+== Scheduling.S8Upper.inv8_deliver_op
+Closed under the global context
+== Scheduling.S8Upper.inv8_deliver_sleep
+Closed under the global context
+== Scheduling.S8Upper.inv8_end_attempt
+Closed under the global context
+== Scheduling.S8Upper.inv8_finish
+Closed under the global context
+== Scheduling.S8Upper.inv8_frame
+Closed under the global context
+== Scheduling.S8Upper.inv8_initial
+Closed under the global context
+== Scheduling.S8Upper.inv8_interrupt
+Closed under the global context
+== Scheduling.S8Upper.inv8_link
+Closed under the global context
+== Scheduling.S8Upper.inv8_resume
+Closed under the global context
+== Scheduling.S8Upper.inv8_run_head
+Closed under the global context
+== Scheduling.S8Upper.inv8_sample
+Closed under the global context
+== Scheduling.S8Upper.inv8_step
+Closed under the global context
+== Scheduling.S8Upper.inv8_tick
+Closed under the global context
+== Scheduling.S8Upper.inv8_turn
+Closed under the global context
+== Scheduling.S8Upper.inv8_violate
+Closed under the global context
+== Scheduling.S8Upper.s8_upper
+Closed under the global context
+== Scheduling.S8Upper.sleeps_sample
+Closed under the global context
+== Scheduling.S8UpperLemmas.end_attempt_frame
+Closed under the global context
+== Scheduling.S8UpperLemmas.find_fiber_in
+Closed under the global context
+== Scheduling.S8UpperLemmas.find_fiber_none
+Closed under the global context
+== Scheduling.S8UpperLemmas.fold_interrupt_frame
+Closed under the global context
+== Scheduling.S8UpperLemmas.frame_await
+Closed under the global context
+== Scheduling.S8UpperLemmas.frame_clear
+Closed under the global context
+== Scheduling.S8UpperLemmas.frame_same
+Closed under the global context
+== Scheduling.S8UpperLemmas.frame_trans
+Closed under the global context
+== Scheduling.S8UpperLemmas.hs_put
+Closed under the global context
+== Scheduling.S8UpperLemmas.interrupt_frame
+Closed under the global context
+== Scheduling.S8UpperLemmas.lead_products
+Closed under the global context
+== Scheduling.S8UpperLemmas.reserve_range
+Closed under the global context
+== Scheduling.S8UpperLemmas.run_fiber_frame
+Closed under the global context
+== Scheduling.S8UpperLemmas.sleeps_snoc
+Closed under the global context
+== Scheduling.S8UpperLemmas.U_closed
 Closed under the global context
 == Scheduling.SingleStep.deliver_sleep_logical
 Closed under the global context
