@@ -346,13 +346,17 @@ Proof.
       unfold y; destruct (phase x) eqn:P; auto;
         apply (step_sinv_same _ x); fields; auto.
   - set (b := match phase x with PClosing _ => true | _ => false end) in *.
-    replace (L ++ LRegister f b :: ilog I (set_live x (live x ++ [f])) (k b))
-      with ((L ++ [LRegister f b]) ++ ilog I (set_live x (live x ++ [f])) (k b)) in *
+    set (y := match phase x with PDone => x | _ => emit x (ARegister f) end) in *.
+    replace (L ++ LRegister f b :: ilog I (set_live y (live y ++ [f])) (k b))
+      with ((L ++ [LRegister f b]) ++ ilog I (set_live y (live y ++ [f])) (k b)) in *
       by (rewrite <- app_assoc; reflexivity).
+    assert (HY : IInv y) by (unfold y; destruct (phase x); auto; apply step_iinv_emit; auto).
+    assert (SY : SInv L y)
+      by (unfold y; destruct (phase x) eqn:P; auto; apply (step_sinv_same _ x); fields; auto).
     apply IH; [| | exact Hnd].
-    + destruct HI as [H1 H2]; split; [apply step_inv_set_live |]; auto.
+    + destruct HY as [H1 H2]; split; [apply step_inv_set_live |]; auto.
     + apply (step_sinv_mono L); [| intros; apply step_mono_app; auto].
-      apply (step_sinv_same _ x); fields; auto.
+      apply (step_sinv_same _ y); fields; auto.
 Qed.
 
 Lemma step_ainv_head : forall x t rest L, Inv x -> phase x = POpen ->

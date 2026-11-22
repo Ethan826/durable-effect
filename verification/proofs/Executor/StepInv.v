@@ -371,7 +371,10 @@ Proof.
   - apply IH; destruct (phase x); auto; apply step_iinv_emit; auto.
   - apply IH; destruct (phase x); try exact HI; apply step_iinv_emit; try reflexivity;
       apply step_iinv_set_draws; exact HI.
-  - apply IH; destruct HI as [H1 H2]; split; [apply step_inv_set_live |]; auto.
+  - apply IH.
+    assert (H1 : IInv (match phase x with PDone => x | _ => emit x (ARegister f) end))
+      by (destruct (phase x); auto; apply step_iinv_emit; auto).
+    destruct H1 as [H1 H2]; split; [apply step_inv_set_live |]; auto.
 Qed.
 
 (** The state a task's script starts from. *)

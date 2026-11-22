@@ -34,7 +34,8 @@ Fixpoint ilog {X} (I : Inputs) (x : XState) (s : Script X) : list LogEntry :=
       LDraw f r :: ilog I x1 (k r)
   | Register f k =>
       let closing := match phase x with PClosing _ => true | _ => false end in
-      LRegister f closing :: ilog I (set_live x (live x ++ [f])) (k closing)
+      let x1 := match phase x with PDone => x | _ => emit x (ARegister f) end in
+      LRegister f closing :: ilog I (set_live x1 (live x1 ++ [f])) (k closing)
   end.
 
 (** ** Answer tables *)
@@ -236,7 +237,7 @@ Proof.
   - destruct H as [H | H]; [| eauto].
     inversion H; subst.
     apply step_interp_closed; fields.
-    destruct (phase x); congruence.
+    destruct (phase x) eqn:E; try congruence; fields; congruence.
 Qed.
 
 Lemma step_elog_register : forall R I Sch n s f,
