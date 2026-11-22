@@ -277,7 +277,22 @@ Definition P8 : Prop :=
 
 Definition S8 : Prop := P2 /\ P3 /\ P4 /\ P5 /\ P6 /\ P7 /\ P8 /\ P9.
 
-(** ** S9. Agreement with revision 3's executor *)
+(** ** S9. Agreement with revision 3's executor: refuted, kept on record
+
+    S9 and S9_cancel below are false, and Rev3Counter.v proves their negations, together with
+    those of the two earlier forms. By the owner's decision of 2026-11-22, S9 is not a theorem
+    of the verification. The executor differs from revision 3's, on programs with one fiber,
+    in these ways, each shown by a theorem closed by evaluation:
+    - a cancel signal that reaches a sample issues a replacement, where revision 3 records a
+      defect ([rev3_cancel_during_sample_is_defect] in Witnesses.v);
+    - an [L] above 2^53 - 1 is a violation ([overflow_separates_rev3] in Witnesses2.v);
+    - after a violation the attempt closes and its finalizers run, where revision 3 stops
+      ([rev3_clock_fin_runs] in Rev3Counter.v);
+    - a release reported without an interruption leaves the slot held, where revision 3
+      records a second operation ([rev3_spontaneous_diverges] in Rev3Counter.v);
+    - a fiber that is still registered when the root exits makes the verdict [VDefect]
+      ([rev3_masked_child_diverges] in Rev3Counter.v).
+    They agree where none of these arises ([single_fiber_agrees_with_rev3] in Witnesses.v). *)
 
 (** The actions attributed to a fiber other than the root. *)
 Definition other_fiber (a : Action) : bool :=
