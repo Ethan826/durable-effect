@@ -1,3 +1,265 @@
+== Durable.Arrival.arrival_before_cut_follow
+Closed under the global context
+== Durable.Arrival.arrival_compatible_ideal
+Closed under the global context
+== Durable.Arrival.arrival_draws_app
+Closed under the global context
+== Durable.Arrival.arrival_nth_compatible
+Closed under the global context
+== Durable.Arrival.arrival_run_from_init
+Closed under the global context
+== Durable.Arrival.arrival_s1
+Closed under the global context
+== Durable.Arrival.arrival_s10
+Closed under the global context
+== Durable.Arrival.arrival_s3
+Closed under the global context
+== Durable.Arrival.arrival_start_srel
+Closed under the global context
+== Durable.ArrivalBase.arrival_cursor_set_micro
+Closed under the global context
+== Durable.ArrivalBase.arrival_emit_micro
+Closed under the global context
+== Durable.ArrivalBase.arrival_next_cmd_set_micro
+Closed under the global context
+== Durable.ArrivalBase.arrival_phase_set_micro
+Closed under the global context
+== Durable.ArrivalBase.arrival_progress_set_micro
+Closed under the global context
+== Durable.ArrivalBase.arrival_strip_eq
+Closed under the global context
+== Durable.ArrivalBase.arrival_strip_eta
+Closed under the global context
+== Durable.ArrivalBase.arrival_strip_micro
+Closed under the global context
+== Durable.ArrivalBase.arrival_trace_set_micro
+Closed under the global context
+== Durable.ArrivalExt.arrival_commands_app
+Closed under the global context
+== Durable.ArrivalExt.arrival_ext_leaf
+Closed under the global context
+== Durable.ArrivalExt.arrival_ext_refl
+Closed under the global context
+== Durable.ArrivalExt.arrival_ext_trans
+Closed under the global context
+== Durable.ArrivalExt.arrival_ext_weaken
+Closed under the global context
+== Durable.ArrivalExt.arrival_finish_verdict_ext
+Closed under the global context
+== Durable.ArrivalExt.arrival_interp_ext
+Closed under the global context
+== Durable.ArrivalExt.arrival_issue_ext
+Closed under the global context
+== Durable.ArrivalExt.arrival_issue_op_ext
+Closed under the global context
+== Durable.ArrivalExt.arrival_numbered_app
+Closed under the global context
+== Durable.ArrivalExt.arrival_numbered_one
+Closed under the global context
+== Durable.ArrivalExt.arrival_on_cancel_ext
+Closed under the global context
+== Durable.ArrivalExt.arrival_on_event_ext
+Closed under the global context
+== Durable.ArrivalExt.arrival_on_foreign_ext
+Closed under the global context
+== Durable.ArrivalExt.arrival_on_notify_ext
+Closed under the global context
+== Durable.ArrivalExt.arrival_on_start_ext
+Closed under the global context
+== Durable.ArrivalExt.arrival_persisted_some
+Closed under the global context
+== Durable.ArrivalExt.arrival_violate_ext
+Closed under the global context
+== Durable.ArrivalGrow.arrival_at_boundary_grow
+Closed under the global context
+== Durable.ArrivalGrow.arrival_at_boundary_sub_grow
+Closed under the global context
+== Durable.ArrivalGrow.arrival_ext_grow
+Closed under the global context
+== Durable.ArrivalGrow.arrival_ext_progress
+Closed under the global context
+== Durable.ArrivalGrow.arrival_grow_cuts
+Closed under the global context
+== Durable.ArrivalGrow.arrival_grow_leaf
+Closed under the global context
+== Durable.ArrivalGrow.arrival_grow_micro
+Closed under the global context
+== Durable.ArrivalGrow.arrival_grow_refl
+Closed under the global context
+== Durable.ArrivalGrow.arrival_grow_trans
+Closed under the global context
+== Durable.ArrivalGrow.arrival_nc_noncmd
+Closed under the global context
+== Durable.ArrivalGrow.arrival_no_command
+Closed under the global context
+== Durable.ArrivalGrow.arrival_on_cut_fields
+Closed under the global context
+== Durable.ArrivalGrow.arrival_on_cut_grow
+Closed under the global context
+== Durable.ArrivalGrow.arrival_pre_ext
+Closed under the global context
+== Durable.ArrivalGrow.arrival_run_head_grow
+Closed under the global context
+== Durable.ArrivalGrow.arrival_run_head_unfold
+Closed under the global context
+== Durable.ArrivalGrow.arrival_step_grow
+Closed under the global context
+== Durable.ArrivalMicro.arrival_after_sample_micro
+Closed under the global context
+== Durable.ArrivalMicro.arrival_apply_sample_micro
+Closed under the global context
+== Durable.ArrivalMicro.arrival_at_boundary_micro
+Closed under the global context
+== Durable.ArrivalMicro.arrival_at_boundary_sub_micro
+Closed under the global context
+== Durable.ArrivalMicro.arrival_interp_micro
+Closed under the global context
+== Durable.ArrivalMicro.arrival_issue_micro
+Closed under the global context
+== Durable.ArrivalMicro.arrival_issue_op_micro
+Closed under the global context
+== Durable.ArrivalMicro.arrival_issue_sample_micro
+Closed under the global context
+== Durable.ArrivalMicro.arrival_on_cancel_micro
+Closed under the global context
+== Durable.ArrivalMicro.arrival_on_cut_micro
+Closed under the global context
+== Durable.ArrivalMicro.arrival_on_event_micro
+Closed under the global context
+== Durable.ArrivalMicro.arrival_on_foreign_micro
+Closed under the global context
+== Durable.ArrivalMicro.arrival_on_notify_micro
+Closed under the global context
+== Durable.ArrivalMicro.arrival_on_start_micro
+Closed under the global context
+== Durable.ArrivalMicro.arrival_run_head_micro
+Closed under the global context
+== Durable.ArrivalMicro.arrival_step_micro
+Closed under the global context
+== Durable.ArrivalMicro.arrival_violate_micro
+Closed under the global context
+== Durable.ArrivalReplay.arrival_beyond_step
+Closed under the global context
+== Durable.ArrivalReplay.arrival_firstn_entry
+Closed under the global context
+== Durable.ArrivalReplay.arrival_original
+Closed under the global context
+== Durable.ArrivalReplay.arrival_s2
+Closed under the global context
+== Durable.ArrivalReplay.arrival_two_runs
+Closed under the global context
+== Durable.ArrivalReplayLemmas.arrival_agree_nc
+Closed under the global context
+== Durable.ArrivalReplayLemmas.arrival_at_boundary_cursor
+Closed under the global context
+== Durable.ArrivalReplayLemmas.arrival_at_boundary_sub_entry
+Closed under the global context
+== Durable.ArrivalReplayLemmas.arrival_before_cut_mono
+Closed under the global context
+== Durable.ArrivalReplayLemmas.arrival_before_cut_prefix
+Closed under the global context
+== Durable.ArrivalReplayLemmas.arrival_cmd_eqb_refl
+Closed under the global context
+== Durable.ArrivalReplayLemmas.arrival_commands_prefix
+Closed under the global context
+== Durable.ArrivalReplayLemmas.arrival_ext_cursor
+Closed under the global context
+== Durable.ArrivalReplayLemmas.arrival_iterate_add
+Closed under the global context
+== Durable.ArrivalReplayLemmas.arrival_iterate_mono
+Closed under the global context
+== Durable.ArrivalReplayLemmas.arrival_iterate_nc
+Closed under the global context
+== Durable.ArrivalReplayLemmas.arrival_mm_before_cut
+Closed under the global context
+== Durable.ArrivalReplayLemmas.arrival_nth_prefix
+Closed under the global context
+== Durable.ArrivalReplayLemmas.arrival_numbered_nth
+Closed under the global context
+== Durable.ArrivalReplayLemmas.arrival_ok_iff
+Closed under the global context
+== Durable.ArrivalReplayLemmas.arrival_prefix_in
+Closed under the global context
+== Durable.ArrivalReplayLemmas.arrival_prefix_trans
+Closed under the global context
+== Durable.ArrivalReplayLemmas.arrival_run_head_cursor
+Closed under the global context
+== Durable.ArrivalReplayLemmas.arrival_srel_sym
+Closed under the global context
+== Durable.ArrivalReplayLemmas.arrival_srel_trans
+Closed under the global context
+== Durable.ArrivalReplayLemmas.arrival_step_cursor
+Closed under the global context
+== Durable.ArrivalReplayLemmas.arrival_step_cut_or_grow
+Closed under the global context
+== Durable.ArrivalReplayLemmas.arrival_stuck
+Closed under the global context
+== Durable.ArrivalSim.arrival_at_boundary_sinf
+Closed under the global context
+== Durable.ArrivalSim.arrival_before_cut_app
+Closed under the global context
+== Durable.ArrivalSim.arrival_before_cut_at
+Closed under the global context
+== Durable.ArrivalSim.arrival_before_cut_ok
+Closed under the global context
+== Durable.ArrivalSim.arrival_follow
+Closed under the global context
+== Durable.ArrivalSim.arrival_good_initial
+Closed under the global context
+== Durable.ArrivalSim.arrival_good_iterate
+Closed under the global context
+== Durable.ArrivalSim.arrival_good_step
+Closed under the global context
+== Durable.ArrivalSim.arrival_interp_rel
+Closed under the global context
+== Durable.ArrivalSim.arrival_iterate_S
+Closed under the global context
+== Durable.ArrivalSim.arrival_iterate_grow
+Closed under the global context
+== Durable.ArrivalSim.arrival_nc_initial
+Closed under the global context
+== Durable.ArrivalSim.arrival_on_cut_closed
+Closed under the global context
+== Durable.ArrivalSim.arrival_srel_fields
+Closed under the global context
+== Durable.ArrivalSim.arrival_srel_refl
+Closed under the global context
+== Durable.ArrivalSim.arrival_srel_step
+Closed under the global context
+== Durable.ArrivalSim.arrival_step_cases
+Closed under the global context
+== Durable.ArrivalSim.arrival_step_rel
+Closed under the global context
+== Durable.ArrivalSim.arrival_stop_cut
+Closed under the global context
+== Durable.ArrivalSwap.arrival_after_sample_swap
+Closed under the global context
+== Durable.ArrivalSwap.arrival_ext_safe
+Closed under the global context
+== Durable.ArrivalSwap.arrival_interp_swap
+Closed under the global context
+== Durable.ArrivalSwap.arrival_issue_op_swap
+Closed under the global context
+== Durable.ArrivalSwap.arrival_issue_swap
+Closed under the global context
+== Durable.ArrivalSwap.arrival_on_cancel_swap
+Closed under the global context
+== Durable.ArrivalSwap.arrival_on_event_swap
+Closed under the global context
+== Durable.ArrivalSwap.arrival_on_notify_swap
+Closed under the global context
+== Durable.ArrivalSwap.arrival_on_start_swap
+Closed under the global context
+== Durable.ArrivalSwap.arrival_safe_app
+Closed under the global context
+== Durable.ArrivalSwapStep.arrival_at_boundary_sub_cursor
+Closed under the global context
+== Durable.ArrivalSwapStep.arrival_at_boundary_sub_swap
+Closed under the global context
+== Durable.ArrivalSwapStep.arrival_at_boundary_swap
+Closed under the global context
+== Durable.ArrivalSwapStep.arrival_step_swap
+Closed under the global context
 == Durable.Compare.new_cancelled_root_is_interrupted
 Closed under the global context
 == Durable.Compare.new_d1_live_equals_replay
