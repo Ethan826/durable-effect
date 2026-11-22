@@ -1,0 +1,29 @@
+unsubscribed result "done"
+subscribedLonger result "done"
+subscribedShorter result "done"
+combined result "done"
+ATTEMPT unsubscribed 1
+ATTEMPT subscribedLonger 1
+[Abandon/subscribedLonger] WARN: Error when processing a Restate context operation.
+ Error: awaitNext already pending
+[Abandon/subscribedLonger] INFO: Replaying invocation.
+ATTEMPT subscribedLonger 2
+[Abandon/subscribedLonger] WARN: Error when processing a Restate context operation.
+ Error: awaitNext already pending
+[Abandon/subscribedLonger] INFO: Replaying invocation.
+ATTEMPT subscribedLonger 3
+ATTEMPT subscribedShorter 1
+[Abandon/subscribedShorter] WARN: Error when processing a Restate context operation.
+ Error: awaitNext already pending
+[Abandon/subscribedShorter] INFO: Replaying invocation.
+ATTEMPT subscribedShorter 2
+old completed
+ATTEMPT combined 1
+[Abandon/combined] WARN: Error when processing a Restate context operation.
+ Error: awaitNext already pending
+[Abandon/combined] INFO: Replaying invocation.
+ATTEMPT combined 2
+[Abandon/combined] WARN: Error when processing a Restate context operation.
+ Error: awaitNext already pending
+[Abandon/combined] INFO: Replaying invocation.
+ATTEMPT combined 3
