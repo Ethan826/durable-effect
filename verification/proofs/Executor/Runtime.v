@@ -233,9 +233,25 @@ Definition I4 (R : Runtime) : Prop :=
 Definition root_exits (log : list LogEntry) : nat :=
   length (filter (fun e => match e with LEvent (EvRootExit _) => true | _ => false end) log).
 
-(** I6, the part stated here: the root's exit is reported at most once. *)
+(** The first fiber a log registers: the root, when the log starts with [StartRoot]. *)
+Fixpoint first_registered (log : list LogEntry) : option FiberId :=
+  match log with
+  | [] => None
+  | LRegister f _ :: _ => Some f
+  | _ :: rest => first_registered rest
+  end.
+
+(** I6, the part stated here: the root's exit is reported at most once, and only after the
+    root has exited, which the log shows as the exit report of the first fiber registered.
+    #37's "after its cleanup", together with I8's "removed after it exits", requires the
+    second half; without it a runtime could leave the root registered, and every verdict
+    would be [VDefect] (step 3 review of the rev3 domain). *)
 Definition I6 (R : Runtime) : Prop :=
-  forall p seed A ts, (root_exits (fst (drive R A 0 0 (init R p seed) ts)) <= 1)%nat.
+  forall p seed A ts,
+    let log := fst (drive R A 0 0 (init R p seed) ts) in
+    (root_exits log <= 1)%nat /\
+    (forall pre e post, log = pre ++ LEvent (EvRootExit e) :: post ->
+       exists r, first_registered pre = Some r /\ In (LEvent (EvFiberExited r)) pre).
 
 (** The fibers whose start a log reports, in order. *)
 Definition started (log : list LogEntry) : list FiberId :=
