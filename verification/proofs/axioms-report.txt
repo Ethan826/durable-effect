@@ -684,6 +684,8 @@ Closed under the global context
 Closed under the global context
 == Durable.TimeA3.time_inva_on_start
 Closed under the global context
+== Durable.TimeA3.time_inva_reg
+Closed under the global context
 == Durable.TimeA3.time_inva_resample
 Closed under the global context
 == Durable.TimeA3.time_inva_run_head
@@ -895,6 +897,8 @@ Closed under the global context
 == Durable.TimeL.time_ctxl_on_release
 Closed under the global context
 == Durable.TimeL.time_ctxl_on_start
+Closed under the global context
+== Durable.TimeL.time_ctxl_reg
 Closed under the global context
 == Durable.TimeL.time_ctxl_run_head
 Closed under the global context

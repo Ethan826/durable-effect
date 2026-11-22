@@ -784,3 +784,5 @@ Durable.TimeStep.time_issue_op_cases
 Durable.TimeStep.time_nodup_grows
 Durable.TimeStep.time_violate_cases
 Durable.TimeStep.time_violate_fields
+Durable.TimeA3.time_inva_reg
+Durable.TimeL.time_ctxl_reg

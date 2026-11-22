@@ -97,7 +97,7 @@ Proof.
       apply (Hp [] f (register_answer A f) lg). reflexivity. }
     rewrite R0 in *.
     destruct (play A c d (k cl)) as [[[lg x'] c'] d'] eqn:E.
-    pose proof (IH cl (set_live x (live x ++ [f])) c d (Pre ++ [LRegister f cl])) as H. rewrite E in H.
+    pose proof (IH cl (time_reg x f) c d (Pre ++ [LRegister f cl])) as H. rewrite E in H.
     match type of H with _ -> _ -> _ -> _ -> ?q => cut q end;
       [intros H2; injection H2 as -> -> -> ->; reflexivity|apply H].
     + exact Hc.

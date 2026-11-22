@@ -67,7 +67,7 @@ Lemma time_no_owned : forall f tok pre2,
 Proof.
   intros f tok pre2 H. destruct (existsb (time_is_owned f tok) pre2) eqn:E; [|reflexivity].
   apply existsb_exists in E as [a [Ia Ha]].
-  destruct a as [| c k [[f' tok']|] | | | | | | | | |]; try discriminate.
+  destruct a as [| | c k [[f' tok']|] | | | | | | | | |]; try discriminate.
   apply time_eqb_pair in Ha as [-> ->]. exfalso. exact (H c k Ia).
 Qed.
 
@@ -122,7 +122,7 @@ Proof.
       [|cbn; rewrite !Nat.eqb_refl; reflexivity|apply time_no_owned; exact No].
     destruct Ca as [Pl Cr]. split; [|exact Cr].
     apply existsb_exists in Pl as [a [Ia Ha]].
-    destruct a as [| | c' s l [[[? ?] ?]|] | | | | | | | |]; try discriminate. eauto.
+    destruct a as [| | | c' s l [[[? ?] ?]|] | | | | | | | |]; try discriminate. eauto.
   - intros R HR p I Sch n pre f tok op post pre1 pre2 E Ep Ns Nc c' s l cr Ii.
     pose proof (time_claims_run R p I Sch n (U R HR p I Sch)) as C.
     rewrite E in C. destruct (C pre (ACancelled f tok) post eq_refl) as [_ Cb].
