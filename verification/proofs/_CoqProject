@@ -27,6 +27,12 @@ Executor/Obligations.v
 Executor/Witnesses.v
 Executor/Witnesses2.v
 Executor/Compare.v
+Executor/Rev3Monitor.v
+Executor/Rev3ConcreteBase.v
+Executor/Rev3ConcreteSteps.v
+Executor/Rev3ConcreteGo.v
+Executor/Rev3Concrete.v
+Executor/Rev3Counter.v
 Executor/StepInv.v
 Executor/StepTurn.v
 Executor/StepSingle.v
