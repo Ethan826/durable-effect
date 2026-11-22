@@ -27,3 +27,9 @@ Executor/Obligations.v
 Executor/Witnesses.v
 Executor/Witnesses2.v
 Executor/Compare.v
+Executor/StepInv.v
+Executor/StepTurn.v
+Executor/StepSingle.v
+Executor/StepLog.v
+Executor/StepAwait.v
+Executor/StepAwaitTurn.v
