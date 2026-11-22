@@ -287,8 +287,8 @@ Definition other_fiber (a : Action) : bool :=
   | _ => false
   end.
 
-(** S9's conditions, read from this executor's trace, the inputs and the schedule: one
-    fiber, no priority other than 0, no blocked root, no sleep that would become a chain, no
+(** S9's conditions, read from this executor's trace, the inputs and the schedule, besides
+    [one_fiber]: no action by a fiber other than the root, no priority other than 0, no blocked root, no sleep that would become a chain, no
     foreign inputs; and, because revision 3's executor has none of these, no cut, a first
     attempt (nothing persisted), and no [L] above 2^53 - 1, which is a violation here and
     not under revision 3. #37's S9 was amended to match on 2026-11-22. *)
@@ -300,10 +300,17 @@ Definition s9_conditions (I : Inputs) (Sch : Schedule) (t : list Action) : Prop 
      exists m, d = Millis m /\ m <= max_chunk) /\
   (forall k, foreign I k = None).
 
+(** One fiber, read from the executor's registry: at every step up to [n], at most one
+    registered fiber is live. A fiber that records no action, such as a masked child that
+    outlives the root, is still a second fiber (step 3 review of the rev3 domain). *)
+Definition one_fiber (R : Runtime) (p : prog R) (I : Inputs) (Sch : Schedule) (n : nat)
+    : Prop :=
+  forall k, (k <= n)%nat -> (length (live (xs (iterate R I Sch k (initial R p I)))) <= 1)%nat.
+
 (** Under the conditions and with no cancel signal, the two executors' traces agree. *)
 Definition S9 : Prop :=
   forall R, Meets R -> forall p I Sch n1 n2,
-    valid_schedule I Sch -> ~ In InCancel (entries I) ->
+    valid_schedule I Sch -> ~ In InCancel (entries I) -> one_fiber R p I Sch n1 ->
     s9_conditions I Sch (run R p I Sch n1) ->
     compatible (run R p I Sch n1) (run3 R p I Sch n2).
 
@@ -312,7 +319,7 @@ Definition S9 : Prop :=
     arrives while nothing is subscribed is covered by the first case. *)
 Definition S9_cancel : Prop :=
   forall R, Meets R -> forall p I Sch n1 n2,
-    valid_schedule I Sch -> s9_conditions I Sch (run R p I Sch n1) ->
+    valid_schedule I Sch -> one_fiber R p I Sch n1 -> s9_conditions I Sch (run R p I Sch n1) ->
     compatible (run R p I Sch n1) (run3 R p I Sch n2) \/
     exists pre c, prefix (pre ++ [ACommand c KSample None; AExit VDefect]) (run3 R p I Sch n2)
                   /\ compatible (pre ++ [ACommand c KSample None; ACommand (S c) KSample None])
