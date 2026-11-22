@@ -79,8 +79,11 @@ Inductive Verdict := VRoot (e : RootExit) | VDefect | VMismatch.
     command records the fiber and token it was issued for, if any; an applied sample records
     [L] after it and the sleep link it credits, if any; and [AStart] records a fiber starting
     a durable operation. The journal holds only each command's kind and each sample's
-    reading. [ACut] marks where an attempt was cut. *)
+    reading. [ACut] marks where an attempt was cut. [ARegister] records a fiber's first
+    run, so that S9 can count fibers: a fiber can register and leave the registry within
+    one task, where no other record shows it (step 3 review of the rev3 domain). *)
 Inductive Action :=
+| ARegister (f : FiberId)
 | AStart (f : FiberId) (tok : Token) (op : Op)
 | ACommand (c : nat) (k : CmdKind) (owner : option (FiberId * Token))
 | ASampled (c : nat) (s : Z) (l : Z) (credit : option (FiberId * Token * Z))
@@ -430,7 +433,8 @@ Fixpoint interp {X} (I : Inputs) (x : XState) (s : Script X) : XState * X :=
       interp I x1 (k r)
   | Register f k =>
       let closing := match phase x with PClosing _ => true | _ => false end in
-      interp I (set_live x (live x ++ [f])) (k closing)
+      let x1 := match phase x with PDone => x | _ => emit x (ARegister f) end in
+      interp I (set_live x1 (live x1 ++ [f])) (k closing)
   end.
 
 (** What the trace records when a task hands something to a fiber. *)

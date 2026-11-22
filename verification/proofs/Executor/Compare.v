@@ -47,10 +47,7 @@ Proof. vm_compute. reflexivity. Qed.
 Theorem new_waits_for_released_operation :
   let e := [InNotify 0 (RSample 100)] in
   run concrete slot_program (inputs e) (replay (inputs e)) 60 =
-  [ACommand 0 KSample None; ASampled 0 100%Z 100%Z None;
-   AStart 1 0 (OSleep (Millis 15000));
-   ACommand 1 (KOp (OSleep (Millis 15000))) (Some (1, 0));
-   AStart 0 1 (OSleep (Millis 3000))].
+  [ACommand 0 KSample None; ASampled 0 100 100 None; ARegister 0; ARegister 1; AStart 1 0 (OSleep (Millis 15000)); ACommand 1 (KOp (OSleep (Millis 15000))) (Some (1, 0)); AStart 0 1 (OSleep (Millis 3000))].
 Proof. vm_compute. reflexivity. Qed.
 
 (** ** #34.1: interrupting a fiber waits for its finalizer *)

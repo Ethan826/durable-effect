@@ -50,13 +50,7 @@ Definition slot_entries : list JIn :=
 
 Theorem released_operation_holds_slot :
   run concrete slot_program (inputs slot_entries) (replay (inputs slot_entries)) 80 =
-  [ACommand 0%nat KSample None; ASampled 0%nat 100 100 None;
-   AStart 1%nat 0%nat (OSleep (Millis 15000));
-   ACommand 1%nat (KOp (OSleep (Millis 15000))) (Some (1%nat, 0%nat));
-   AStart 0%nat 1%nat (OSleep (Millis 3000));
-   ACommand 2%nat (KOp (OSleep (Millis 3000))) (Some (0%nat, 1%nat));
-   ACommand 3%nat KSample None; ASampled 3%nat 3200 3200 (Some (0%nat, 1%nat, 3000));
-   ADelivered 0%nat 1%nat (Value 0); AExit (VRoot (ExitSuccess 0))].
+  [ACommand 0 KSample None; ASampled 0 100 100 None; ARegister 0%nat; ARegister 1%nat; AStart 1%nat 0%nat (OSleep (Millis 15000)); ACommand 1 (KOp (OSleep (Millis 15000))) (Some (1%nat, 0%nat)); AStart 0%nat 1%nat (OSleep (Millis 3000)); ACommand 2 (KOp (OSleep (Millis 3000))) (Some (0%nat, 1%nat)); ACommand 3 KSample None; ASampled 3 3200 3200 (Some (0%nat, 1%nat, 3000)); ADelivered 0%nat 1%nat (Value 0); AExit (VRoot (ExitSuccess 0))].
 Proof. vm_compute. reflexivity. Qed.
 
 (** S1's instance: the live attempt gives the same trace. *)
@@ -70,10 +64,7 @@ Proof. vm_compute. reflexivity. Qed.
 Theorem held_cancellation_reaches_waiter :
   let e := [InNotify 0%nat (RSample 100); InCancel] in
   run concrete slot_program (inputs e) (replay (inputs e)) 80 =
-  [ACommand 0%nat KSample None; ASampled 0%nat 100 100 None;
-   AStart 1%nat 0%nat (OSleep (Millis 15000));
-   ACommand 1%nat (KOp (OSleep (Millis 15000))) (Some (1%nat, 0%nat));
-   AStart 0%nat 1%nat (OSleep (Millis 3000)); ACancelled 0%nat 1%nat; AExit (VRoot ExitInterrupted)].
+  [ACommand 0 KSample None; ASampled 0 100 100 None; ARegister 0%nat; ARegister 1%nat; AStart 1%nat 0%nat (OSleep (Millis 15000)); ACommand 1 (KOp (OSleep (Millis 15000))) (Some (1%nat, 0%nat)); AStart 0%nat 1%nat (OSleep (Millis 3000)); ACancelled 0%nat 1%nat; AExit (VRoot ExitInterrupted)].
 Proof. vm_compute. reflexivity. Qed.
 
 (** ** Cancellations and samples *)
@@ -87,9 +78,7 @@ Definition one_run : CProg :=
 Theorem unobserved_cancel_reaches_next_command :
   let e := [InNotify 0%nat (RSample 100); InCancel; InNotify 2%nat (RSample 101)] in
   run concrete one_run (inputs e) (replay (inputs e)) 40 =
-  [ACommand 0%nat KSample None; ASampled 0%nat 100 100 None; AStart 0%nat 0%nat (ORun 4%nat 0%nat);
-   ACommand 1%nat (KOp (ORun 4%nat 0%nat)) (Some (0%nat, 0%nat)); ACommand 2%nat KSample None;
-   ASampled 2%nat 101 101 None; ACancelled 0%nat 0%nat; AExit (VRoot ExitInterrupted)].
+  [ACommand 0 KSample None; ASampled 0 100 100 None; ARegister 0%nat; AStart 0%nat 0%nat (ORun 4 0); ACommand 1 (KOp (ORun 4 0)) (Some (0%nat, 0%nat)); ACommand 2 KSample None; ASampled 2 101 101 None; ACancelled 0%nat 0%nat; AExit (VRoot ExitInterrupted)].
 Proof. vm_compute. reflexivity. Qed.
 
 (** #32: a cancel signal while a sample is subscribed retires it and issues a replacement;
@@ -101,19 +90,14 @@ Definition sample_cancel_entries : list JIn :=
 Theorem cancel_during_sample_replaces_it :
   run concrete one_run (inputs sample_cancel_entries)
     (replay (inputs sample_cancel_entries)) 40 =
-  [ACommand 0%nat KSample None; ASampled 0%nat 100 100 None; AStart 0%nat 0%nat (ORun 4%nat 0%nat);
-   ACommand 1%nat (KOp (ORun 4%nat 0%nat)) (Some (0%nat, 0%nat)); ACommand 2%nat KSample None;
-   ACommand 3%nat KSample None; ASampled 3%nat 102 102 None; ACancelled 0%nat 0%nat;
-   AExit (VRoot ExitInterrupted)].
+  [ACommand 0 KSample None; ASampled 0 100 100 None; ARegister 0%nat; AStart 0%nat 0%nat (ORun 4 0); ACommand 1 (KOp (ORun 4 0)) (Some (0%nat, 0%nat)); ACommand 2 KSample None; ACommand 3 KSample None; ASampled 3 102 102 None; ACancelled 0%nat 0%nat; AExit (VRoot ExitInterrupted)].
 Proof. vm_compute. reflexivity. Qed.
 
 (** Revision 3 records a defect at the same point: S9_cancel's second case. *)
 Theorem rev3_cancel_during_sample_is_defect :
   run3 concrete one_run (inputs sample_cancel_entries)
     (replay (inputs sample_cancel_entries)) 40 =
-  [ACommand 0%nat KSample None; ASampled 0%nat 100 100 None; AStart 0%nat 0%nat (ORun 4%nat 0%nat);
-   ACommand 1%nat (KOp (ORun 4%nat 0%nat)) (Some (0%nat, 0%nat)); ACommand 2%nat KSample None;
-   AExit VDefect].
+  [ACommand 0 KSample None; ASampled 0 100 100 None; ARegister 0%nat; AStart 0%nat 0%nat (ORun 4 0); ACommand 1 (KOp (ORun 4 0)) (Some (0%nat, 0%nat)); ACommand 2 KSample None; AExit VDefect].
 Proof. vm_compute. reflexivity. Qed.
 
 (** A cancel signal during the initial sample issues a replacement; the cancellation is held
@@ -121,8 +105,7 @@ Proof. vm_compute. reflexivity. Qed.
 Theorem cancel_during_initial_sample_is_held :
   let e := [InCancel; InNotify 1%nat (RSample 100)] in
   run concrete one_run (inputs e) (replay (inputs e)) 40 =
-  [ACommand 0%nat KSample None; ACommand 1%nat KSample None; ASampled 1%nat 100 100 None;
-   AStart 0%nat 0%nat (ORun 4%nat 0%nat); ACancelled 0%nat 0%nat; AExit (VRoot ExitInterrupted)].
+  [ACommand 0 KSample None; ACommand 1 KSample None; ASampled 1 100 100 None; ARegister 0%nat; AStart 0%nat 0%nat (ORun 4 0); ACancelled 0%nat 0%nat; AExit (VRoot ExitInterrupted)].
 Proof. vm_compute. reflexivity. Qed.
 
 (** A terminal failure of a sample ends the attempt with a defect (X2). *)
@@ -130,9 +113,7 @@ Theorem terminal_sample_failure_is_defect :
   let e := [InNotify 0%nat (RSample 100); InNotify 1%nat (ROutcome (Value 2));
             InNotify 2%nat RSampleTerminal] in
   run concrete one_run (inputs e) (replay (inputs e)) 40 =
-  [ACommand 0%nat KSample None; ASampled 0%nat 100 100 None; AStart 0%nat 0%nat (ORun 4%nat 0%nat);
-   ACommand 1%nat (KOp (ORun 4%nat 0%nat)) (Some (0%nat, 0%nat)); ACommand 2%nat KSample None;
-   AViolation SampleTerminal; AExit VDefect].
+  [ACommand 0 KSample None; ASampled 0 100 100 None; ARegister 0%nat; AStart 0%nat 0%nat (ORun 4 0); ACommand 1 (KOp (ORun 4 0)) (Some (0%nat, 0%nat)); ACommand 2 KSample None; AViolation SampleTerminal; AExit VDefect].
 Proof. vm_compute. reflexivity. Qed.
 
 (** ** A crash during a sample, and its replay (S2) *)
@@ -145,9 +126,7 @@ Definition crash_during_sample : Schedule :=
 
 Theorem crash_during_sample_cuts :
   run concrete one_run (inputs crash_entries) crash_during_sample 40 =
-  [ACommand 0%nat KSample None; ASampled 0%nat 100 100 None; AStart 0%nat 0%nat (ORun 4%nat 0%nat);
-   ACommand 1%nat (KOp (ORun 4%nat 0%nat)) (Some (0%nat, 0%nat)); ACommand 2%nat KSample None;
-   ACut Crashed].
+  [ACommand 0 KSample None; ASampled 0 100 100 None; ARegister 0%nat; AStart 0%nat 0%nat (ORun 4 0); ACommand 1 (KOp (ORun 4 0)) (Some (0%nat, 0%nat)); ACommand 2 KSample None; ACut Crashed].
 Proof. vm_compute. reflexivity. Qed.
 
 Definition replay_inputs (persist : list CmdKind) : Inputs :=
@@ -158,9 +137,7 @@ Definition replay_inputs (persist : list CmdKind) : Inputs :=
 Theorem crash_replay_completes :
   run concrete one_run (replay_inputs [KSample; KOp (ORun 4%nat 0%nat); KSample])
     (replay (inputs crash_entries)) 40 =
-  [ACommand 0%nat KSample None; ASampled 0%nat 100 100 None; AStart 0%nat 0%nat (ORun 4%nat 0%nat);
-   ACommand 1%nat (KOp (ORun 4%nat 0%nat)) (Some (0%nat, 0%nat)); ACommand 2%nat KSample None;
-   ASampled 2%nat 105 105 None; ADelivered 0%nat 0%nat (Value 2); AExit (VRoot (ExitSuccess 0))].
+  [ACommand 0 KSample None; ASampled 0 100 100 None; ARegister 0%nat; AStart 0%nat 0%nat (ORun 4 0); ACommand 1 (KOp (ORun 4 0)) (Some (0%nat, 0%nat)); ACommand 2 KSample None; ASampled 2 105 105 None; ADelivered 0%nat 0%nat (Value 2); AExit (VRoot (ExitSuccess 0))].
 Proof. vm_compute. reflexivity. Qed.
 
 (** Negative control for S2's check: a journal holding a different command fails the replay
@@ -168,8 +145,7 @@ Proof. vm_compute. reflexivity. Qed.
 Theorem different_journal_mismatches :
   run concrete one_run (replay_inputs [KSample; KOp (ORun 5%nat 0%nat)])
     (replay (inputs crash_entries)) 40 =
-  [ACommand 0%nat KSample None; ASampled 0%nat 100 100 None; AStart 0%nat 0%nat (ORun 4%nat 0%nat);
-   AExit VMismatch].
+  [ACommand 0 KSample None; ASampled 0 100 100 None; ARegister 0%nat; AStart 0%nat 0%nat (ORun 4 0); AExit VMismatch].
 Proof. vm_compute. reflexivity. Qed.
 
 (** ** Violations *)
@@ -182,23 +158,21 @@ Theorem two_operations_at_once :
                 end;
               root_body := 0 |} in
   run concrete p (inputs first_sample) (replay (inputs first_sample)) 40 =
-  [ACommand 0%nat KSample None; ASampled 0%nat 100 100 None; AStart 0%nat 0%nat (ORun 4%nat 0%nat);
-   ACommand 1%nat (KOp (ORun 4%nat 0%nat)) (Some (0%nat, 0%nat)); AStart 1%nat 1%nat (OSleep (Millis 50));
-   AViolation SecondOp; AExit VDefect].
+  [ACommand 0 KSample None; ASampled 0 100 100 None; ARegister 0%nat; AStart 0%nat 0%nat (ORun 4 0); ACommand 1 (KOp (ORun 4 0)) (Some (0%nat, 0%nat)); ARegister 1%nat; AStart 1%nat 1%nat (OSleep (Millis 50)); AViolation SecondOp; AExit VDefect].
 Proof. vm_compute. reflexivity. Qed.
 
 (** #33: a task queued with a priority other than 0 is a violation. *)
 Theorem nonzero_priority_is_violation :
   let p := {| bodies := fun _ => plain (CYield 1 (CEnd 0)); root_body := 0 |} in
   run concrete p (inputs first_sample) (replay (inputs first_sample)) 40 =
-  [ACommand 0%nat KSample None; ASampled 0%nat 100 100 None; AViolation Priority; AExit VDefect].
+  [ACommand 0 KSample None; ASampled 0 100 100 None; ARegister 0%nat; AViolation Priority; AExit VDefect].
 Proof. vm_compute. reflexivity. Qed.
 
 (** A root blocked with nothing subscribed (S6). *)
 Theorem blocked_root_is_violation :
   let p := {| bodies := fun _ => plain (CAwaitCell 3 (fun _ => CEnd 0)); root_body := 0 |} in
   run concrete p (inputs first_sample) (replay (inputs first_sample)) 40 =
-  [ACommand 0%nat KSample None; ASampled 0%nat 100 100 None; AViolation Blocked; AExit VDefect].
+  [ACommand 0 KSample None; ASampled 0 100 100 None; ARegister 0%nat; AViolation Blocked; AExit VDefect].
 Proof. vm_compute. reflexivity. Qed.
 
 Definition drawing : CProg :=
@@ -213,22 +187,19 @@ Definition foreign_at_one (fi : Foreign) : nat -> option Foreign :=
 Theorem foreign_resume_is_violation :
   let I := with_foreign first_sample (foreign_at_one (FResume 0%nat)) in
   run concrete drawing I (replay I) 40 =
-  [ACommand 0%nat KSample None; ASampled 0%nat 100 100 None; AViolation ForeignResume;
-   AExit VDefect].
+  [ACommand 0 KSample None; ASampled 0 100 100 None; AViolation ForeignResume; ARegister 0%nat; AExit VDefect].
 Proof. vm_compute. reflexivity. Qed.
 
 Theorem foreign_interrupt_is_violation :
   let I := with_foreign first_sample (foreign_at_one (FInterrupt 0%nat)) in
   run concrete drawing I (replay I) 40 =
-  [ACommand 0%nat KSample None; ASampled 0%nat 100 100 None; AViolation ForeignInterrupt;
-   AExit VDefect].
+  [ACommand 0 KSample None; ASampled 0 100 100 None; AViolation ForeignInterrupt; ARegister 0%nat; AExit VDefect].
 Proof. vm_compute. reflexivity. Qed.
 
 Theorem unawaited_resume_is_violation :
   let I := with_foreign first_sample (foreign_at_one (FResumeToken 7%nat)) in
   run concrete drawing I (replay I) 40 =
-  [ACommand 0%nat KSample None; ASampled 0%nat 100 100 None; AViolation ResumeUnawaited;
-   AExit VDefect].
+  [ACommand 0 KSample None; ASampled 0 100 100 None; AViolation ResumeUnawaited; ARegister 0%nat; AExit VDefect].
 Proof. vm_compute. reflexivity. Qed.
 
 (** An [L] above 2^53 - 1 is a violation (P6). *)
@@ -238,10 +209,7 @@ Theorem overflow_is_violation :
   let p := {| bodies := fun _ => plain (CStart (OSleep (Millis 10)) (fun _ => CEnd 0));
               root_body := 0 |} in
   run concrete p (inputs e) (replay (inputs e)) 40 =
-  [ACommand 0%nat KSample None; ASampled 0%nat 9007199254740990 9007199254740990 None;
-   AStart 0%nat 0%nat (OSleep (Millis 10));
-   ACommand 1%nat (KOp (OSleep (Millis 10))) (Some (0%nat, 0%nat)); ACommand 2%nat KSample None;
-   AViolation Overflow; AExit VDefect].
+  [ACommand 0 KSample None; ASampled 0 9007199254740990 9007199254740990 None; ARegister 0%nat; AStart 0%nat 0%nat (OSleep (Millis 10)); ACommand 1 (KOp (OSleep (Millis 10))) (Some (0%nat, 0%nat)); ACommand 2 KSample None; AViolation Overflow; AExit VDefect].
 Proof. vm_compute. reflexivity. Qed.
 
 (** ** Fibers: masks, interruption and closing *)
@@ -258,9 +226,7 @@ Theorem masked_await_is_delivered :
   let e := [InNotify 0%nat (RSample 100); InNotify 1%nat (ROutcome (Value 3));
             InNotify 2%nat (RSample 101)] in
   run concrete p (inputs e) (replay (inputs e)) 60 =
-  [ACommand 0%nat KSample None; ASampled 0%nat 100 100 None; AStart 1%nat 0%nat (ORun 4%nat 0%nat);
-   ACommand 1%nat (KOp (ORun 4%nat 0%nat)) (Some (1%nat, 0%nat)); ACommand 2%nat KSample None;
-   ASampled 2%nat 101 101 None; ADelivered 1%nat 0%nat (Value 3); AExit (VRoot (ExitSuccess 0))].
+  [ACommand 0 KSample None; ASampled 0 100 100 None; ARegister 0%nat; ARegister 1%nat; AStart 1%nat 0%nat (ORun 4 0); ACommand 1 (KOp (ORun 4 0)) (Some (1%nat, 0%nat)); ACommand 2 KSample None; ASampled 2 101 101 None; ADelivered 1%nat 0%nat (Value 3); AExit (VRoot (ExitSuccess 0))].
 Proof. vm_compute. reflexivity. Qed.
 
 (** #34.1: interrupting a fiber waits for its finalizer, so the parent reads the value the
@@ -296,7 +262,7 @@ Theorem fork_registering_in_closing_never_steps :
                 end;
               root_body := 0 |} in
   run concrete p (inputs first_sample) (replay (inputs first_sample)) 40 =
-  [ACommand 0%nat KSample None; ASampled 0%nat 100 100 None; AExit (VRoot (ExitSuccess 0))].
+  [ACommand 0 KSample None; ASampled 0 100 100 None; ARegister 0%nat; ARegister 1%nat; AExit (VRoot (ExitSuccess 0))].
 Proof. vm_compute. reflexivity. Qed.
 
 (** A durable start in a finalizer during closing is refused with a defect; the finalizer
@@ -308,8 +274,7 @@ Theorem start_in_closing_is_refused :
                 end;
               root_body := 0 |} in
   run concrete p (inputs first_sample) (replay (inputs first_sample)) 40 =
-  [ACommand 0%nat KSample None; ASampled 0%nat 100 100 None; AStart 1%nat 0%nat (ORun 4%nat 0%nat);
-   ARefused 1%nat 0%nat; AExit (VRoot (ExitSuccess 0))].
+  [ACommand 0 KSample None; ASampled 0 100 100 None; ARegister 0%nat; ARegister 1%nat; AStart 1%nat 0%nat (ORun 4 0); ARefused 1%nat 0%nat; AExit (VRoot (ExitSuccess 0))].
 Proof. vm_compute. reflexivity. Qed.
 
 (** An attempt suspended while the root awaits a sleep closes after the cut: the root's
@@ -322,9 +287,7 @@ Theorem suspension_runs_finalizers :
   let Sch := {| arrived := fun _ => 1%nat; cut_at := Some (2%nat, Suspended);
                 stop_at := None |} in
   run concrete p (inputs first_sample) Sch 40 =
-  [ACommand 0%nat KSample None; ASampled 0%nat 100 100 None; AStart 0%nat 0%nat (OSleep (Millis 50));
-   ACommand 1%nat (KOp (OSleep (Millis 50))) (Some (0%nat, 0%nat)); ACut Suspended; AClock 0%nat 100;
-   AExit (VRoot ExitInterrupted)].
+  [ACommand 0 KSample None; ASampled 0 100 100 None; ARegister 0%nat; AStart 0%nat 0%nat (OSleep (Millis 50)); ACommand 1 (KOp (OSleep (Millis 50))) (Some (0%nat, 0%nat)); ACut Suspended; AClock 0%nat 100; AExit (VRoot ExitInterrupted)].
 Proof. vm_compute. reflexivity. Qed.
 
 (** ** The time rule *)
@@ -337,12 +300,7 @@ Theorem long_sleep_is_a_chain :
                                           (fun _ => CClock (fun _ => CEnd 0)));
               root_body := 0 |} in
   run concrete p (inputs e) (replay (inputs e)) 60 =
-  [ACommand 0%nat KSample None; ASampled 0%nat 0 0 None; AStart 0%nat 0%nat (OSleep (Millis 2147483652));
-   ACommand 1%nat (KOp (OSleep (Millis 2147483647))) (Some (0%nat, 0%nat));
-   ACommand 2%nat KSample None; ASampled 2%nat 10 2147483647 (Some (0%nat, 0%nat, 2147483647));
-   ACommand 3%nat (KOp (OSleep (Millis 5))) (Some (0%nat, 0%nat)); ACommand 4%nat KSample None;
-   ASampled 4%nat 20 2147483652 (Some (0%nat, 0%nat, 5)); ADelivered 0%nat 0%nat (Value 0);
-   AClock 0%nat 2147483652; AExit (VRoot (ExitSuccess 0))].
+  [ACommand 0 KSample None; ASampled 0 0 0 None; ARegister 0%nat; AStart 0%nat 0%nat (OSleep (Millis 2147483652)); ACommand 1 (KOp (OSleep (Millis 2147483647))) (Some (0%nat, 0%nat)); ACommand 2 KSample None; ASampled 2 10 2147483647 (Some (0%nat, 0%nat, 2147483647)); ACommand 3 (KOp (OSleep (Millis 5))) (Some (0%nat, 0%nat)); ACommand 4 KSample None; ASampled 4 20 2147483652 (Some (0%nat, 0%nat, 5)); ADelivered 0%nat 0%nat (Value 0); AClock 0%nat 2147483652; AExit (VRoot (ExitSuccess 0))].
 Proof. vm_compute. reflexivity. Qed.
 
 (** #35: a sleep cancelled after its timer fired but before its sample was applied credits
@@ -353,10 +311,7 @@ Theorem cancelled_link_credits_nothing :
   let p := {| bodies := fun _ => plain (CStart (OSleep (Millis 10)) (fun _ => CEnd 0));
               root_body := 0 |} in
   run concrete p (inputs e) (replay (inputs e)) 40 =
-  [ACommand 0%nat KSample None; ASampled 0%nat 100 100 None; AStart 0%nat 0%nat (OSleep (Millis 10));
-   ACommand 1%nat (KOp (OSleep (Millis 10))) (Some (0%nat, 0%nat)); ACommand 2%nat KSample None;
-   ACommand 3%nat KSample None; ASampled 3%nat 100 100 None; ACancelled 0%nat 0%nat;
-   AExit (VRoot ExitInterrupted)].
+  [ACommand 0 KSample None; ASampled 0 100 100 None; ARegister 0%nat; AStart 0%nat 0%nat (OSleep (Millis 10)); ACommand 1 (KOp (OSleep (Millis 10))) (Some (0%nat, 0%nat)); ACommand 2 KSample None; ACommand 3 KSample None; ASampled 3 100 100 None; ACancelled 0%nat 0%nat; AExit (VRoot ExitInterrupted)].
 Proof. vm_compute. reflexivity. Qed.
 
 (** ** S9: one fiber agrees with revision 3 *)

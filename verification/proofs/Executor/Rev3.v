@@ -96,7 +96,7 @@ Fixpoint interp3 {X} (I : Inputs) (x : R3) (s : Script X) : R3 * X :=
                else mk3 (q3 x) (aw3 x) (l3 x) (cmd3 x) (cur3 x) (S (draws3 x))
                       (tr3 x ++ [ADraw f r]) false (micro3 x) in
       interp3 I y (k r)
-  | Register _ k => interp3 I x (k false)
+  | Register f k => interp3 I (if done3 x then x else emit3 x (ARegister f)) (k false)
   end.
 
 (** The awaited command's entry, when it has arrived. *)
