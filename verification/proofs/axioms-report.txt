@@ -276,6 +276,278 @@ Closed under the global context
 Closed under the global context
 == Durable.Compare.old_parent_reads_before_finalizer
 Closed under the global context
+== Durable.Rev3Concrete.rev3_inv_init
+Closed under the global context
+== Durable.Rev3Concrete.rev3_meets_concrete
+Closed under the global context
+== Durable.Rev3Concrete.rev3_run_record
+Closed under the global context
+== Durable.Rev3Concrete.rev3_start_record
+Closed under the global context
+== Durable.Rev3Concrete.rev3_task_ok
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_ext_none
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_ext_put
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_ext_put_ready
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_ext_refl
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_ext_trans
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_find_app_none
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_find_app_some
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_find_map_eq
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_find_map_neq
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_first_root
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_inv_pend_shrink
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_inv_put
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_inv_put_running
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_inv_release
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_inv_task
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_konts_fields
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_look_in
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_look_none
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_look_put
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_look_put_eq
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_look_put_neq
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_look_some
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_map_fid_replace
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_mfirst_other
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_mnext_quiet
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_mok_running
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_nodup_put
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_not_exited
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_post_trans
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_post_weaken
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_pre_running
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_put_fields
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_set_queued_fields
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_unwind_fields
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_with_code_fields
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_with_flags_fields
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_wp_enqueue
+Closed under the global context
+== Durable.Rev3ConcreteBase.rev3_wp_sbind
+Closed under the global context
+== Durable.Rev3ConcreteGo.rev3_ext_strengthen
+Closed under the global context
+== Durable.Rev3ConcreteGo.rev3_ext_trans_gen
+Closed under the global context
+== Durable.Rev3ConcreteGo.rev3_go_exit
+Closed under the global context
+== Durable.Rev3ConcreteGo.rev3_go_ok
+Closed under the global context
+== Durable.Rev3ConcreteGo.rev3_go_step
+Closed under the global context
+== Durable.Rev3ConcreteGo.rev3_go_zero
+Closed under the global context
+== Durable.Rev3ConcreteGo.rev3_incl_filter
+Closed under the global context
+== Durable.Rev3ConcreteGo.rev3_incl_trans
+Closed under the global context
+== Durable.Rev3ConcreteGo.rev3_interrupt_step
+Closed under the global context
+== Durable.Rev3ConcreteGo.rev3_post_flags
+Closed under the global context
+== Durable.Rev3ConcreteGo.rev3_post_refl
+Closed under the global context
+== Durable.Rev3ConcreteGo.rev3_resume_ready
+Closed under the global context
+== Durable.Rev3ConcreteSteps.rev3_begun_record
+Closed under the global context
+== Durable.Rev3ConcreteSteps.rev3_ext_same_fibers
+Closed under the global context
+== Durable.Rev3ConcreteSteps.rev3_inv_exit
+Closed under the global context
+== Durable.Rev3ConcreteSteps.rev3_inv_register_fresh
+Closed under the global context
+== Durable.Rev3ConcreteSteps.rev3_inv_register_record
+Closed under the global context
+== Durable.Rev3ConcreteSteps.rev3_inv_same_fibers
+Closed under the global context
+== Durable.Rev3ConcreteSteps.rev3_look_bump_fid
+Closed under the global context
+== Durable.Rev3ConcreteSteps.rev3_look_bump_tok
+Closed under the global context
+== Durable.Rev3ConcreteSteps.rev3_look_fresh
+Closed under the global context
+== Durable.Rev3ConcreteSteps.rev3_look_set_cell
+Closed under the global context
+== Durable.Rev3ConcreteSteps.rev3_mok_register_fresh
+Closed under the global context
+== Durable.Rev3ConcreteSteps.rev3_mok_register_record
+Closed under the global context
+== Durable.Rev3ConcreteSteps.rev3_no_pend_record
+Closed under the global context
+== Durable.Rev3ConcreteSteps.rev3_pend_same
+Closed under the global context
+== Durable.Rev3ConcreteSteps.rev3_post_park
+Closed under the global context
+== Durable.Rev3ConcreteSteps.rev3_post_put_running
+Closed under the global context
+== Durable.Rev3ConcreteSteps.rev3_post_start
+Closed under the global context
+== Durable.Rev3ConcreteSteps.rev3_pre_of_record
+Closed under the global context
+== Durable.Rev3ConcreteSteps.rev3_pre_put_self
+Closed under the global context
+== Durable.Rev3ConcreteSteps.rev3_pre_ready
+Closed under the global context
+== Durable.Rev3ConcreteSteps.rev3_pre_register_fresh
+Closed under the global context
+== Durable.Rev3ConcreteSteps.rev3_pre_same_fibers
+Closed under the global context
+== Durable.Rev3ConcreteSteps.rev3_wake_cell_ok
+Closed under the global context
+== Durable.Rev3ConcreteSteps.rev3_wake_exit_ok
+Closed under the global context
+== Durable.Rev3ConcreteSteps.rev3_wake_ok
+Closed under the global context
+== Durable.Rev3Counter.rev3_clock_fin_conditions
+Closed under the global context
+== Durable.Rev3Counter.rev3_clock_fin_incompatible
+Closed under the global context
+== Durable.Rev3Counter.rev3_clock_fin_runs
+Closed under the global context
+== Durable.Rev3Counter.rev3_cx_conditions
+Closed under the global context
+== Durable.Rev3Counter.rev3_cx_incompatible
+Closed under the global context
+== Durable.Rev3Counter.rev3_cx_run
+Closed under the global context
+== Durable.Rev3Counter.rev3_cx_run3
+Closed under the global context
+== Durable.Rev3Counter.rev3_cx_valid
+Closed under the global context
+== Durable.Rev3Counter.rev3_late_child_conditions
+Closed under the global context
+== Durable.Rev3Counter.rev3_late_child_incompatible
+Closed under the global context
+== Durable.Rev3Counter.rev3_late_child_live
+Closed under the global context
+== Durable.Rev3Counter.rev3_late_child_one_fiber
+Closed under the global context
+== Durable.Rev3Counter.rev3_late_child_runs
+Closed under the global context
+== Durable.Rev3Counter.rev3_masked_child_diverges
+Closed under the global context
+== Durable.Rev3Counter.rev3_not_s9
+Closed under the global context
+== Durable.Rev3Counter.rev3_not_s9_cancel
+Closed under the global context
+== Durable.Rev3Counter.rev3_not_s9_cancel_first_form
+Closed under the global context
+== Durable.Rev3Counter.rev3_not_s9_cancel_second_form
+Closed under the global context
+== Durable.Rev3Counter.rev3_not_s9_first_form
+Closed under the global context
+== Durable.Rev3Counter.rev3_not_s9_first_form_concrete
+Closed under the global context
+== Durable.Rev3Counter.rev3_not_s9_second_form
+Closed under the global context
+== Durable.Rev3Counter.rev3_not_s9_without_violation
+Closed under the global context
+== Durable.Rev3Counter.rev3_outlive_meets
+Closed under the global context
+== Durable.Rev3Counter.rev3_outlive_step
+Closed under the global context
+== Durable.Rev3Counter.rev3_released_root_diverges
+Closed under the global context
+== Durable.Rev3Counter.rev3_sample_then_defect
+Closed under the global context
+== Durable.Rev3Counter.rev3_spontaneous_diverges
+Closed under the global context
+== Durable.Rev3Counter.rev3_spontaneous_meets
+Closed under the global context
+== Durable.Rev3Counter.rev3_spontaneous_step
+Closed under the global context
+== Durable.Rev3Counter.rev3_terminal_valid
+Closed under the global context
+== Durable.Rev3Monitor.rev3_i1_of_eq
+Closed under the global context
+== Durable.Rev3Monitor.rev3_meets_of_monitor
+Closed under the global context
+== Durable.Rev3Monitor.rev3_mfold_ex
+Closed under the global context
+== Durable.Rev3Monitor.rev3_mfold_ex_back
+Closed under the global context
+== Durable.Rev3Monitor.rev3_mfold_first
+Closed under the global context
+== Durable.Rev3Monitor.rev3_mfold_reg
+Closed under the global context
+== Durable.Rev3Monitor.rev3_mok_fiber
+Closed under the global context
+== Durable.Rev3Monitor.rev3_mok_queue
+Closed under the global context
+== Durable.Rev3Monitor.rev3_mok_register
+Closed under the global context
+== Durable.Rev3Monitor.rev3_mok_release
+Closed under the global context
+== Durable.Rev3Monitor.rev3_mok_root
+Closed under the global context
+== Durable.Rev3Monitor.rev3_mok_start
+Closed under the global context
+== Durable.Rev3Monitor.rev3_mok_task
+Closed under the global context
+== Durable.Rev3Monitor.rev3_mrun_app
+Closed under the global context
+== Durable.Rev3Monitor.rev3_mrun_exits
+Closed under the global context
+== Durable.Rev3Monitor.rev3_mrun_props
+Closed under the global context
+== Durable.Rev3Monitor.rev3_mrun_quiet
+Closed under the global context
+== Durable.Rev3Monitor.rev3_mrun_root_after
+Closed under the global context
+== Durable.Rev3Monitor.rev3_mrun_started
+Closed under the global context
+== Durable.Rev3Monitor.rev3_mrun_tokens
+Closed under the global context
+== Durable.Rev3Monitor.rev3_pend_other
+Closed under the global context
+== Durable.Rev3Monitor.rev3_pend_release
+Closed under the global context
+== Durable.Rev3Monitor.rev3_pend_task
+Closed under the global context
+== Durable.Rev3Monitor.rev3_script_rel_refl
+Closed under the global context
+== Durable.Rev3Monitor.rev3_wp_mono
+Closed under the global context
+== Durable.Rev3Monitor.rev3_wp_play
+Closed under the global context
 == Durable.StepAwait.step_ainv_cleared
 Closed under the global context
 == Durable.StepAwait.step_ainv_head
