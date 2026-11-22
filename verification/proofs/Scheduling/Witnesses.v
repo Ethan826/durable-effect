@@ -105,3 +105,51 @@ Theorem queued_twice_no_second_await :
   In (Command 0 1 9 0) (run queued_twice queued_twice_env replayed 30) /\
   ~ In (Violated SecondAwait) (run queued_twice queued_twice_env replayed 30).
 Proof. vm_compute. split; [auto 10 | intuition discriminate]. Qed.
+
+(** ** Regression: a delivered cancellation is not an abandonment *)
+
+(** The root awaits one durable operation, which is cancelled. Before the fix, [deliver]
+    interrupted the root while the operation was still awaited, and the interruption recorded
+    it as abandoned. *)
+Definition one_await : Program :=
+  {| bodies := fun _ => {| main := Vis (StartAwait 5 0) (fun _ => Ret tt);
+                           finalizer := Ret tt |};
+     root := 0 |}.
+
+Definition cancels_first : Env :=
+  {| outcome_of := fun _ => Value 7;
+     sample_of := fun n => {| true_time := (100 + Z.of_nat n)%Z; host_error := 0%Z |};
+     cancelled_at := fun n => Nat.eqb n 0; random_of := fun n => n; ends_at := None |}.
+
+Theorem cancelled_not_abandoned :
+  In (CancelDelivered 0 0) (run one_await cancels_first replayed 2) /\
+  abandoned (iterate policy_v1 one_await cancels_first replayed no_outside_resumes 2
+               (initial one_await cancels_first)) = [].
+Proof. vm_compute. split; [auto 10 | reflexivity]. Qed.
+
+(** ** An instance of S11 *)
+
+(** The root forks a child that awaits operation 0, yields so that the child runs, interrupts
+    it, and awaits operation 1. Operation 0 is abandoned. One environment cancels it and gives
+    it outcome 1, the other completes it with outcome 2; the traces are the same. *)
+Definition abandons : Program :=
+  {| bodies := fun i => match i with
+       | 0 => {| main := Vis (Fork Queued 1) (fun c => Vis YieldNow (fun _ =>
+                         Vis (Interrupt c) (fun _ => Vis (StartAwait 2 0) (fun _ => Ret tt))));
+                 finalizer := Ret tt |}
+       | _ => {| main := Vis (StartAwait 1 0) (fun _ => Ret tt); finalizer := Ret tt |} end;
+     root := 0 |}.
+
+Definition abandoned_env (cancel0 : bool) (v : nat) : Env :=
+  {| outcome_of := fun n => if Nat.eqb n 0 then Value v else Value 9;
+     sample_of := fun n => {| true_time := (100 + Z.of_nat n)%Z; host_error := 0%Z |};
+     cancelled_at := fun n => andb cancel0 (Nat.eqb n 0); random_of := fun n => n;
+     ends_at := None |}.
+
+Theorem abandonment_is_silent :
+  In 0 (abandoned (iterate policy_v1 abandons (abandoned_env true 1) replayed
+          no_outside_resumes 3 (initial abandons (abandoned_env true 1)))) /\
+  In (Delivered 1 0 (Some (Value 9))) (run abandons (abandoned_env true 1) replayed 30) /\
+  run abandons (abandoned_env true 1) replayed 30
+    = run abandons (abandoned_env false 2) replayed 30.
+Proof. vm_compute. split; [auto | split; [auto 10 | reflexivity]]. Qed.

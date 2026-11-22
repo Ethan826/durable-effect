@@ -202,7 +202,8 @@ Theorem s8_cancel : S8_cancel.
 Proof.
   intros P E A k h op chunk rest st st' Hf Hq Ha Hc HA Hend. subst st'.
   rewrite (step_deliver _ _ _ _ _ _ Hf Hq Ha HA Hend). cbn [logical tick].
-  unfold deliver. rewrite Hc, interrupt_logical. cbn -[sample_value Z.max].
+  unfold deliver. rewrite Hc. unfold cancel. rewrite interrupt_logical.
+  cbn -[sample_value Z.max].
   unfold next_logical. rewrite Z.add_0_r. reflexivity.
 Qed.
 

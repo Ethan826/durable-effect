@@ -132,6 +132,10 @@ Proof.
   - apply_ih IH.
 Qed.
 
+Lemma cancel_set_micro : forall st m op h,
+  cancel (set_micro st m) op h = set_micro (cancel st op h) m.
+Proof. intros st m op h. unfold cancel. rewrite <- interrupt_fiber_set_micro. reflexivity. Qed.
+
 Lemma deliver_set_micro : forall E1 E2 st m aw,
   same_values E1 E2 ->
   deliver E1 (set_micro st m) aw = set_micro (deliver E2 st aw) m.
@@ -139,9 +143,9 @@ Proof.
   intros E1 E2 st m aw (Ho & Hs & Hc & Hr). unfold deliver, take_sample.
   destruct aw as [h op|h op chunk rest]; rewrite Hc;
     destruct (cancelled_at E2 op); rewrite ?Ho, !Hs.
-  - rewrite <- interrupt_fiber_set_micro. reflexivity.
+  - rewrite <- cancel_set_micro. reflexivity.
   - rewrite <- resume_set_micro. reflexivity.
-  - rewrite <- interrupt_fiber_set_micro. reflexivity.
+  - rewrite <- cancel_set_micro. reflexivity.
   - destruct rest as [|d|]; [rewrite <- resume_set_micro| |]; try reflexivity.
     destruct (d <=? max_chunk)%Z; reflexivity.
 Qed.

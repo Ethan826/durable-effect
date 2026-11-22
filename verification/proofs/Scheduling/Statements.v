@@ -294,7 +294,9 @@ Definition S10 : Prop :=
 (** ** S11. Abandonment is silent *)
 
 (** If operation [op] is abandoned in an attempt, changing its outcome or whether it is
-    cancelled changes no trace. *)
+    cancelled changes no trace, at any step. The owner approved this form on 2026-11-21; the
+    form approved in #28 concluded only for steps up to the abandonment ([n <= k]), which
+    says nothing about a completion that arrives after it. *)
 Definition S11 : Prop :=
   forall P E1 E2 A k op,
     let st := iterate policy_v1 P E1 A no_outside_resumes k (initial P E1) in
@@ -304,4 +306,4 @@ Definition S11 : Prop :=
     (forall n, sample_of E1 n = sample_of E2 n) ->
     (forall n, random_of E1 n = random_of E2 n) ->
     ends_at E1 = ends_at E2 ->
-    forall n, (n <= k)%nat -> run P E1 A n = run P E2 A n.
+    forall n, run P E1 A n = run P E2 A n.

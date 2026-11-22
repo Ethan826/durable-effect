@@ -111,7 +111,7 @@ Lemma deliver_shape : forall E st aw, exists a r,
    (cancelled_at E (awaited_op aw) = false /\
     exists h op c rest, aw = AwaitSleep h op c rest)).
 Proof.
-  intros E st aw. unfold deliver.
+  intros E st aw. unfold deliver, cancel.
   destruct aw as [h op|h op c rest]; destruct (cancelled_at E op) eqn:Hc.
   - match goal with |- context [interrupt_fiber ?X h] =>
       destruct (interrupt_fiber_trace X h) as [-> | ->] end;

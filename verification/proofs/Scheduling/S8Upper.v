@@ -124,12 +124,25 @@ Proof.
   split; [lia | intros; discriminate].
 Qed.
 
+(** Clearing the awaited operation, as a delivered cancellation does, keeps the invariant:
+    the lead held back for an awaited sleep is released. *)
+Lemma inv8_clear : forall s, Inv8 s ->
+  Inv8 (update s (fibers s) (queue s) None (abandoned s) (next_op s) (next_sample s)
+          (next_handle s) (draws s) (logical s) (trace s) (finished s)).
+Proof.
+  intros s [_ [H1 _]]. split; [intros aw Haw; discriminate|].
+  unfold holds, U. cbn [update logical next_sample trace awaited reserve].
+  destruct (reserve_range lead (awaited s) Hlead) as [Hr|Hr]; rewrite Hr in H1;
+    (split; [lia | intros; discriminate]).
+Qed.
+
 Lemma inv8_deliver_op : forall st h op,
   Inv8 st -> awaited st = Some (AwaitOp h op) -> Inv8 (deliver E st (AwaitOp h op)).
 Proof.
   intros st h op H Ha. unfold deliver.
   destruct (cancelled_at E op).
-  - apply inv8_interrupt. apply inv8_sample with (AwaitOp h op); auto.
+  - unfold cancel. apply inv8_interrupt, inv8_clear.
+    apply inv8_sample with (AwaitOp h op); auto.
   - destruct (inv8_sample st _ (Delivered op h (Some (outcome_of E op))) H Ha eq_refl)
       as [_ [Hb _]].
     apply inv8_resume; [exact (proj1 H _ Ha)|].
@@ -173,7 +186,8 @@ Lemma inv8_deliver_sleep : forall st h op c r,
 Proof.
   intros st h op c r H Ha Hc. unfold deliver.
   destruct (cancelled_at E op).
-  { apply inv8_interrupt. apply inv8_sample with (AwaitSleep h op c r); auto. }
+  { unfold cancel. apply inv8_interrupt, inv8_clear.
+    apply inv8_sample with (AwaitSleep h op c r); auto. }
   pose proof (chunk_bound _ _ _ _ _ H Ha Hc) as Hb.
   pose proof (inv8_link st h op c r) as Hl.
   destruct r as [|d|].

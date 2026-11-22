@@ -3,6 +3,8 @@ Scheduling.Witnesses.d1_reads_final_value
 Scheduling.Witnesses.values_change_traces
 Scheduling.Witnesses.p5_single_lead_refuted
 Scheduling.Witnesses.queued_twice_no_second_await
+Scheduling.Witnesses.cancelled_not_abandoned
+Scheduling.Witnesses.abandonment_is_silent
 Scheduling.SingleStepLemmas.emit_holds
 Scheduling.SingleStepLemmas.quiet_exit
 Scheduling.SingleStepLemmas.quiet_violation
@@ -186,7 +188,5 @@ Scheduling.S8Upper.inv8_turn
 Scheduling.S8Upper.inv8_step
 Scheduling.S8Upper.inv8_initial
 Scheduling.S8Upper.s8_upper
-Scheduling.AbandonmentRefuted.cancelled_counted_abandoned
-Scheduling.AbandonmentRefuted.differ_only_at_first
-Scheduling.AbandonmentRefuted.s11_refuted
-Scheduling.AbandonmentRefuted.s11_all_steps_refuted
+Scheduling.ExecutorLemmas.cancel_set_micro
+Scheduling.S8Upper.inv8_clear

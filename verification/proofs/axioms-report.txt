@@ -1,11 +1,3 @@
-== Scheduling.AbandonmentRefuted.cancelled_counted_abandoned
-Closed under the global context
-== Scheduling.AbandonmentRefuted.differ_only_at_first
-Closed under the global context
-== Scheduling.AbandonmentRefuted.s11_all_steps_refuted
-Closed under the global context
-== Scheduling.AbandonmentRefuted.s11_refuted
-Closed under the global context
 == Scheduling.Arrival.end_attempt_finished
 Closed under the global context
 == Scheduling.Arrival.end_attempt_trace
@@ -43,6 +35,8 @@ Closed under the global context
 == Scheduling.Determinism.s10
 Closed under the global context
 == Scheduling.Determinism.s3
+Closed under the global context
+== Scheduling.ExecutorLemmas.cancel_set_micro
 Closed under the global context
 == Scheduling.ExecutorLemmas.deliver_prefix
 Closed under the global context
@@ -165,6 +159,8 @@ Closed under the global context
 == Scheduling.S8Upper.chunk_bound
 Closed under the global context
 == Scheduling.S8Upper.delivery_facts
+Closed under the global context
+== Scheduling.S8Upper.inv8_clear
 Closed under the global context
 == Scheduling.S8Upper.inv8_deliver_op
 Closed under the global context
@@ -371,6 +367,10 @@ Closed under the global context
 == Scheduling.SingleStepLemmas.tick_holds
 Closed under the global context
 == Scheduling.SingleStepLemmas.violate_holds
+Closed under the global context
+== Scheduling.Witnesses.abandonment_is_silent
+Closed under the global context
+== Scheduling.Witnesses.cancelled_not_abandoned
 Closed under the global context
 == Scheduling.Witnesses.d1_reads_final_value
 Closed under the global context

@@ -253,16 +253,24 @@ Definition resume (st : State) (h : nat) (o : option Outcome) : State :=
         (logical st) (trace st) (finished st)
   end.
 
+(** Delivers a cancellation of operation [op] to fiber [h]. A cancellation is a delivery: the
+    operation stops being awaited before the fiber is interrupted, so the interruption does
+    not count it as abandoned (D5: abandoned means interrupted before delivery). *)
+Definition cancel (st : State) (op h : nat) : State :=
+  let st1 := emit st (CancelDelivered op h) in
+  interrupt_fiber (update st1 (fibers st1) (queue st1) None (abandoned st1) (next_op st1)
+    (next_sample st1) (next_handle st1) (draws st1) (logical st1) (trace st1) (finished st1)) h.
+
 (** Delivers the awaited operation's result, whose index is [op], once it has arrived. *)
 Definition deliver (E : Env) (st : State) (aw : Awaited) : State :=
   match aw with
   | AwaitOp h op =>
-      if cancelled_at E op then interrupt_fiber (emit (take_sample E st 0) (CancelDelivered op h)) h
+      if cancelled_at E op then cancel (take_sample E st 0) op h
       else
         let o := outcome_of E op in
         resume (emit (take_sample E st 0) (Delivered op h (Some o))) h (Some o)
   | AwaitSleep h op chunk rest =>
-      if cancelled_at E op then interrupt_fiber (emit (take_sample E st 0) (CancelDelivered op h)) h
+      if cancelled_at E op then cancel (take_sample E st 0) op h
       else
         let st1 := take_sample E st chunk in
         let next (c : Z) (r : Chain) :=

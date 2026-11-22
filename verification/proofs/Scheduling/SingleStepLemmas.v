@@ -71,7 +71,9 @@ Record closed_turn (Q : Inv) : Prop := {
     Q (tr ++ [Delivered (awaited_op aw) (awaited_handle aw) o]) None n l;
   c_link : forall tr h op c r n l c' r', next_link r = Some (c', r') ->
     Q tr (Some (AwaitSleep h op c r)) n l ->
-    Q (tr ++ [SleepCommand n h c']) (Some (AwaitSleep h n c' r')) (S n) l
+    Q (tr ++ [SleepCommand n h c']) (Some (AwaitSleep h n c' r')) (S n) l;
+  c_cancel : forall tr aw n l, Q tr (Some aw) n l ->
+    Q (tr ++ [CancelDelivered (awaited_op aw) (awaited_handle aw)]) None n l
 }.
 
 Section Generic.
@@ -212,13 +214,15 @@ Proof.
   - apply emit_holds; [split; [reflexivity | discriminate] | exact H].
 Qed.
 
-Lemma cancel_holds : forall E st aw op h,
+Lemma cancel_holds : forall E st aw,
   holds Q st -> awaited st = Some aw ->
-  holds Q (interrupt_fiber (emit (take_sample E st 0) (CancelDelivered op h)) h).
+  holds Q (cancel (take_sample E st 0) (awaited_op aw) (awaited_handle aw)).
 Proof.
-  intros E st aw op h H Ha. apply interrupt_holds. apply emit_holds.
-  - split; [reflexivity | discriminate].
-  - apply take_sample_holds with aw; [exact H | exact Ha | left; reflexivity].
+  intros E st aw H Ha. unfold cancel. apply interrupt_holds.
+  assert (Hs : holds Q (take_sample E st 0))
+    by (apply take_sample_holds with aw; [exact H | exact Ha | left; reflexivity]).
+  unfold holds in *. cbn [trace awaited next_op logical update emit].
+  rewrite take_sample_awaited, Ha in Hs. apply (c_cancel _ HT). exact Hs.
 Qed.
 
 (** The state after [deliver] starts the next link of a sleep chain. *)
@@ -241,11 +245,12 @@ Lemma deliver_holds : forall E st aw,
   holds Q st -> awaited st = Some aw -> holds Q (deliver E st aw).
 Proof.
   intros E st aw H Ha. destruct aw as [h op|h op c r]; unfold deliver.
-  - destruct (cancelled_at E op); [eapply cancel_holds; eassumption|].
+  - destruct (cancelled_at E op); [exact (cancel_holds E st (AwaitOp h op) H Ha)|].
     apply resume_holds with (aw := AwaitOp h op).
     + apply take_sample_holds with (AwaitOp h op); [exact H | exact Ha | left; reflexivity].
     + exact Ha.
-  - destruct (cancelled_at E op); [eapply cancel_holds; eassumption|].
+  - destruct (cancelled_at E op);
+      [exact (cancel_holds E st (AwaitSleep h op c r) H Ha)|].
     assert (Hs : holds Q (take_sample E st c)).
     { apply take_sample_holds with (AwaitSleep h op c r); [exact H | exact Ha |].
       right. exists h, op, r. reflexivity. }

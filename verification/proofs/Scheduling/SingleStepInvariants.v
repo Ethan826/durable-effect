@@ -244,6 +244,12 @@ Proof.
         destruct (Nat.eqb op n) eqn:E; [apply Nat.eqb_eq in E; lia | discriminate].
       * cbn in Ha. injection Ha as <- <-. exists (AwaitSleep h n c' r'). auto.
     + intros b Hb. injection Hb as <-. cbn. lia.
+  - intros tr aw n l (H1 & H2 & H3). split; [|split].
+    + apply single_await_snoc; [exact H1|]. intros op' h' Ha. discriminate.
+    + intros op h Hop. destruct (open_snoc _ _ _ _ Hop) as [[Ho' Hew]|Ha]; [|discriminate].
+      destruct (H2 _ _ Ho') as (b & Hb & _ & Hob). injection Hb as <-.
+      cbn in Hew. rewrite Hob, Nat.eqb_refl in Hew. discriminate.
+    + intros b Hb. discriminate.
 Qed.
 
 Lemma W_nil : forall l, W [] None 0%nat l.
@@ -327,6 +333,8 @@ Proof.
       [|exact H].
     destruct H as [_ H2]. destruct (H2 _ _ _ _ eq_refl) as [_ Hr].
     exact (C_link _ _ _ Hr Hn).
+  - intros tr aw n l H. apply C_plain with (Some aw) n l; [discriminate| |exact H].
+    intros h op c r Hs. discriminate.
 Qed.
 
 Lemma C_nil : forall l, C [] None 0%nat l.
@@ -364,6 +372,8 @@ Proof.
     split; [apply (c_deliver _ C_closed_turn); exact H | exact Hl].
   - intros tr h op c r n l c' r' Hn [H Hl].
     split; [eapply (c_link _ C_closed_turn); [exact Hn | exact H] | exact Hl].
+  - intros tr aw n l [H Hl].
+    split; [apply (c_cancel _ C_closed_turn); exact H | exact Hl].
 Qed.
 
 (** ** S5: no outside-resume violation outside the resume branch *)
@@ -394,4 +404,5 @@ Proof.
     apply N_snoc; [discriminate | exact H].
   - intros tr aw n l o H. apply N_snoc; [discriminate | exact H].
   - intros tr h op c r n l c' r' _ H. apply N_snoc; [discriminate | exact H].
+  - intros tr aw n l H. apply N_snoc; [discriminate | exact H].
 Qed.
