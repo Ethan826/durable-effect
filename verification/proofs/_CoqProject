@@ -12,3 +12,5 @@ Scheduling/Determinism.v
 Scheduling/Replay.v
 Scheduling/S8UpperLemmas.v
 Scheduling/S8Upper.v
+Scheduling/AbandonmentLemmas.v
+Scheduling/Abandonment.v

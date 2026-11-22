@@ -1,3 +1,51 @@
+== Scheduling.Abandonment.deliver_after
+Closed under the global context
+== Scheduling.Abandonment.Inv0_initial
+Closed under the global context
+== Scheduling.Abandonment.no_delivery
+Closed under the global context
+== Scheduling.Abandonment.s11
+Closed under the global context
+== Scheduling.Abandonment.step_unless_delivers
+Closed under the global context
+== Scheduling.AbandonmentLemmas.After_closed
+Closed under the global context
+== Scheduling.AbandonmentLemmas.deliver_hold
+Closed under the global context
+== Scheduling.AbandonmentLemmas.deliver_J
+Closed under the global context
+== Scheduling.AbandonmentLemmas.end_attempt_hold
+Closed under the global context
+== Scheduling.AbandonmentLemmas.fold_interrupt_hold
+Closed under the global context
+== Scheduling.AbandonmentLemmas.Has_closed
+Closed under the global context
+== Scheduling.AbandonmentLemmas.hold_tick
+Closed under the global context
+== Scheduling.AbandonmentLemmas.interrupt_hold
+Closed under the global context
+== Scheduling.AbandonmentLemmas.Inv0_closed
+Closed under the global context
+== Scheduling.AbandonmentLemmas.iterate_add
+Closed under the global context
+== Scheduling.AbandonmentLemmas.iterate_hold
+Closed under the global context
+== Scheduling.AbandonmentLemmas.iterate_J
+Closed under the global context
+== Scheduling.AbandonmentLemmas.J_tick
+Closed under the global context
+== Scheduling.AbandonmentLemmas.reachable_J
+Closed under the global context
+== Scheduling.AbandonmentLemmas.run_fiber_hold
+Closed under the global context
+== Scheduling.AbandonmentLemmas.run_head_hold
+Closed under the global context
+== Scheduling.AbandonmentLemmas.run_head_J
+Closed under the global context
+== Scheduling.AbandonmentLemmas.step_hold
+Closed under the global context
+== Scheduling.AbandonmentLemmas.step_J
+Closed under the global context
 == Scheduling.Arrival.end_attempt_finished
 Closed under the global context
 == Scheduling.Arrival.end_attempt_trace
