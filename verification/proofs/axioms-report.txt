@@ -564,6 +564,452 @@ Closed under the global context
 Closed under the global context
 == Durable.StepTurn.step_violate_fresh
 Closed under the global context
+== Durable.Time.time_p3
+Closed under the global context
+== Durable.Time.time_p7
+Closed under the global context
+== Durable.Time.time_p8
+Closed under the global context
+== Durable.Time.time_p9
+Closed under the global context
+== Durable.Time.time_s8
+Closed under the global context
+== Durable.TimeA.time_after_last_ext
+Closed under the global context
+== Durable.TimeA.time_claims_quiet
+Closed under the global context
+== Durable.TimeA.time_credits_nil_samples
+Closed under the global context
+== Durable.TimeA.time_existsb_app_true
+Closed under the global context
+== Durable.TimeA.time_forallb_and
+Closed under the global context
+== Durable.TimeA.time_idle_live
+Closed under the global context
+== Durable.TimeA.time_idle_refs
+Closed under the global context
+== Durable.TimeA.time_inva_frame
+Closed under the global context
+== Durable.TimeA.time_inva_frame_quiet
+Closed under the global context
+== Durable.TimeA.time_inva_same
+Closed under the global context
+== Durable.TimeA.time_ld_frame
+Closed under the global context
+== Durable.TimeA.time_neutral_credits
+Closed under the global context
+== Durable.TimeA.time_neutral_owned
+Closed under the global context
+== Durable.TimeA.time_neutral_sample
+Closed under the global context
+== Durable.TimeA.time_neutral_start
+Closed under the global context
+== Durable.TimeA2.time_after_last_existsb
+Closed under the global context
+== Durable.TimeA2.time_after_last_start_some
+Closed under the global context
+== Durable.TimeA2.time_existsb_start_some
+Closed under the global context
+== Durable.TimeA2.time_inva_applied
+Closed under the global context
+== Durable.TimeA2.time_inva_enq_cancel
+Closed under the global context
+== Durable.TimeA2.time_inva_enq_deliver
+Closed under the global context
+== Durable.TimeA2.time_inva_issue_owned
+Closed under the global context
+== Durable.TimeA2.time_inva_issue_sample
+Closed under the global context
+== Durable.TimeA2.time_inva_set_waiter
+Closed under the global context
+== Durable.TimeA2.time_inva_start
+Closed under the global context
+== Durable.TimeA2.time_is_owned_other
+Closed under the global context
+== Durable.TimeA2.time_is_start_other
+Closed under the global context
+== Durable.TimeA2.time_ld_away
+Closed under the global context
+== Durable.TimeA2.time_ld_flink
+Closed under the global context
+== Durable.TimeA2.time_ld_fresult
+Closed under the global context
+== Durable.TimeA2.time_ld_sop
+Closed under the global context
+== Durable.TimeA2.time_live_sop_other
+Closed under the global context
+== Durable.TimeA2.time_pair_dec
+Closed under the global context
+== Durable.TimeA2.time_r3_idle
+Closed under the global context
+== Durable.TimeA2.time_r3_nodel
+Closed under the global context
+== Durable.TimeA2.time_waiter_ne
+Closed under the global context
+== Durable.TimeA3.time_after_last_snoc_false
+Closed under the global context
+== Durable.TimeA3.time_claim_deliver
+Closed under the global context
+== Durable.TimeA3.time_credits_sampled
+Closed under the global context
+== Durable.TimeA3.time_grows_start_emit
+Closed under the global context
+== Durable.TimeA3.time_inva_apply
+Closed under the global context
+== Durable.TimeA3.time_inva_boundary
+Closed under the global context
+== Durable.TimeA3.time_inva_cancel
+Closed under the global context
+== Durable.TimeA3.time_inva_clock
+Closed under the global context
+== Durable.TimeA3.time_inva_close
+Closed under the global context
+== Durable.TimeA3.time_inva_draw
+Closed under the global context
+== Durable.TimeA3.time_inva_emit
+Closed under the global context
+== Durable.TimeA3.time_inva_finish
+Closed under the global context
+== Durable.TimeA3.time_inva_interp
+Closed under the global context
+== Durable.TimeA3.time_inva_issue_op
+Closed under the global context
+== Durable.TimeA3.time_inva_issue_waiter
+Closed under the global context
+== Durable.TimeA3.time_inva_notify
+Closed under the global context
+== Durable.TimeA3.time_inva_on_event
+Closed under the global context
+== Durable.TimeA3.time_inva_on_release
+Closed under the global context
+== Durable.TimeA3.time_inva_on_start
+Closed under the global context
+== Durable.TimeA3.time_inva_resample
+Closed under the global context
+== Durable.TimeA3.time_inva_run_head
+Closed under the global context
+== Durable.TimeA3.time_inva_set_phase
+Closed under the global context
+== Durable.TimeA3.time_inva_set_sub_idle
+Closed under the global context
+== Durable.TimeA3.time_inva_set_sub_none
+Closed under the global context
+== Durable.TimeA3.time_inva_step
+Closed under the global context
+== Durable.TimeA3.time_inva_violate
+Closed under the global context
+== Durable.TimeA3.time_issue_chain
+Closed under the global context
+== Durable.TimeA3.time_issue_sample_cases
+Closed under the global context
+== Durable.TimeA3.time_ld_of_sub
+Closed under the global context
+== Durable.TimeA3.time_ldinv_dead
+Closed under the global context
+== Durable.TimeA3.time_link_chain
+Closed under the global context
+== Durable.TimeA3.time_link_total
+Closed under the global context
+== Durable.TimeA3.time_pair_eqb_true
+Closed under the global context
+== Durable.TimeA3.time_refs_unique
+Closed under the global context
+== Durable.TimeA3.time_resample_ldinv_dead
+Closed under the global context
+== Durable.TimeA3.time_slot_idle
+Closed under the global context
+== Durable.TimeA3.time_split_chain
+Closed under the global context
+== Durable.TimeA3.time_waiter_none
+Closed under the global context
+== Durable.TimeA3.time_zero_not_sleepy
+Closed under the global context
+== Durable.TimeAClaims.time_claims_run
+Closed under the global context
+== Durable.TimeAClaims.time_existsb_false_not_in
+Closed under the global context
+== Durable.TimeAClaims.time_inva_initial
+Closed under the global context
+== Durable.TimeAClaims.time_inva_run
+Closed under the global context
+== Durable.TimeAClaims.time_no_owned
+Closed under the global context
+== Durable.TimeAClaims.time_not_starts
+Closed under the global context
+== Durable.TimeAClaims.time_p3_of
+Closed under the global context
+== Durable.TimeAClaims.time_p7_of
+Closed under the global context
+== Durable.TimeAClaims.time_p8_of
+Closed under the global context
+== Durable.TimeAClaims.time_p9_of
+Closed under the global context
+== Durable.TimeAClaims.time_sample_in
+Closed under the global context
+== Durable.TimeAClaims.time_starts_dec
+Closed under the global context
+== Durable.TimeBase.time_after_last_app
+Closed under the global context
+== Durable.TimeBase.time_after_last_none
+Closed under the global context
+== Durable.TimeBase.time_after_last_none_iff
+Closed under the global context
+== Durable.TimeBase.time_after_last_snoc
+Closed under the global context
+== Durable.TimeBase.time_after_last_some
+Closed under the global context
+== Durable.TimeBase.time_applied_app
+Closed under the global context
+== Durable.TimeBase.time_claims_nil
+Closed under the global context
+== Durable.TimeBase.time_claims_snoc
+Closed under the global context
+== Durable.TimeBase.time_credits_app
+Closed under the global context
+== Durable.TimeBase.time_eqb_pair
+Closed under the global context
+== Durable.TimeBase.time_existsb_after_last
+Closed under the global context
+== Durable.TimeBase.time_fresh
+Closed under the global context
+== Durable.TimeBase.time_in_stoks
+Closed under the global context
+== Durable.TimeBase.time_lvalues_app
+Closed under the global context
+== Durable.TimeBase.time_nodup_prefix
+Closed under the global context
+== Durable.TimeBase.time_stoks_app
+Closed under the global context
+== Durable.TimeBase.time_sum_app
+Closed under the global context
+== Durable.TimeFresh1.time_grows_sub_event
+Closed under the global context
+== Durable.TimeFresh1.time_grows_sub_nostart
+Closed under the global context
+== Durable.TimeFresh1.time_grows_sub_trans
+Closed under the global context
+== Durable.TimeFresh1.time_nostart_after
+Closed under the global context
+== Durable.TimeFresh1.time_nostart_apply
+Closed under the global context
+== Durable.TimeFresh1.time_nostart_boundary
+Closed under the global context
+== Durable.TimeFresh1.time_nostart_cancel
+Closed under the global context
+== Durable.TimeFresh1.time_nostart_close
+Closed under the global context
+== Durable.TimeFresh1.time_nostart_cut
+Closed under the global context
+== Durable.TimeFresh1.time_nostart_emit
+Closed under the global context
+== Durable.TimeFresh1.time_nostart_finish
+Closed under the global context
+== Durable.TimeFresh1.time_nostart_foreign
+Closed under the global context
+== Durable.TimeFresh1.time_nostart_issue
+Closed under the global context
+== Durable.TimeFresh1.time_nostart_issue_op
+Closed under the global context
+== Durable.TimeFresh1.time_nostart_notify
+Closed under the global context
+== Durable.TimeFresh1.time_nostart_refl
+Closed under the global context
+== Durable.TimeFresh1.time_nostart_release
+Closed under the global context
+== Durable.TimeFresh1.time_nostart_same
+Closed under the global context
+== Durable.TimeFresh1.time_nostart_trans
+Closed under the global context
+== Durable.TimeFresh1.time_nostart_violate
+Closed under the global context
+== Durable.TimeFresh1.time_subseq_app
+Closed under the global context
+== Durable.TimeFresh1.time_subseq_in
+Closed under the global context
+== Durable.TimeFresh1.time_subseq_nil_l
+Closed under the global context
+== Durable.TimeFresh1.time_subseq_nodup
+Closed under the global context
+== Durable.TimeFresh1.time_subseq_refl
+Closed under the global context
+== Durable.TimeFresh1.time_subseq_trans
+Closed under the global context
+== Durable.TimeFresh2.time_interp_sub
+Closed under the global context
+== Durable.TimeFresh2.time_nostart_x2
+Closed under the global context
+== Durable.TimeFresh2.time_run_head_x2
+Closed under the global context
+== Durable.TimeFresh2.time_run_sub
+Closed under the global context
+== Durable.TimeFresh2.time_start_tokens_app
+Closed under the global context
+== Durable.TimeFresh2.time_step_cases
+Closed under the global context
+== Durable.TimeFresh3.time_clocks_app
+Closed under the global context
+== Durable.TimeFresh3.time_draws_app
+Closed under the global context
+== Durable.TimeFresh3.time_drive_log
+Closed under the global context
+== Durable.TimeFresh3.time_first_reg_spec
+Closed under the global context
+== Durable.TimeFresh3.time_fresh_tokens_hold
+Closed under the global context
+== Durable.TimeFresh3.time_initial_stoks
+Closed under the global context
+== Durable.TimeFresh3.time_nodup_started
+Closed under the global context
+== Durable.TimeFresh3.time_play_ilog
+Closed under the global context
+== Durable.TimeFresh3.time_started_app
+Closed under the global context
+== Durable.TimeL.time_applied_other
+Closed under the global context
+== Durable.TimeL.time_ctxl_clock
+Closed under the global context
+== Durable.TimeL.time_ctxl_close
+Closed under the global context
+== Durable.TimeL.time_ctxl_draw
+Closed under the global context
+== Durable.TimeL.time_ctxl_emit
+Closed under the global context
+== Durable.TimeL.time_ctxl_fields
+Closed under the global context
+== Durable.TimeL.time_ctxl_finish
+Closed under the global context
+== Durable.TimeL.time_ctxl_frame
+Closed under the global context
+== Durable.TimeL.time_ctxl_interp
+Closed under the global context
+== Durable.TimeL.time_ctxl_issue
+Closed under the global context
+== Durable.TimeL.time_ctxl_issue_op
+Closed under the global context
+== Durable.TimeL.time_ctxl_not_initial
+Closed under the global context
+== Durable.TimeL.time_ctxl_of_invl
+Closed under the global context
+== Durable.TimeL.time_ctxl_on_event
+Closed under the global context
+== Durable.TimeL.time_ctxl_on_release
+Closed under the global context
+== Durable.TimeL.time_ctxl_on_start
+Closed under the global context
+== Durable.TimeL.time_ctxl_run_head
+Closed under the global context
+== Durable.TimeL.time_ctxl_simple
+Closed under the global context
+== Durable.TimeL.time_ctxl_violate
+Closed under the global context
+== Durable.TimeL.time_invl_apply
+Closed under the global context
+== Durable.TimeL.time_invl_boundary
+Closed under the global context
+== Durable.TimeL.time_invl_cancel
+Closed under the global context
+== Durable.TimeL.time_invl_fields
+Closed under the global context
+== Durable.TimeL.time_invl_frame
+Closed under the global context
+== Durable.TimeL.time_invl_initial
+Closed under the global context
+== Durable.TimeL.time_invl_leave
+Closed under the global context
+== Durable.TimeL.time_invl_notify
+Closed under the global context
+== Durable.TimeL.time_invl_of_ctxl
+Closed under the global context
+== Durable.TimeL.time_invl_run
+Closed under the global context
+== Durable.TimeL.time_invl_step
+Closed under the global context
+== Durable.TimeL.time_invl_violate
+Closed under the global context
+== Durable.TimeL.time_iterate_S
+Closed under the global context
+== Durable.TimeL.time_lastl_nth
+Closed under the global context
+== Durable.TimeL.time_lastl_snoc
+Closed under the global context
+== Durable.TimeL.time_lvalues_other
+Closed under the global context
+== Durable.TimeL.time_nolval_app
+Closed under the global context
+== Durable.TimeL.time_shape_nil
+Closed under the global context
+== Durable.TimeL.time_shape_snoc
+Closed under the global context
+== Durable.TimeL.time_sorted_snoc
+Closed under the global context
+== Durable.TimeLClaims.time_add_snoc
+Closed under the global context
+== Durable.TimeLClaims.time_firstn_snoc
+Closed under the global context
+== Durable.TimeLClaims.time_max_ge_base
+Closed under the global context
+== Durable.TimeLClaims.time_max_snoc
+Closed under the global context
+== Durable.TimeLClaims.time_p2
+Closed under the global context
+== Durable.TimeLClaims.time_p4
+Closed under the global context
+== Durable.TimeLClaims.time_p5
+Closed under the global context
+== Durable.TimeLClaims.time_p6
+Closed under the global context
+== Durable.TimeLClaims.time_shape_chunk
+Closed under the global context
+== Durable.TimeLClaims.time_shape_p5
+Closed under the global context
+== Durable.TimeLClaims.time_shape_p6
+Closed under the global context
+== Durable.TimeLClaims.time_shape_prev
+Closed under the global context
+== Durable.TimeLClaims.time_shape_reading
+Closed under the global context
+== Durable.TimeStep.time_close_fields
+Closed under the global context
+== Durable.TimeStep.time_grows_close
+Closed under the global context
+== Durable.TimeStep.time_grows_emit
+Closed under the global context
+== Durable.TimeStep.time_grows_finish
+Closed under the global context
+== Durable.TimeStep.time_grows_interp
+Closed under the global context
+== Durable.TimeStep.time_grows_issue
+Closed under the global context
+== Durable.TimeStep.time_grows_issue_op
+Closed under the global context
+== Durable.TimeStep.time_grows_on_event
+Closed under the global context
+== Durable.TimeStep.time_grows_on_release
+Closed under the global context
+== Durable.TimeStep.time_grows_on_start
+Closed under the global context
+== Durable.TimeStep.time_grows_refl
+Closed under the global context
+== Durable.TimeStep.time_grows_same
+Closed under the global context
+== Durable.TimeStep.time_grows_trans
+Closed under the global context
+== Durable.TimeStep.time_grows_violate
+Closed under the global context
+== Durable.TimeStep.time_interp_ind
+Closed under the global context
+== Durable.TimeStep.time_interp_ind_nodup
+Closed under the global context
+== Durable.TimeStep.time_issue_cases
+Closed under the global context
+== Durable.TimeStep.time_issue_op_cases
+Closed under the global context
+== Durable.TimeStep.time_nodup_grows
+Closed under the global context
+== Durable.TimeStep.time_violate_cases
+Closed under the global context
+== Durable.TimeStep.time_violate_fields
+Closed under the global context
 == Durable.Witnesses.blocked_root_is_violation
 Closed under the global context
 == Durable.Witnesses.cancel_during_initial_sample_is_held
