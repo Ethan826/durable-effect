@@ -22,16 +22,13 @@ Definition cut_at_two (k : Cut) (stop : option nat) : Schedule :=
     here before the finalizer reads the clock (X6, the owner's decision on #37). *)
 Theorem next_attempt_stops_closing :
   run concrete slow_finalizer (inputs first_sample) (cut_at_two Suspended (Some 4)) 60 =
-  [ACommand 0 KSample None; ASampled 0 100 100 None; AStart 0 0 (OSleep (Millis 50));
-   ACommand 1 (KOp (OSleep (Millis 50))) (Some (0, 0)); ACut Suspended].
+  [ACommand 0 KSample None; ASampled 0 100 100 None; ARegister 0; AStart 0 0 (OSleep (Millis 50)); ACommand 1 (KOp (OSleep (Millis 50))) (Some (0, 0)); ACut Suspended].
 Proof. vm_compute. reflexivity. Qed.
 
 (** An [Ended] cut, such as Restate's abort timeout, closes the attempt too (X3, X6). *)
 Theorem ended_cut_closes :
   run concrete slow_finalizer (inputs first_sample) (cut_at_two Ended None) 60 =
-  [ACommand 0 KSample None; ASampled 0 100 100 None; AStart 0 0 (OSleep (Millis 50));
-   ACommand 1 (KOp (OSleep (Millis 50))) (Some (0, 0)); ACut Ended; AClock 0 100;
-   AExit (VRoot ExitInterrupted)].
+  [ACommand 0 KSample None; ASampled 0 100 100 None; ARegister 0; AStart 0 0 (OSleep (Millis 50)); ACommand 1 (KOp (OSleep (Millis 50))) (Some (0, 0)); ACut Ended; AClock 0 100; AExit (VRoot ExitInterrupted)].
 Proof. vm_compute. reflexivity. Qed.
 
 (** The root exits while a forked fiber, whose finalizer yields four times, is still
@@ -48,8 +45,7 @@ Definition closing_with_work : CProg :=
 Theorem cut_during_closing_continues :
   run concrete closing_with_work (inputs first_sample)
     {| arrived := fun _ => 1; cut_at := Some (6, Suspended); stop_at := None |} 60 =
-  [ACommand 0 KSample None; ASampled 0 100 100 None; ACut Suspended;
-   AExit (VRoot (ExitSuccess 0))].
+  [ACommand 0 KSample None; ASampled 0 100 100 None; ARegister 0; ARegister 1; ACut Suspended; AExit (VRoot (ExitSuccess 0))].
 Proof. vm_compute. reflexivity. Qed.
 
 (** A foreign resume during closing after the root's exit is the first violation, and the
@@ -57,8 +53,7 @@ Proof. vm_compute. reflexivity. Qed.
 Theorem foreign_during_closing_is_defect :
   let I := with_foreign first_sample (fun k => if Nat.eqb k 6 then Some (FResume 1) else None) in
   run concrete closing_with_work I (replay I) 60 =
-  [ACommand 0 KSample None; ASampled 0 100 100 None; AViolation ForeignResume;
-   AExit VDefect].
+  [ACommand 0 KSample None; ASampled 0 100 100 None; ARegister 0; ARegister 1; AViolation ForeignResume; AExit VDefect].
 Proof. vm_compute. reflexivity. Qed.
 
 (** A fiber waiting for the slot that unwinds has its request removed, so its command is
@@ -73,9 +68,7 @@ Theorem unwound_waiter_is_removed :
                 end;
               root_body := 0 |} in
   run concrete p (inputs e) (replay (inputs e)) 80 =
-  [ACommand 0 KSample None; ASampled 0 100 100 None; AStart 1 0 (OSleep (Millis 15000));
-   ACommand 1 (KOp (OSleep (Millis 15000))) (Some (1, 0)); AStart 2 1 (ORun 7 0);
-   AExit (VRoot (ExitSuccess 0))].
+  [ACommand 0 KSample None; ASampled 0 100 100 None; ARegister 0; ARegister 1; AStart 1 0 (OSleep (Millis 15000)); ACommand 1 (KOp (OSleep (Millis 15000))) (Some (1, 0)); ARegister 2; AStart 2 1 (ORun 7 0); AExit (VRoot (ExitSuccess 0))].
 Proof. vm_compute. reflexivity. Qed.
 
 (** An infinite sleep is an endless chain of 2^31 - 1 ms links, never delivered (P9). *)
@@ -85,12 +78,7 @@ Theorem infinite_sleep_is_endless_chain :
   let p := {| bodies := fun _ => plain (CStart (OSleep Forever) (fun _ => CEnd 0));
               root_body := 0 |} in
   run concrete p (inputs e) (replay (inputs e)) 60 =
-  [ACommand 0 KSample None; ASampled 0 0 0 None; AStart 0 0 (OSleep Forever);
-   ACommand 1 (KOp (OSleep (Millis 2147483647))) (Some (0, 0)); ACommand 2 KSample None;
-   ASampled 2 1 2147483647 (Some (0, 0, 2147483647%Z));
-   ACommand 3 (KOp (OSleep (Millis 2147483647))) (Some (0, 0)); ACommand 4 KSample None;
-   ASampled 4 2 4294967294 (Some (0, 0, 2147483647%Z));
-   ACommand 5 (KOp (OSleep (Millis 2147483647))) (Some (0, 0))].
+  [ACommand 0 KSample None; ASampled 0 0 0 None; ARegister 0; AStart 0 0 (OSleep Forever); ACommand 1 (KOp (OSleep (Millis 2147483647))) (Some (0, 0)); ACommand 2 KSample None; ASampled 2 1 2147483647 (Some (0, 0, 2147483647%Z)); ACommand 3 (KOp (OSleep (Millis 2147483647))) (Some (0, 0)); ACommand 4 KSample None; ASampled 4 2 4294967294 (Some (0, 0, 2147483647%Z)); ACommand 5 (KOp (OSleep (Millis 2147483647))) (Some (0, 0))].
 Proof. vm_compute. reflexivity. Qed.
 
 (** A chain cancelled during its second link credits only the first (P3, P8). *)
@@ -100,11 +88,7 @@ Theorem chain_cancelled_midway :
   let p := {| bodies := fun _ => plain (CStart (OSleep (Millis 2147483652)) (fun _ => CEnd 0));
               root_body := 0 |} in
   run concrete p (inputs e) (replay (inputs e)) 60 =
-  [ACommand 0 KSample None; ASampled 0 0 0 None; AStart 0 0 (OSleep (Millis 2147483652));
-   ACommand 1 (KOp (OSleep (Millis 2147483647))) (Some (0, 0)); ACommand 2 KSample None;
-   ASampled 2 10 2147483647 (Some (0, 0, 2147483647%Z));
-   ACommand 3 (KOp (OSleep (Millis 5))) (Some (0, 0)); ACommand 4 KSample None;
-   ASampled 4 20 2147483647 None; ACancelled 0 0; AExit (VRoot ExitInterrupted)].
+  [ACommand 0 KSample None; ASampled 0 0 0 None; ARegister 0; AStart 0 0 (OSleep (Millis 2147483652)); ACommand 1 (KOp (OSleep (Millis 2147483647))) (Some (0, 0)); ACommand 2 KSample None; ASampled 2 10 2147483647 (Some (0, 0, 2147483647%Z)); ACommand 3 (KOp (OSleep (Millis 5))) (Some (0, 0)); ACommand 4 KSample None; ASampled 4 20 2147483647 None; ACancelled 0 0; AExit (VRoot ExitInterrupted)].
 Proof. vm_compute. reflexivity. Qed.
 
 Definition zero_sleep_program : CProg :=
@@ -113,8 +97,7 @@ Definition zero_sleep_program : CProg :=
 (** A sleep of 0 ms issues nothing and is delivered at once (definitional choice 11). *)
 Theorem zero_sleep_issues_nothing :
   run concrete zero_sleep_program (inputs first_sample) (replay (inputs first_sample)) 40 =
-  [ACommand 0 KSample None; ASampled 0 100 100 None; AStart 0 0 (OSleep (Millis 0));
-   ADelivered 0 0 (Value 0); AExit (VRoot (ExitSuccess 0))].
+  [ACommand 0 KSample None; ASampled 0 100 100 None; ARegister 0; AStart 0 0 (OSleep (Millis 0)); ADelivered 0 0 (Value 0); AExit (VRoot (ExitSuccess 0))].
 Proof. vm_compute. reflexivity. Qed.
 
 (** Where S9's two executors differ besides a cancelled sample: an [L] above 2^53 - 1 is a
@@ -125,7 +108,8 @@ Theorem overflow_separates_rev3 :
   [ACommand 0 KSample None; AViolation Overflow; AExit VDefect] /\
   run3 concrete zero_sleep_program (inputs e) (replay (inputs e)) 40 =
   [ACommand 0 KSample None; ASampled 0 9007199254740995 9007199254740995 None;
-   AStart 0 0 (OSleep (Millis 0)); ADelivered 0 0 (Value 0); AExit (VRoot (ExitSuccess 0))].
+   ARegister 0; AStart 0 0 (OSleep (Millis 0)); ADelivered 0 0 (Value 0);
+   AExit (VRoot (ExitSuccess 0))].
 Proof. vm_compute. split; reflexivity. Qed.
 
 (** A 0 ms sleep's delivery is dropped when its fiber unwinds before the delivery runs (the
@@ -140,8 +124,5 @@ Theorem zero_sleep_release_drops_delivery :
                 end;
               root_body := 0 |} in
   run concrete p (inputs e) (replay (inputs e)) 60 =
-  [ACommand 0 KSample None; ASampled 0 100 100 None; AStart 0 0 (ORun 1 1);
-   ACommand 1 (KOp (ORun 1 1)) (Some (0, 0)); AStart 1 1 (OSleep (Millis 0));
-   ACommand 2 KSample None; ASampled 2 101 101 None; ADelivered 0 0 (Value 3);
-   AExit (VRoot (ExitSuccess 0))].
+  [ACommand 0 KSample None; ASampled 0 100 100 None; ARegister 0; AStart 0 0 (ORun 1 1); ACommand 1 (KOp (ORun 1 1)) (Some (0, 0)); ARegister 1; AStart 1 1 (OSleep (Millis 0)); ARegister 2; ACommand 2 KSample None; ASampled 2 101 101 None; ADelivered 0 0 (Value 3); AExit (VRoot (ExitSuccess 0))].
 Proof. vm_compute. reflexivity. Qed.
