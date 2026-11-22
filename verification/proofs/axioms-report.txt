@@ -1,8 +1,152 @@
+== Scheduling.SingleStep.deliver_sleep_logical
+Closed under the global context
+== Scheduling.SingleStep.deliver_trace
+Closed under the global context
+== Scheduling.SingleStep.interrupt_logical
+Closed under the global context
+== Scheduling.SingleStep.interrupt_trace
+Closed under the global context
+== Scheduling.SingleStep.iterate_ends_detected
+Closed under the global context
+== Scheduling.SingleStep.Lfix_closed
+Closed under the global context
+== Scheduling.SingleStep.Pre_closed
+Closed under the global context
+== Scheduling.SingleStep.Pre_snoc
+Closed under the global context
+== Scheduling.SingleStep.s4
+Closed under the global context
+== Scheduling.SingleStep.s5
+Closed under the global context
+== Scheduling.SingleStep.s5_detects
+Closed under the global context
+== Scheduling.SingleStep.s6
+Closed under the global context
+== Scheduling.SingleStep.s7
+Closed under the global context
+== Scheduling.SingleStep.s7_turns
+Closed under the global context
+== Scheduling.SingleStep.s8_cancel
+Closed under the global context
+== Scheduling.SingleStep.s8_chunks
+Closed under the global context
+== Scheduling.SingleStep.s8_floor
+Closed under the global context
+== Scheduling.SingleStep.s8_monotone
+Closed under the global context
+== Scheduling.SingleStep.step_deliver
+Closed under the global context
+== Scheduling.SingleStep.step_ends_detected
+Closed under the global context
+== Scheduling.SingleStep.step_turn
+Closed under the global context
+== Scheduling.SingleStepInvariants.C_closed
+Closed under the global context
+== Scheduling.SingleStepInvariants.C_closed_turn
+Closed under the global context
+== Scheduling.SingleStepInvariants.C_link
+Closed under the global context
+== Scheduling.SingleStepInvariants.C_new
+Closed under the global context
+== Scheduling.SingleStepInvariants.C_nil
+Closed under the global context
+== Scheduling.SingleStepInvariants.C_plain
+Closed under the global context
+== Scheduling.SingleStepInvariants.cleared_some
+Closed under the global context
+== Scheduling.SingleStepInvariants.in_snoc
+Closed under the global context
+== Scheduling.SingleStepInvariants.iterate_holds
+Closed under the global context
+== Scheduling.SingleStepInvariants.M_closed
+Closed under the global context
+== Scheduling.SingleStepInvariants.M_closed_turn
+Closed under the global context
+== Scheduling.SingleStepInvariants.N_closed
+Closed under the global context
+== Scheduling.SingleStepInvariants.N_closed_turn
+Closed under the global context
+== Scheduling.SingleStepInvariants.N_snoc
+Closed under the global context
+== Scheduling.SingleStepInvariants.open_cons
+Closed under the global context
+== Scheduling.SingleStepInvariants.open_nil
+Closed under the global context
+== Scheduling.SingleStepInvariants.open_snoc
+Closed under the global context
+== Scheduling.SingleStepInvariants.reachable_C
+Closed under the global context
+== Scheduling.SingleStepInvariants.reachable_holds
+Closed under the global context
+== Scheduling.SingleStepInvariants.reachable_W
+Closed under the global context
+== Scheduling.SingleStepInvariants.single_await_snoc
+Closed under the global context
+== Scheduling.SingleStepInvariants.snoc_split
+Closed under the global context
+== Scheduling.SingleStepInvariants.step_finished
+Closed under the global context
+== Scheduling.SingleStepInvariants.step_holds
+Closed under the global context
+== Scheduling.SingleStepInvariants.step_no_resume
+Closed under the global context
+== Scheduling.SingleStepInvariants.step_unfold
+Closed under the global context
+== Scheduling.SingleStepInvariants.turn_holds
+Closed under the global context
+== Scheduling.SingleStepInvariants.W_closed
+Closed under the global context
+== Scheduling.SingleStepInvariants.W_closed_turn
+Closed under the global context
+== Scheduling.SingleStepInvariants.W_nil
+Closed under the global context
+== Scheduling.SingleStepInvariants.W_quiet
+Closed under the global context
+== Scheduling.SingleStepInvariants.W_start
+Closed under the global context
+== Scheduling.SingleStepLemmas.cancel_holds
+Closed under the global context
+== Scheduling.SingleStepLemmas.deliver_holds
+Closed under the global context
+== Scheduling.SingleStepLemmas.emit_holds
+Closed under the global context
+== Scheduling.SingleStepLemmas.end_attempt_holds
+Closed under the global context
+== Scheduling.SingleStepLemmas.finish_holds
+Closed under the global context
+== Scheduling.SingleStepLemmas.fold_interrupt_holds
+Closed under the global context
+== Scheduling.SingleStepLemmas.init_holds
+Closed under the global context
+== Scheduling.SingleStepLemmas.interrupt_holds
+Closed under the global context
+== Scheduling.SingleStepLemmas.linked_holds
+Closed under the global context
+== Scheduling.SingleStepLemmas.quiet_exit
+Closed under the global context
+== Scheduling.SingleStepLemmas.quiet_violation
+Closed under the global context
+== Scheduling.SingleStepLemmas.resume_holds
+Closed under the global context
+== Scheduling.SingleStepLemmas.run_fiber_holds
+Closed under the global context
+== Scheduling.SingleStepLemmas.run_head_holds
+Closed under the global context
+== Scheduling.SingleStepLemmas.take_sample_awaited
+Closed under the global context
+== Scheduling.SingleStepLemmas.take_sample_holds
+Closed under the global context
+== Scheduling.SingleStepLemmas.tick_holds
+Closed under the global context
+== Scheduling.SingleStepLemmas.violate_holds
+Closed under the global context
 == Scheduling.Witnesses.d1_reads_final_value
 Closed under the global context
 == Scheduling.Witnesses.d1_same_trace
 Closed under the global context
 == Scheduling.Witnesses.p5_single_lead_refuted
+Closed under the global context
+== Scheduling.Witnesses.queued_twice_no_second_await
 Closed under the global context
 == Scheduling.Witnesses.values_change_traces
 Closed under the global context

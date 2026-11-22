@@ -55,6 +55,12 @@ Definition new_fiber (h : nat) (b : Body) : Fiber :=
   {| handle := h; code := main b; fin := finalizer b; pending := NoPending; status := Ready;
      interrupted := false |}.
 
+(** Queues handle [h] unless it is queued already, so a fiber has at most one task in the
+    queue. Without this, interrupting a queued fiber queued it twice, and the second task re-ran
+    a fiber that had since blocked. *)
+Definition enqueue (h : nat) (q : list nat) : list nat :=
+  if existsb (Nat.eqb h) q then q else q ++ [h].
+
 (** Interrupting a fiber switches it to its finalizer. If it awaited the durable operation,
     that operation is abandoned: no delivery, no sample, no listener (D5). *)
 Definition interrupt_fiber (st : State) (h : nat) : State :=
@@ -73,7 +79,7 @@ Definition interrupt_fiber (st : State) (h : nat) : State :=
             | None => (None, abandoned st)
             end in
           let st' := emit st (Interrupted h) in
-          update st' (put_fiber f' (fibers st')) (queue st' ++ [h]) aw ab (next_op st')
+          update st' (put_fiber f' (fibers st')) (enqueue h (queue st')) aw ab (next_op st')
             (next_sample st') (next_handle st') (draws st') (logical st') (trace st')
             (finished st')
       end
@@ -90,7 +96,7 @@ Fixpoint run_fiber (pol : Policy) (P : Program) (E : Env) (fuel ops : nat) (st :
       (* Fuel bounds nested immediate forks for Coq's termination check. Running out behaves
          as the scheduler's yield: the fiber is stored and queued again, never dropped. *)
       let st' := with_fibers st (put_fiber f (fibers st)) in
-      update st' (fibers st') (queue st' ++ [handle f]) (awaited st') (abandoned st')
+      update st' (fibers st') (enqueue (handle f) (queue st')) (awaited st') (abandoned st')
         (next_op st') (next_sample st') (next_handle st') (draws st') (logical st')
         (trace st') (finished st')
   | S fuel' =>
@@ -101,7 +107,7 @@ Fixpoint run_fiber (pol : Policy) (P : Program) (E : Env) (fuel ops : nat) (st :
       | O =>
           (* The scheduler makes the fiber yield after [max_ops] operations. *)
           let st' := with_fibers st (put_fiber f (fibers st)) in
-          update st' (fibers st') (queue st' ++ [handle f]) (awaited st') (abandoned st')
+          update st' (fibers st') (enqueue (handle f) (queue st')) (awaited st') (abandoned st')
             (next_op st') (next_sample st') (next_handle st') (draws st') (logical st')
             (trace st') (finished st')
       | S ops' =>
@@ -130,7 +136,7 @@ Fixpoint run_fiber (pol : Policy) (P : Program) (E : Env) (fuel ops : nat) (st :
                 (draws st) (logical st) (trace st) (finished st) in
               match kind with
               | Queued =>
-                  let st2 := update st1 (fibers st1) (queue st1 ++ [handle child])
+                  let st2 := update st1 (fibers st1) (enqueue (handle child) (queue st1))
                     (awaited st1) (abandoned st1) (next_op st1) (next_sample st1)
                     (next_handle st1) (draws st1) (logical st1) (trace st1) (finished st1) in
                   run_fiber pol P E fuel' ops' st2 parent
@@ -157,7 +163,7 @@ Fixpoint run_fiber (pol : Policy) (P : Program) (E : Env) (fuel ops : nat) (st :
               let yield_now :=
                 let st' := with_fibers st
                   (put_fiber (set_code f (k tt) NoPending Ready) (fibers st)) in
-                update st' (fibers st') (queue st' ++ [h]) (awaited st') (abandoned st')
+                update st' (fibers st') (enqueue h (queue st')) (awaited st') (abandoned st')
                   (next_op st') (next_sample st') (next_handle st') (draws st')
                   (logical st') (trace st') (finished st') in
               let start_chain (chunk : Z) (rest : Chain) :=
@@ -192,7 +198,7 @@ Fixpoint run_fiber (pol : Policy) (P : Program) (E : Env) (fuel ops : nat) (st :
           | YieldNow => fun k =>
               let st' := with_fibers st
                 (put_fiber (set_code f (k tt) NoPending Ready) (fibers st)) in
-              update st' (fibers st') (queue st' ++ [h]) (awaited st') (abandoned st')
+              update st' (fibers st') (enqueue h (queue st')) (awaited st') (abandoned st')
                 (next_op st') (next_sample st') (next_handle st') (draws st') (logical st')
                 (trace st') (finished st')
           | Interrupt target => fun k =>
@@ -304,6 +310,22 @@ Definition end_attempt (st : State) (how : Ending) : State :=
       finish (fold_left (fun s f => interrupt_fiber s (handle f)) live st) Suspended
   end.
 
+(** Runs the task at the head of the queue, whose handle is [h], with [rest] the queue after
+    it. A task whose fiber is missing or not [Ready] is dropped without running: a fiber that
+    interrupts itself goes on running its finalizer in the current task and is also queued,
+    and once that finalizer has blocked or finished, the queued task is stale. *)
+Definition run_head (pol : Policy) (P : Program) (E : Env) (st : State) (h : nat)
+    (rest : list nat) : State :=
+  let st0 := update st (fibers st) rest (awaited st) (abandoned st) (next_op st)
+    (next_sample st) (next_handle st) (draws st) (logical st) (trace st) (finished st) in
+  match find_fiber h (fibers st0) with
+  | Some f => match status f with
+              | Ready => tick (run_fiber pol P E max_ops max_ops st0 f) true
+              | _ => tick st0 true
+              end
+  | None => tick st0 true
+  end.
+
 Definition step (pol : Policy) (P : Program) (E : Env) (A : Arrival) (X : OutsideResumes) (st : State)
     : State :=
   match finished st with
@@ -323,13 +345,7 @@ Definition step (pol : Policy) (P : Program) (E : Env) (A : Arrival) (X : Outsid
   | Some (n, how) => if Nat.eqb n (progress st) then tick (end_attempt st how) true
                      else
   match queue st with
-  | h :: rest =>
-      let st0 := update st (fibers st) rest (awaited st) (abandoned st) (next_op st)
-        (next_sample st) (next_handle st) (draws st) (logical st) (trace st) (finished st) in
-      match find_fiber h (fibers st0) with
-      | Some f => tick (run_fiber pol P E max_ops max_ops st0 f) true
-      | None => tick st0 true
-      end
+  | h :: rest => run_head pol P E st h rest
   | [] =>
       match awaited st with
       | Some aw => if A (awaited_op aw) (micro st) then tick (deliver E st aw) true
@@ -342,13 +358,7 @@ Definition step (pol : Policy) (P : Program) (E : Env) (A : Arrival) (X : Outsid
   end
   | None =>
   match queue st with
-  | h :: rest =>
-      let st0 := update st (fibers st) rest (awaited st) (abandoned st) (next_op st)
-        (next_sample st) (next_handle st) (draws st) (logical st) (trace st) (finished st) in
-      match find_fiber h (fibers st0) with
-      | Some f => tick (run_fiber pol P E max_ops max_ops st0 f) true
-      | None => tick st0 true
-      end
+  | h :: rest => run_head pol P E st h rest
   | [] =>
       match awaited st with
       | Some aw => if A (awaited_op aw) (micro st) then tick (deliver E st aw) true

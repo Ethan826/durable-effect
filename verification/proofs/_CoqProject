@@ -3,3 +3,6 @@ Scheduling/Model.v
 Scheduling/Executor.v
 Scheduling/Statements.v
 Scheduling/Witnesses.v
+Scheduling/SingleStepLemmas.v
+Scheduling/SingleStepInvariants.v
+Scheduling/SingleStep.v

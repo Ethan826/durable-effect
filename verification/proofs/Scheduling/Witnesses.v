@@ -82,3 +82,26 @@ Theorem p5_single_lead_refuted :
               (initial two_sleeps frozen_time) in
   logical st = 102%Z /\ (logical st > 100 + 0 + 1)%Z.
 Proof. vm_compute. split; reflexivity. Qed.
+
+(** ** Regression: a fiber is queued at most once *)
+
+(** The root forks a child and interrupts it while the child is still queued. The child's
+    finalizer awaits the program's only durable operation. Before the fix the child was queued
+    twice, and its second task re-ran the await and recorded [SecondAwait]. *)
+Definition queued_twice : Program :=
+  {| bodies := fun i => match i with
+       | 0 => {| main := Vis (Fork Queued 1) (fun c => Vis (Interrupt c) (fun _ => Ret tt));
+                 finalizer := Ret tt |}
+       | _ => {| main := Ret tt; finalizer := Vis (StartAwait 9 0) (fun _ => Ret tt) |} end;
+     root := 0 |}.
+
+Definition queued_twice_env : Env :=
+  {| outcome_of := fun n => Value n;
+     sample_of := fun _ => {| true_time := 100%Z; host_error := 0%Z |};
+     cancelled_at := fun _ => false; random_of := fun n => n; ends_at := None |}.
+
+(** The command is issued, and no [SecondAwait] is recorded. *)
+Theorem queued_twice_no_second_await :
+  In (Command 0 1 9 0) (run queued_twice queued_twice_env replayed 30) /\
+  ~ In (Violated SecondAwait) (run queued_twice queued_twice_env replayed 30).
+Proof. vm_compute. split; [auto 10 | intuition discriminate]. Qed.
