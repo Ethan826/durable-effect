@@ -270,11 +270,17 @@ CoInductive no_forks : itree FiberE unit -> Prop :=
 Definition single_fiber (P : Program) : Prop :=
   no_forks (main (bodies P (root P))) /\ no_forks (finalizer (bodies P (root P))).
 
-(** Neither executor reaches the two places where they differ: no sleep longer than
-    [max_chunk], and never blocked with nothing awaited before the root finishes. *)
+(** Neither executor reaches the two places where they differ: revision 4 never starts a sleep
+    chain, so no sleep is longer than [max_chunk] or infinite, and the root never blocks with
+    nothing awaited before it finishes. The owner approved this form on 2026-11-21. The form
+    approved in #28 bounded only the sleep commands revision 3 issues, which an infinite sleep
+    satisfies by issuing none: revision 3 hangs where revision 4 starts a chain
+    ([s9_old_condition_too_weak] in Witnesses.v). *)
 Definition in_common (P : Program) (E : Env) (A : Arrival) : Prop :=
-  forall n op h d,
-    In (SleepCommand op h d) (run_rev3 P E A n) -> d <= max_chunk.
+  forall k h op c rest,
+    awaited (iterate policy_v1 P E A no_outside_resumes k (initial P E))
+      = Some (AwaitSleep h op c rest) ->
+    rest = NoChain.
 
 Definition S9 : Prop :=
   forall P E A n,

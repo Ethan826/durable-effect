@@ -153,3 +153,20 @@ Theorem abandonment_is_silent :
   run abandons (abandoned_env true 1) replayed 30
     = run abandons (abandoned_env false 2) replayed 30.
 Proof. vm_compute. split; [auto | split; [auto 10 | reflexivity]]. Qed.
+
+(** ** Why S9's condition changed *)
+
+(** A single fiber that sleeps forever. Revision 3 hangs and issues no sleep command, so the
+    condition approved in #28 (every sleep command revision 3 issues is at most [max_chunk])
+    holds; revision 4 starts a chain, and the traces differ. *)
+Definition sleeps_forever : Program :=
+  {| bodies := fun _ => {| main := Vis (Sleep Forever) (fun _ => Ret tt); finalizer := Ret tt |};
+     root := 0 |}.
+
+Theorem s9_old_condition_too_weak :
+  (forall a, In a (run_rev3 sleeps_forever frozen_time replayed 6) ->
+     match a with SleepCommand _ _ _ => False | _ => True end) /\
+  run sleeps_forever frozen_time replayed 6 <> run_rev3 sleeps_forever frozen_time replayed 6.
+Proof.
+  vm_compute. split; [intros a [<-|[<-|[]]]; exact I | discriminate].
+Qed.

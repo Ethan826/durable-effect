@@ -380,5 +380,7 @@ Closed under the global context
 Closed under the global context
 == Scheduling.Witnesses.queued_twice_no_second_await
 Closed under the global context
+== Scheduling.Witnesses.s9_old_condition_too_weak
+Closed under the global context
 == Scheduling.Witnesses.values_change_traces
 Closed under the global context

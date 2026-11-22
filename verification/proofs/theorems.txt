@@ -190,3 +190,4 @@ Scheduling.S8Upper.inv8_initial
 Scheduling.S8Upper.s8_upper
 Scheduling.ExecutorLemmas.cancel_set_micro
 Scheduling.S8Upper.inv8_clear
+Scheduling.Witnesses.s9_old_condition_too_weak
