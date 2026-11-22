@@ -55,9 +55,18 @@ Proof.
         with (set_micro (set_draws x (S (draws x))) m);
       rewrite arrival_emit_micro; apply (IH (stream I (draws x))).
   - change (phase (set_micro x m)) with (phase x).
-    change (set_live (set_micro x m) (live (set_micro x m)  ++ [f]))
-      with (set_micro (set_live x (live x ++ [f])) m).
-    apply IH.
+    destruct (phase x);
+      [change (set_live (emit (set_micro x m) (ARegister f))
+                 (live (emit (set_micro x m) (ARegister f)) ++ [f]))
+         with (set_micro (set_live (emit x (ARegister f))
+                 (live (emit x (ARegister f)) ++ [f])) m)
+      |change (set_live (emit (set_micro x m) (ARegister f))
+                 (live (emit (set_micro x m) (ARegister f)) ++ [f]))
+         with (set_micro (set_live (emit x (ARegister f))
+                 (live (emit x (ARegister f)) ++ [f])) m)
+      |change (set_live (set_micro x m) (live (set_micro x m) ++ [f]))
+         with (set_micro (set_live x (live x ++ [f])) m)];
+      apply IH.
 Qed.
 
 Lemma arrival_run_head_micro : forall R I x m r t rest,
