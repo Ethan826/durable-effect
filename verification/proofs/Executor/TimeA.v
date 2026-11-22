@@ -160,7 +160,7 @@ Lemma time_neutral_owned : forall f tok new,
 Proof.
   intros f tok new N. induction new as [|a new IH]; [reflexivity|].
   cbn in N |- *. apply andb_true_iff in N as [N1 N2]. rewrite IH by exact N2.
-  destruct a as [| ? ? [[? ?]|] | | | | | | | | |]; try discriminate; reflexivity.
+  destruct a as [| | ? ? [[? ?]|] | | | | | | | | |]; try discriminate; reflexivity.
 Qed.
 
 Lemma time_neutral_sample : forall new,

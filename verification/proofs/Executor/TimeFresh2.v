@@ -31,7 +31,7 @@ Fixpoint time_ilog {X} (I : Inputs) (x : XState) (s : Script X) : list LogEntry 
                      end) (k (stream I (draws x)))
   | Register f k =>
       let closing := match phase x with PClosing _ => true | _ => false end in
-      LRegister f closing :: time_ilog I (set_live x (live x ++ [f])) (k closing)
+      LRegister f closing :: time_ilog I (time_reg x f) (k closing)
   end.
 
 Lemma time_interp_sub : forall I X (s : Script X) x,
@@ -59,10 +59,12 @@ Proof.
       [apply (time_nostart_same _ (set_draws x (S (draws x)))); reflexivity
       |apply time_nostart_emit; discriminate]); apply time_nostart_refl.
   - replace (start_tokens (LRegister f _ :: _)) with ([] ++ start_tokens
-      (time_ilog I (set_live x (live x ++ [f]))
+      (time_ilog I (time_reg x f)
          (k match phase x with PClosing _ => true | _ => false end))) by reflexivity.
-    eapply time_grows_sub_trans; [|apply IH]. apply time_grows_sub_nostart.
-    apply time_nostart_same. reflexivity.
+    eapply time_grows_sub_trans; [|apply IH]. apply time_grows_sub_nostart. unfold time_reg.
+    destruct (phase x); try (apply (time_nostart_trans _ (emit x (ARegister f)));
+      [apply time_nostart_emit; discriminate|apply time_nostart_same; reflexivity]);
+      apply time_nostart_same; reflexivity.
 Qed.
 
 (** ** The tasks of a step *)

@@ -100,6 +100,12 @@ Qed.
 
 (** ** Running a script *)
 
+(** What [interp] does at a fiber's first run: record it, unless the attempt is done, and
+    add it to the registry. *)
+Definition time_reg (x : XState) (f : FiberId) : XState :=
+  let x1 := match phase x with PDone => x | _ => emit x (ARegister f) end in
+  set_live x1 (live x1 ++ [f]).
+
 (** A property of states that each event and each answered question preserves holds after
     a whole script. *)
 Lemma time_interp_ind : forall (P : XState -> Prop) I,
@@ -109,7 +115,7 @@ Lemma time_interp_ind : forall (P : XState -> Prop) I,
                          | PDone => x
                          | _ => emit (set_draws x (S (draws x))) (ADraw f (stream I (draws x)))
                          end)) ->
-  (forall x f, P x -> P (set_live x (live x ++ [f]))) ->
+  (forall x f, P x -> P (time_reg x f)) ->
   forall X (s : Script X) x, P x -> P (fst (interp I x s)).
 Proof.
   intros P I He Hc Hd Hr X s. induction s as [r|e k IH|f k IH|f k IH|f k IH];
@@ -209,7 +215,9 @@ Proof.
   - eapply time_grows_trans; [|apply IH].
     destruct (phase x); try (exists [ADraw f (stream I (draws x))]; reflexivity);
       apply time_grows_refl.
-  - eapply time_grows_trans; [|apply IH]. apply time_grows_same. reflexivity.
+  - eapply time_grows_trans; [|apply IH].
+    destruct (phase x); try (exists [ARegister f]; reflexivity);
+      apply time_grows_same; reflexivity.
 Qed.
 
 Lemma time_nodup_grows : forall x x',
@@ -227,7 +235,7 @@ Lemma time_interp_ind_nodup : forall (P : XState -> Prop) I,
                          | PDone => x
                          | _ => emit (set_draws x (S (draws x))) (ADraw f (stream I (draws x)))
                          end)) ->
-  (forall x f, P x -> P (set_live x (live x ++ [f]))) ->
+  (forall x f, P x -> P (time_reg x f)) ->
   forall X (s : Script X) x, P x -> NoDup (time_stoks (trace (fst (interp I x s)))) ->
     P (fst (interp I x s)).
 Proof.

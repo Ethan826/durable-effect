@@ -349,6 +349,16 @@ Proof.
     (apply time_ctxl_emit; [apply (time_ctxl_fields _ _ Hx); reflexivity|reflexivity]).
 Qed.
 
+(** A fiber's first run: its registration is recorded, which is neither a sample nor a
+    clock read. *)
+Lemma time_ctxl_reg : forall x f, time_ctxl x -> time_ctxl (time_reg x f).
+Proof.
+  intros x f Hx. unfold time_reg.
+  assert (H1 : time_ctxl (match phase x with PDone => x | _ => emit x (ARegister f) end))
+    by (destruct (phase x); try exact Hx; apply time_ctxl_emit; auto).
+  apply (time_ctxl_fields _ _ H1); reflexivity.
+Qed.
+
 Lemma time_ctxl_interp : forall I X (s : Script X) x,
   time_ctxl x -> time_ctxl (fst (interp I x s)).
 Proof.
@@ -356,7 +366,7 @@ Proof.
   - apply time_ctxl_on_event.
   - apply time_ctxl_clock.
   - apply time_ctxl_draw.
-  - intros x f Hx. apply (time_ctxl_fields _ _ Hx); reflexivity.
+  - apply time_ctxl_reg.
 Qed.
 
 (** ** Steps *)

@@ -282,6 +282,14 @@ Proof.
     (apply time_inva_emit; [apply (time_inva_same _ _ Hx); reflexivity|reflexivity]).
 Qed.
 
+Lemma time_inva_reg : forall x f, time_inva x -> time_inva (time_reg x f).
+Proof.
+  intros x f Hx. unfold time_reg.
+  assert (H1 : time_inva (match phase x with PDone => x | _ => emit x (ARegister f) end))
+    by (destruct (phase x); try exact Hx; apply time_inva_emit; auto).
+  apply (time_inva_same _ _ H1); reflexivity.
+Qed.
+
 Lemma time_inva_interp : forall I X (s : Script X) x,
   time_inva x -> time_ctxl x -> NoDup (time_stoks (trace (fst (interp I x s)))) ->
   time_inva (fst (interp I x s)).
@@ -297,8 +305,7 @@ Proof.
     intros Ho. apply time_ctxl_not_initial; assumption.
   - intros y f [Hy Cy]. split; [apply time_inva_clock|apply time_ctxl_clock]; assumption.
   - intros y f [Hy Cy]. split; [apply time_inva_draw|apply time_ctxl_draw]; assumption.
-  - intros y f [Hy Cy]. split; [apply (time_inva_same _ _ Hy)|apply (time_ctxl_fields _ _ Cy)];
-      reflexivity.
+  - intros y f [Hy Cy]. split; [apply time_inva_reg; exact Hy|apply time_ctxl_reg; exact Cy].
 Qed.
 
 (** ** Running a task *)
