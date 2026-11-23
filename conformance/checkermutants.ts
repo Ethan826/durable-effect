@@ -12,6 +12,8 @@ const sequenceId = "the required sequence is the 5,000th";
 const sequenceScan = "the sequence scan needs the exact count";
 const agree = "the file lists agree with the directory";
 const quickList = "the quick list is the full list without determinism";
+const comparedFloor = "the comparison floor needs every program";
+const sequenceProgress = "the sequence scan counts each sequence";
 
 const comparisons: ReadonlyArray<CheckerMutant> = [
   ["I1 and I2: logs compared", "properties.ts",
@@ -37,6 +39,8 @@ const determinismScan: ReadonlyArray<CheckerMutant> = [
   ["programs compared", "properties.ts", "compared[property].every(",
     "compared[property].some(",
     "programs compared counts the programs with every run needed"],
+  ["every program compared", "plan.ts",
+    "programs === seeds.length * programsPerSeed", "true", comparedFloor],
   ["the required program", "plan.ts", "run.index === requiredProgram.index",
     "true", scanFloor],
   ["the required program's seed", "plan.ts",
@@ -66,6 +70,12 @@ const inventoryAndSequences: ReadonlyArray<CheckerMutant> = [
     sequenceScan],
   ["the required sequence", "strays.ts", "runs === budget && reachedRequired",
     "runs === budget && true", sequenceScan],
+  ["the required sequence, noted", "strays.ts",
+    "progress.reached || isRequiredSequence(seed, runs)", "true",
+    sequenceProgress],
+  ["the required sequence, kept", "strays.ts",
+    "progress.reached || isRequiredSequence(seed, runs)",
+    "isRequiredSequence(seed, runs)", sequenceProgress],
 ];
 
 const listings: ReadonlyArray<CheckerMutant> = [
