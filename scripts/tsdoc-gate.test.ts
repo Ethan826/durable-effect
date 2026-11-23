@@ -39,6 +39,32 @@ describe("tsdoc gate", () => {
   })
 })
 
+// Fail closed: each of these is a finding, never a skip. The directory
+// with the broken file also holds a documented one, so the parse is the
+// only finding and the --min floor is not what fails it.
+describe("tsdoc gate, fail closed", () => {
+  test("a file that does not parse is a finding", () => {
+    const { code, out } = runGate(gatePath, [join(fixtures, "syntax-error")])
+    expect(code).toBe(1)
+    expect(out).toContain("broken.ts:0: does not parse")
+    expect(out).toContain("FAIL (1 findings")
+  })
+
+  test("an empty docblock is not TSDoc", () => {
+    const { code, out } = runGate(gatePath, [join(fixtures, "empty-docblock")])
+    expect(code).toBe(1)
+    for (const name of ["spaces", "bare", "stars"]) {
+      expect(out).toContain(`${name}: exported without TSDoc`)
+    }
+  })
+
+  test("an export list naming nothing in the file is a finding", () => {
+    const { code, out } = runGate(gatePath, [join(fixtures, "names-nothing")])
+    expect(code).toBe(1)
+    expect(out).toContain("export { a } names no declaration in this file")
+  })
+})
+
 describe("checker mutant", () => {
   const scratch = mkdtempSync(join(import.meta.dir, ".mutant-"))
   afterAll(() => rmSync(scratch, { recursive: true, force: true }))
