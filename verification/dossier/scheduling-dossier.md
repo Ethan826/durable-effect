@@ -12,7 +12,7 @@ Revision 3 of the dossier, for the model revision of #37. It replaces revision 2
 
 | Link | How it is established | State |
 |---|---|---|
-| The theorems about the executor model, for every runtime meeting the interface | Proved in Coq | Proved: S1 to S8, S10 and S11, with `Meets concrete` and `ReleasedSampleUnreachable`; S9 refuted and dropped. Not yet reviewed as a whole |
+| The theorems about the executor model, for every runtime meeting the interface | Proved in Coq | Proved: S1 to S8, S10 and S11; `Meets concrete`, `ReleasedSampleUnreachable`, `RunFromEquivalent`, `HeldStartIssuesNothing` and `HeldCancelDelivered`; S9 refuted and dropped. Reviewed as a whole once (approve with fixes); the fixes are applied |
 | Effect 4.1.5 meets each interface property | Conformance tests with failing mutants, bounded evidence; checked at runtime where the interface table says so | Grammar and bounds fixed below; not started |
 | The SDK and Restate behave as the executor model assumes | Live fixtures against SDK 1.18.4, bounded evidence | Listed below; not started |
 | The TypeScript executor implements the Coq executor model | Differential tests against the Coq executor extracted to JavaScript, bounded evidence | The executor extracts to OCaml and compiles to JavaScript through js_of_ocaml; `verification/proofs/extraction/check-extraction.sh` checks both against the kernel (see Model-to-implementation gap). The TypeScript executor does not exist yet |
@@ -69,7 +69,7 @@ Definitional choices, for the review and the dossier approval:
 5. A fiber's registration is a question (`Register`) that the executor answers; during closing it answers "interrupt before the first step", as the adapter's creation hook calls `interruptUnsafe` at registration (X6.3). An earlier draft reported registration as an event, and the witness for a fork queued at the root's exit showed the fork's first step running before its interruption.
 6. No await token is started twice in an attempt (I4).
 7. A crash inside a task is modelled by trace prefixes: every statement compares finite prefixes, and cuts fall only between steps.
-8. A fiber cannot unwind while the sample after its operation is pending (`step_released_sample_unreachable`). The sample is issued at a turn boundary, and nothing runs until it is applied; the proof also needs the invariant that a held cancellation never coexists with a sample a fiber waits on, since a held cancellation with a waiter is delivered before the sample. If it could, the sample would stay subscribed and be retired unapplied, with no credit, as the design's time rule says of a released operation. An earlier draft applied it and credited its chunk, which contradicted the design.
+8. A fiber cannot unwind while the sample after its operation is pending (`step_released_sample_unreachable`), for every runtime: the sample is issued at a turn boundary, and nothing runs until it is applied. That a held cancellation coexists only with an empty subscription or the initial sample holds only under I4's token half (a runtime that starts one token twice breaks it), so the step proofs keep it in a separate invariant proved from I4. If it could, the sample would stay subscribed and be retired unapplied, with no credit, as the design's time rule says of a released operation. An earlier draft applied it and credited its chunk, which contradicted the design.
 9. A release drops any delivery already queued for that await, including a 0 ms sleep's, which an earlier draft left in the queue (step 2 review, F6).
 10. The trace records four things beyond what #37's trace lists, because the statements need them: `ARegister` for each fiber's first run, `AStart` for each durable start, the fiber and token each command was issued for, and `L` and the credited chunk with each applied sample. The journal is only the commands' kinds and the samples' readings.
 11. A sleep of 0 ms or less issues nothing and is delivered by a queued task; it does not make its fiber the awaiter for S4.
@@ -112,6 +112,8 @@ Labels and status for `verification/proofs/Executor/Statements.v`. Every proved 
 | S8 | The time rule's claims P1 to P9 | `P2` to `P9`; P1 from S2 | derived; P5 under its hypotheses | proved, `time_s8` (Time.v) | `long_sleep_is_a_chain`, `cancelled_link_credits_nothing`, `overflow_is_violation` |
 | S9 | Agreement with revision 3's executor under its conditions; they differ only when the cancel signal reaches a sample | `S9`, `S9_cancel` | none | refuted in three forms (`rev3_not_s9` and others, Rev3Counter.v); dropped by the owner's decision of 2026-11-22 | `single_fiber_agrees_with_rev3`, `rev3_cancel_during_sample_is_defect`, `overflow_separates_rev3` |
 | S10 | Each fiber's draws agree up to the common cut | `S10` | derived, from S1 | proved, `arrival_s10` (Arrival.v) | `values_change_traces` |
+| X5 | A held cancellation reaches the next fiber that starts a durable operation; a start that receives it issues no command | `HeldCancelDelivered`, `HeldStartIssuesNothing` | derived | proved, `step_held_cancel_delivered` (StepHeldRun.v), `step_held_start_issues_nothing` (StepHeld.v); an earlier form was refuted (see below) | `held_cancel_survives_release` |
+| Equivalent starts | A run from any state equivalent to the initial one gives the same trace, so S4 and S8 hold in any process | `RunFromEquivalent` | derived | proved, `arrival_run_from_equivalent` (ArrivalRunFrom.v) | none needed |
 | S11 | The subscription is the latest command; a retired command's notification changes nothing; closing consumes and issues nothing | `S11` | derived | proved, `step_s11` (StepSingle.v) | `cancel_during_sample_replaces_it` (the late value 99) |
 
 Notes on the Coq forms, for the review:
@@ -123,6 +125,8 @@ Notes on the Coq forms, for the review:
 - Some forms say less than #37's wording, and the proofs will not recover the difference: S7 does not say "exactly one cause" or treat cuts and foreign inputs as causes; P7 asks for some applied sample after the operation's last command, which is the operation's own only through the single subscription; S10 compares each fiber's draws by prefix, which is what "the same sequence up to the common cut" means for finite prefixes; and I4 covers "before cleanup" only for cleanup the log attributes to the fiber.
 
 Refuted forms, kept, each machine-checked (the step 2 review's in its scratch directory; S9's in Rev3Counter.v):
+
+- `HeldCancelDelivered` without `Meets`: a runtime that starts one token twice makes the executor issue a command while the held cancellation waits in the queue (`step_held_cancel_delivered_refuted`, against `HeldCancelDeliveredFirstForm`). The form with `Meets` is proved (`step_held_cancel_delivered`).
 
 - S9 and S9_cancel as first written. A trivial runtime that meets `Meets` refutes both: a cut, a persisted journal that differs, a terminal sample failure and an initial sample of 2⁵³ + 3 each separate the two executors (`S9_false`, `S9_cancel_false`).
 - S9 and S9_cancel in their second form, with "one fiber" read from the registry between steps: a child that registers during closing, after the root has left the registry, separates them (`rev3_not_s9_second_form`).
@@ -193,7 +197,7 @@ Not witnessed: a second root exit (`SecondExit`), which the concrete runtime nev
 
 ## Axioms report
 
-`verification/proofs/axioms-report.txt`, regenerated by the project's pinned gate from `verification/proofs/theorems.txt`. Every theorem is closed under the global context: no axiom. The gate passes: 61 modules, 924 theorems, 2,157 constants audited, report unchanged. The new model's files declare no `Axiom`, `Parameter` or `Hypothesis`; the runtime is a record field of the statements, not an axiom.
+`verification/proofs/axioms-report.txt`, regenerated by the project's pinned gate from `verification/proofs/theorems.txt`. Every theorem is closed under the global context: no axiom. The gate passes: 66 modules, 1,014 theorems, 2,272 constants audited, report unchanged. The new model's files declare no `Axiom`, `Parameter` or `Hypothesis`; the runtime is a record field of the statements, not an axiom.
 
 ## Model-to-implementation gap
 
@@ -234,7 +238,7 @@ Revision 2's statements S1 to S11 and S8′ were proved about the model in `veri
 
 ## Open items
 
-- An independent adversarial review of the combined proofs, statements and assumptions (proof-dossier, section 7).
+- A second independent review, of the fixes made after the combined review: the held-cancellation fix and its three new statements.
 - The conformance suite, which needs the Effect adapter, and js_of_ocaml for the JavaScript step of the implementation link; both await the owner.
 - Two behaviours of the concrete runtime that break no interface property: a fiber whose queued flag is already set is not woken by `wake`, and a fiber can resume from a `CInterrupt` continuation while blocked on another target.
 - `Answers` answers a registration by fiber, while the executor answers by phase. The proofs that relate a run to `drive` handle it with I7; a reader relating a run through closing to `drive` must do the same.
