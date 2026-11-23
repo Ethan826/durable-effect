@@ -11,9 +11,15 @@ export const properties: ReadonlyArray<Property> = ["I1", "I2", "I7", "I9"];
  */
 export const maxOpsPerTask = 2048 * 9;
 
-/** A property that failed: on which program, and how. */
+/**
+ * A property that failed: on which program, and how. `cause` is
+ * `property` when the runs' contents break it, and `run` when a run is
+ * missing or a worker crashed, timed out or printed what does not decode,
+ * which says nothing about the property.
+ */
 export interface Violation {
   readonly property: Property;
+  readonly cause: "property" | "run";
   readonly seed: number;
   readonly index: number;
   readonly roles: ReadonlyArray<Role>;
@@ -25,7 +31,7 @@ type Runs = Partial<Record<Role, RunResult>>;
 /** The runs each property compares; I7 and I9 look at every run. */
 const compared: Readonly<Record<Property, ReadonlyArray<Role>>> = {
   I1: ["fresh0", "fresh1", "after"],
-  I2: ["fresh0", "fresh2"],
+  I2: ["fresh2", "fresh0", "after"],
   I7: ["fresh0", "fresh1", "fresh2", "after"],
   I9: ["fresh0", "fresh1", "fresh2", "after"],
 };
@@ -40,8 +46,12 @@ const repeated = (run: RunResult) =>
   new Set(run.identities).size !== run.identities.length;
 
 type Finding = Pick<Violation, "roles" | "detail"> | undefined;
+type Found = Pick<Violation, "cause" | "roles" | "detail"> | undefined;
 
-/** I1 and I2: each run's log and further tasks match the first run's. */
+/**
+ * I1 and I2: each run's log and further tasks match the first run's (for
+ * I2, the paced `fresh2`).
+ */
 const logsMatch = (runs: ReadonlyArray<RunResult>): Finding => {
   const [first, ...rest] = runs;
   const other = rest.find((run) => first !== undefined && !sameRun(first, run));
@@ -89,17 +99,27 @@ const byProgram = (results: ReadonlyArray<RunResult>) =>
     return groups;
   }, new Map<string, Runs>());
 
+/** A missing run, else what the property's check finds in the runs. */
+const findingIn = (
+  property: Property,
+  runs: Runs,
+  present: ReadonlyArray<RunResult>,
+): Found => {
+  const missing = compared[property].filter((role) => runs[role] === undefined);
+  if (missing.length > 0) {
+    return { cause: "run", roles: missing, detail: "run missing" };
+  }
+  const finding = checks[property](present);
+  return finding && { cause: "property", ...finding };
+};
+
 /** The first violation of one program's runs, a missing run included. */
 const violationIn = (property: Property) =>
   (runs: Runs): Violation | undefined => {
-    const wanted = compared[property];
-    const present = wanted.flatMap((role) => runs[role] ?? []);
+    const present = compared[property].flatMap((role) => runs[role] ?? []);
     const [first] = present;
     if (first === undefined) return undefined;
-    const missing = wanted.filter((role) => runs[role] === undefined);
-    const found: Finding = missing.length > 0
-      ? { roles: missing, detail: "run missing" }
-      : checks[property](present);
+    const found = findingIn(property, runs, present);
     const { seed, index } = first;
     return found && { property, seed, index, ...found };
   };
@@ -114,7 +134,8 @@ export const check = (
 ): Violation | undefined => {
   const [failure] = outcome.failures;
   if (failure !== undefined) {
-    return { property, seed: 0, index: 0, roles: [], detail: failure };
+    const where = { seed: 0, index: 0, roles: [] };
+    return { property, cause: "run", ...where, detail: failure };
   }
   const groups = [...byProgram(outcome.results).values()];
   return groups.map(violationIn(property)).find((found) => found);
