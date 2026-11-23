@@ -1,5 +1,5 @@
 import { Brand } from "effect";
-import type { Fiber } from "effect";
+import type { Effect, Fiber } from "effect";
 import type { FiberId, TaskId, Token } from "./Interface.ts";
 
 /** Any fiber the adapter runs. */
@@ -9,6 +9,15 @@ export type AnyFiber = Fiber.Fiber<unknown, unknown>;
 export interface RegisteredFiber {
   readonly id: FiberId;
   readonly interruptUnsafe: AnyFiber["interruptUnsafe"];
+}
+
+/**
+ * A durable await in progress: the fiber that awaits, and the `resume` its
+ * `Effect.callback` was given.
+ */
+export interface Await {
+  readonly fiber: FiberId;
+  readonly resume: (effect: Effect.Effect<number, number>) => void;
 }
 
 /**
@@ -23,6 +32,8 @@ export interface AdapterState {
   readonly tasks: Map<TaskId, () => void>;
   /** Fibers seen so far, with their original `interruptUnsafe`. */
   readonly fibers: Map<AnyFiber, RegisteredFiber>;
+  /** Awaits not yet resumed or released, by token. */
+  readonly awaits: Map<Token, Await>;
   /**
    * Called by the scheduler for each fiber it checks. Answers `true` when it
    * has just asked for that fiber to be interrupted (see `Fibers.ts`).
@@ -30,13 +41,14 @@ export interface AdapterState {
   register: (fiber: AnyFiber) => boolean;
 }
 
-/** A fresh state: counters at zero, no tasks, no fibers. */
+/** A fresh state: counters at zero, no tasks, fibers or awaits. */
 export const makeState = (): AdapterState => ({
   nextFiber: 0,
   nextToken: 0,
   nextTask: 0,
   tasks: new Map(),
   fibers: new Map(),
+  awaits: new Map(),
   register: () => false,
 });
 

@@ -1,5 +1,6 @@
-import { Effect, Exit, Option, Schema } from "effect";
-import { registration } from "./Fibers.ts";
+import { Effect, Exit, Match, Option, Schema } from "effect";
+import { deliver, Durable, makeDurable } from "./Durable.ts";
+import { registration, requestInterrupt } from "./Fibers.ts";
 import type {
   AdapterRuntime,
   Host,
@@ -42,16 +43,22 @@ const toRootExit = <A, E>(exit: Exit.Exit<A, E>): RootExit =>
   Exit.isSuccess(exit) ? success(exit.value) : failed(exit);
 
 /**
- * Forks the program. The root registers in its first `shouldYield`, so its
- * `FiberExited` observer is added before this one and fires first.
+ * Forks the program with the `Durable` service. The root registers in its
+ * first `shouldYield`, so its `FiberExited` observer is added before this
+ * one and fires first.
  */
 const startRoot = <A, E>(
   state: AdapterState,
   host: Host,
-  program: Effect.Effect<A, E, never>,
+  program: Effect.Effect<A, E, Durable>,
 ) => {
   const scheduler = deterministicScheduler(state, host);
-  const root = Effect.runFork(program, { scheduler });
+  const provided = Effect.provideService(
+    program,
+    Durable,
+    makeDurable(state, host),
+  );
+  const root = Effect.runFork(provided, { scheduler });
   root.addObserver((exit) => {
     host.emit({ _tag: "RootExit", exit: toRootExit(exit) });
   });
@@ -67,23 +74,32 @@ const runQueued = (state: AdapterState, task: TaskId) => {
 /**
  * Builds the runtime side of the interface for one handler run. `StartRoot`
  * forks the program the first time and does nothing after; `RunQueued` runs
- * a stored thunk. `seed` is for the deterministic services (Task 9).
+ * a stored thunk; the three deliveries answer an await; `RequestInterrupt`
+ * interrupts a fiber. `seed` is for the deterministic services (Task 9).
  */
 export const makeAdapter = <A, E>(
-  program: Effect.Effect<A, E, never>,
+  program: Effect.Effect<A, E, Durable>,
   _seed: number,
   host: Host,
 ): AdapterRuntime => {
   const state = makeState();
   state.register = registration(state, host);
   let started = false;
+  // The flag is set first, so a StartRoot sent while the root's first slice
+  // is still running cannot start it a second time.
   const startOnce = () => {
-    if (!started) startRoot(state, host, program);
+    if (started) return;
     started = true;
+    startRoot(state, host, program);
   };
-  const runTask = (task: Task) => {
-    if (task._tag === "StartRoot") startOnce();
-    if (task._tag === "RunQueued") runQueued(state, task.task);
-  };
+  const runTask = (task: Task) =>
+    Match.value(task).pipe(Match.tagsExhaustive({
+      StartRoot: startOnce,
+      RunQueued: (queued) => runQueued(state, queued.task),
+      Deliver: (delivery) => deliver(state, delivery),
+      DeliverCancel: (delivery) => deliver(state, delivery),
+      DeliverDefect: (delivery) => deliver(state, delivery),
+      RequestInterrupt: (request) => requestInterrupt(state, request.fiber),
+    }));
   return { runTask };
 };

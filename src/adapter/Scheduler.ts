@@ -27,6 +27,8 @@ export const deterministicScheduler = (
     executionMode: "sync",
     // Yield when registration has just asked for an interruption, so it
     // fires before the fiber's first operation, or when the budget is spent.
+    // A fiber that starts masked is not interrupted before its first step:
+    // Effect defers the interrupt until the mask ends.
     shouldYield: (fiber) => {
       const interrupting = state.register(fiber);
       return interrupting || fiber.currentOpCount >= maxOpsBeforeYield;
