@@ -3,7 +3,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 
 const gatePath = join(import.meta.dir, "vendor", "tsdoc-gate.ts")
-const fixtures = join(import.meta.dir, "fixtures", "tsdoc")
+const fixtures = join(import.meta.dir, "..", "fixtures", "tsdoc")
 
 const runGate = (gate: string, args: ReadonlyArray<string>) => {
   const run = Bun.spawnSync(["bun", gate, ...args])
