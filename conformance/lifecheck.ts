@@ -21,6 +21,12 @@ export interface Scans {
   readonly internalFibers: number;
   readonly detachedFibers: number;
   readonly closingRegistrations: number;
+  /**
+   * Registrations during closing of a fiber Effect had masked: #37's I8
+   * case. Measured 0 over the grammar, which cannot start a fork masked
+   * (grammar.ts:59); closing.ts pins it instead, so it has no floor.
+   */
+  readonly maskedClosingRegistrations: number;
 }
 
 const eventsOf = (entries: ReadonlyArray<LogEntry>): ReadonlyArray<Event> =>
@@ -211,6 +217,9 @@ export const scansOf = (run: LifecycleRun): Scans => {
     fibers: run.fibers.length,
     internalFibers: run.kinds.internal,
     detachedFibers: run.kinds.detached,
+    maskedClosingRegistrations: run.registrations.filter((one) =>
+      one.closing && one.masked
+    ).length,
     closingRegistrations: run.log.filter((entry) =>
       entry._tag === "Answered" && entry.question === "register" &&
       entry.answer === true
