@@ -30,8 +30,13 @@ export interface AdapterState {
   nextTask: number;
   /** Queued thunks, by the task id the executor was told. */
   readonly tasks: Map<TaskId, () => void>;
-  /** Fibers seen so far, with their original `interruptUnsafe`. */
+  /**
+   * Live fibers, with their original `interruptUnsafe`. A fiber leaves when
+   * it exits, so the map grows with live work, not with every past fork.
+   */
   readonly fibers: Map<AnyFiber, RegisteredFiber>;
+  /** Every fiber ever registered, so that none registers twice. */
+  readonly admitted: WeakSet<AnyFiber>;
   /** Awaits not yet resumed or released, by token. */
   readonly awaits: Map<Token, Await>;
   /**
@@ -48,6 +53,7 @@ export const makeState = (): AdapterState => ({
   nextTask: 0,
   tasks: new Map(),
   fibers: new Map(),
+  admitted: new WeakSet(),
   awaits: new Map(),
   register: () => false,
 });

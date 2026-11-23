@@ -3,9 +3,18 @@ import type { FiberId, Host } from "./Interface.ts";
 import { freshFiberId } from "./State.ts";
 import type { AdapterState, AnyFiber, RegisteredFiber } from "./State.ts";
 
-/** Reports the fiber's exit, after its finalizers have run. */
-const observeExit = (host: Host, fiber: AnyFiber, known: RegisteredFiber) =>
+/**
+ * Reports the fiber's exit, after its finalizers have run, and drops it from
+ * the live fibers.
+ */
+const observeExit = (
+  state: AdapterState,
+  host: Host,
+  fiber: AnyFiber,
+  known: RegisteredFiber,
+) =>
   fiber.addObserver(() => {
+    state.fibers.delete(fiber);
     host.emit({ _tag: "FiberExited", fiber: known.id });
   });
 
@@ -20,11 +29,12 @@ const admit = (
     interruptUnsafe: fiber.interruptUnsafe.bind(fiber),
   };
   state.fibers.set(fiber, known);
+  state.admitted.add(fiber);
   // The Fiber type marks the field readonly; the adapter owns these fibers.
   Object.defineProperty(fiber, "interruptUnsafe", {
     value: guardInterrupt(known.id, known.interruptUnsafe, host),
   });
-  observeExit(host, fiber, known);
+  observeExit(state, host, fiber, known);
   return known;
 };
 
@@ -39,7 +49,7 @@ const admit = (
  */
 export const registration =
   (state: AdapterState, host: Host) => (fiber: AnyFiber): boolean => {
-    if (state.fibers.has(fiber)) return false;
+    if (state.admitted.has(fiber)) return false;
     const known = admit(state, host, fiber);
     const interrupt = host.register(known.id);
     // On a running fiber the original only sets `_deferredInterrupt`
@@ -56,7 +66,8 @@ export const registration =
 /**
  * `RequestInterrupt`: interrupts the fiber with this id through its original
  * `interruptUnsafe`, since the executor's request is never foreign. An
- * unknown id does nothing; so does a fiber that has exited.
+ * unknown id does nothing; so does a fiber that has exited, which is no
+ * longer among the live fibers.
  */
 export const requestInterrupt = (state: AdapterState, fiber: FiberId) => {
   const known = [...state.fibers.values()].find(
