@@ -177,7 +177,24 @@ Journals. Each program runs against scripted journals in which every notificatio
 
 For I1, after each program ends, the test runs three further tasks from each final state, a queued task, a delivery and an interruption request, and their logs must match too, so that a private bit set early and read late is caught.
 
-Runs. Each property runs 1,000 programs for each of the pinned fast-check seeds 1 to 5, so 5,000 programs per property, and every mutant must fail within that budget. For I1 and I2, each program runs in three fresh Node processes and once more in a process that has already run another program from the same seed. I9's bound for a task is `MaxOpsBeforeYield` times the widest immediate fork plus one: 2,048 × 9 operations under this grammar, which allows no immediate fork inside another. Whether Effect's other combinators in the grammar fork immediately, and so nest, is to be checked against effect 4.1.5's source before the first run.
+Runs. Each property runs 1,000 programs for each of the pinned fast-check seeds 1 to 5, so 5,000 programs per property, and every mutant must fail within that budget. For I1 and I2, each program runs in three fresh Node processes and once more in a process that has already run another program from the same seed.
+
+I9's bounds, as the owner approved them on 2026-11-23. B is `MaxOpsBeforeYield`, 2,048. An operation is one increment of a fiber's `currentOpCount`; line numbers are in effect 4.1.5's `internal/effect.ts` unless another file is named.
+
+- Per run loop, the main check: no run loop passes B + 1 = 2,049 operations. Read in the source: `currentOpCount` changes only when a loop starts (:685), before each scheduler check (:693) and in `succeedWith` (:765), which returns to the loop at every multiple of 32 (`maxInlineSteps`, :843). 2,048 is such a multiple, so the check comes by the 2,049th operation. Measured: the adapter's largest loop is 2,048 in every program run. The `neverYields` mutant fails this check; its 2,049-step loops ended at 2,052 to 2,059, so a limit of 2,080 would miss some.
+- Restrictions, argued from the source: a program supplies no `Scheduler` and no `PreventSchedulerYield` of its own, and writes no fiber field; the adapter registers each fiber at its first operation, with an empty stack. A program with its own scheduler ran 5,017 operations in one loop (measured). A fiber that first meets the adapter's scheduler with frames on its stack keeps `yielding` set after a registration interrupt (:698-723). The suite counts such fibers and requires none, and a fixture shows the count catches one.
+- What one operation costs is bounded for this grammar only. Measured: a generator that yields 100,000 values counted 19 operations.
+- Per task, a ceiling checked on every run: (B + d)(S·W + K·L) + 2·W·K·L·t = 3,790,848 operations, with d = 32, K = 4 fibers that run statements, D = 2 deferreds, W = 8 elements of the widest immediate fork, L = 384 statements per body and t = 8 (measured). S = max(K, 3) + D(K − 1) + K(K − 1)/2 + 2K = 24 counts the run loops of statement fibers in one task:
+  - entry run loops, max(K, 3): loops a task starts itself, through the dispatcher (`src/adapter/Scheduler.ts:16-35`), `evaluate` (:619-637) and an interrupt of a fiber not running (:612). This term is the derivation's; the review tallied 23 to 24 in all and did not reproduce it exactly (argued).
+  - deferred wakes, D(K − 1): each deferred completes once and resumes every waiter inline (`Deferred.ts:1697-1710`, :1226), at most K − 1 of them (argued).
+  - exit wakes, K(K − 1)/2: a fiber's exit runs its observers inline (:661), which resumes a join; a body joins only bodies after it (argued).
+  - interrupt run loops, K: interrupting a fiber that is not running evaluates it inline (:594-618), at most once per statement fiber in a task (argued).
+  - interruptChildren run loops, K: a fiber with children runs one more loop after its own ends (:644-648), once per statement fiber (argued).
+
+  A queue offer also releases a taker inline (`Queue.ts:840`, :2519-2531); S has no separate term for it. An oracle that shares no code with the operation counter counts statement-fiber run loops in each task and requires at most 24, over the suite's programs and the pinned cases (measured: at most 7, in chain2).
+- Pinned cases, which the suite always runs: two forks woken inline by one deferred, each running a concurrent `forEach` of 8 (32,784 operations in one task), and chain2, in which every body runs races whose large side loses between wakes (3,014,585). Each meets the per-run-loop bound, the ceiling and the S check, and each must exceed 18,432 in one task (measured).
+
+The first bound, 2,048 × 9 per task, was refuted. A deferred resumes its waiters inside the task that completes it (:1226), so one task can run several forks' slices, and a race whose large side loses runs a full slice inline while its parent continues (:1749-1801). Each of the pinned cases exceeds it.
 
 This is bounded evidence. A property that passes here holds for these programs and these journals, not for every program.
 
