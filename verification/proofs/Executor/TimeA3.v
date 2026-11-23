@@ -65,19 +65,21 @@ Qed.
 
 Lemma time_inva_on_release : forall x f tok, time_inva x -> time_inva (on_release x f tok).
 Proof.
-  intros x f tok Hx.
-  assert (Hy : time_inva (match phase x with
-                          | POpen => set_queue x (filter (fun t => negb (for_token f tok t))
-                                                         (queue x))
-                          | _ => x end)).
-  { destruct (phase x); [|exact Hx..].
-    apply (time_inva_frame_quiet x _ [] Hx); tsimp; auto.
-    - rewrite app_nil_r. reflexivity.
-    - intros t I0. apply filter_In in I0 as [I0 _]. auto. }
-  unfold on_release.
+  intros x f tok Hx. unfold on_release. cbv zeta.
   set (y := match phase x with
-            | POpen => set_queue x (filter (fun t => negb (for_token f tok t)) (queue x))
-            | _ => x end) in *.
+            | POpen =>
+                if existsb (fun t => match t with
+                                     | DeliverCancel f' tok' => Nat.eqb f f' && Nat.eqb tok tok'
+                                     | _ => false end) (queue x)
+                then set_held (set_queue x (filter (fun t => negb (for_token f tok t)) (queue x)))
+                       true
+                else set_queue x (filter (fun t => negb (for_token f tok t)) (queue x))
+            | _ => x end).
+  assert (Hy : time_inva y).
+  { subst y. destruct (phase x); [|exact Hx..].
+    destruct (existsb _ _); apply (time_inva_frame_quiet x _ [] Hx); tsimp; auto;
+      try (rewrite app_nil_r; reflexivity);
+      intros t I0; apply filter_In in I0 as [I0 _]; auto. }
   destruct (phase y) eqn:Py; try exact Hy.
   destruct (awaiter y) as [a|]; [|exact Hy].
   destruct (negb (pair_eqb a (f, tok))); [exact Hy|].
