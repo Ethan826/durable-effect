@@ -1,22 +1,7 @@
+import { guardInterrupt } from "./Guard.ts";
 import type { FiberId, Host } from "./Interface.ts";
 import { freshFiberId } from "./State.ts";
 import type { AdapterState, AnyFiber, RegisteredFiber } from "./State.ts";
-
-type Interrupt = AnyFiber["interruptUnsafe"];
-
-/**
- * The interrupt a registered fiber exposes to other code. Inside a slice it
- * is forwarded; outside one it is reported to the host and dropped, because
- * a timer or callback outside any slice must not change the fiber's trace.
- * Task 8 moves this to its own module.
- */
-const guarded = (
-  host: Host,
-  known: RegisteredFiber,
-): Interrupt => (fiberId, annotations) => {
-  if (host.inSlice()) known.interruptUnsafe(fiberId, annotations);
-  else host.foreign("interrupt", known.id);
-};
 
 /** Reports the fiber's exit, after its finalizers have run. */
 const observeExit = (host: Host, fiber: AnyFiber, known: RegisteredFiber) =>
@@ -37,7 +22,7 @@ const admit = (
   state.fibers.set(fiber, known);
   // The Fiber type marks the field readonly; the adapter owns these fibers.
   Object.defineProperty(fiber, "interruptUnsafe", {
-    value: guarded(host, known),
+    value: guardInterrupt(known.id, known.interruptUnsafe, host),
   });
   observeExit(host, fiber, known);
   return known;
