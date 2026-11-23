@@ -25,6 +25,7 @@ export const lifecycleMutants = {
   maskAll: lifecycleOf("I4", lifeMutants.maskAll),
   privateQueue: lifecycleOf("I5", lifeMutants.privateQueue),
   exitBeforeCleanup: lifecycleOf("I6", lifeMutants.exitBeforeCleanup),
+  exitAtRequest: lifecycleOf("I6", lifeMutants.exitAtRequest),
   omitDetached: lifecycleOf("I8", lifeMutants.omitDetached),
   omitInternal: lifecycleOf("I8", lifeMutants.omitInternal),
 } as const;

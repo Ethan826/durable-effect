@@ -11,6 +11,7 @@ import type {
 import { makeAdapter } from "../src/adapter/Runtime.ts";
 import type { AnyFiber } from "../src/adapter/State.ts";
 import { beginRun, fibersRun, openTask, startedKinds } from "./census.ts";
+import { markFinalized } from "./finalized.ts";
 import type { Started } from "./census.ts";
 import type { Journal } from "./deliveries.ts";
 import type { Program } from "./grammar.ts";
@@ -59,6 +60,8 @@ export interface LifecycleRun {
   readonly kinds: Started;
   /** Every registration, with the host's answer and Effect's mask. */
   readonly registrations: ReadonlyArray<Registration>;
+  /** The log's length when the handler's finalizers completed (I6). */
+  readonly finalized: number | undefined;
 }
 
 // Above every id a run queues, so `RunQueued` of it names no task.
@@ -214,7 +217,8 @@ export const lifecycleRunOf = async (
 ): Promise<LifecycleRun> => {
   beginRun();
   const host = scriptedHost(sampled[1], { seed });
-  const run = instrumented(host, handler, make);
+  const marked = markFinalized(host.log, handler);
+  const run = instrumented(host, marked.handler, make);
   const cursor = { at: 0 };
   await host.runPaced(run.adapter, async () => {
     afterStep(host, run.inject, cursor);
@@ -224,6 +228,7 @@ export const lifecycleRunOf = async (
     program: sampled[0], log: host.log, records: run.records,
     fibers: fibersRun(),
     kinds: startedKinds(), registrations: run.registry.registrations,
+    finalized: marked.finalized(),
   };
 };
 
