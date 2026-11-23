@@ -1,9 +1,11 @@
 // Style gate: the counted rules of the house TypeScript style, decided on the
 // syntax tree. Usage: bun scripts/style-gate.ts PATH... (files, or directories
-// holding *.ts and *.tsx outside node_modules). Exit 1 with one line per
-// breach, `file:line rule: detail`. Fails closed: no files, a missing path or
-// a file that does not parse is a breach. Parsing uses `typescript-ast`, an
-// alias of typescript 6.0.3 (TypeScript 7 has no classic compiler API).
+// holding *.ts and *.tsx). Exit 1 with one line per breach,
+// `file:line rule: detail`. Fails closed: no files, a missing path or a file
+// that does not parse is a breach. A directory reached by recursion is
+// skipped when named node_modules, fixtures (deliberate breaches) or vendor
+// (third-party code kept byte-faithful); a path given as an argument never is.
+// Parses with `typescript-ast`, typescript 6.0.3 (7 has no classic API).
 //
 // A declaration is a function-like node (signatures too) or a top-level
 // `const` holding no function. A nested function is its own declaration.
@@ -23,12 +25,9 @@ import { join } from "node:path"
 import ts from "typescript-ast"
 
 /** One rule breach, printed as `file:line rule: detail`. */
-export type Breach = Readonly<{
-  file: string
-  line: number
-  rule: string
-  detail: string
-}>
+export type Breach = Readonly<
+  Record<"file" | "rule" | "detail", string> & { line: number }
+>
 
 const maxDepth = 3
 const maxBranches = 8
@@ -48,7 +47,6 @@ const combine = (a: Measure, b: Measure): Measure => ({
 
 const breach = (file: string, line: number, rule: string, detail: string) =>
   ({ file, line, rule, detail }) satisfies Breach
-
 const childrenOf = (node: ts.Node): ReadonlyArray<ts.Node> => {
   const found: ts.Node[] = []
   ts.forEachChild(node, (child) => {
@@ -182,11 +180,13 @@ const tokensIn = (node: ts.Node, file: ts.SourceFile): ts.Node[] => {
   return kids.length === 0 ? [node] : kids.flatMap((k) => tokensIn(k, file))
 }
 
-// Every comment is leading trivia of some token, the end-of-file token last.
+// Every comment is leading or trailing trivia of some token, so none is missed.
 const commentsIn = (file: ts.SourceFile): ReadonlyArray<ts.CommentRange> => {
-  const ranges = tokensIn(file, file).flatMap(
-    (token) => ts.getLeadingCommentRanges(file.text, token.pos) ?? [],
-  )
+  const near = (token: ts.Node) => [
+    ...(ts.getLeadingCommentRanges(file.text, token.pos) ?? []),
+    ...(ts.getTrailingCommentRanges(file.text, token.end) ?? []),
+  ]
+  const ranges = tokensIn(file, file).flatMap(near)
   return [...new Map(ranges.map((range) => [range.pos, range])).values()]
 }
 
@@ -194,7 +194,6 @@ const suppressionBreaches = (file: ts.SourceFile, path: string) =>
   commentsIn(file)
     .filter((r) => suppression.test(file.text.slice(r.pos, r.end)))
     .map((r) => breach(path, lineOf(file, r.pos), "suppression", "directive"))
-
 const parses = (path: string, text: string): boolean =>
   ts.transpileModule(text, { fileName: path, reportDiagnostics: true })
     .diagnostics?.length === 0
@@ -212,12 +211,13 @@ export const checkSource = (path: string, text: string) => {
   ]
 }
 
+const skipped = new Set(["node_modules", "fixtures", "vendor"])
 const sourcesUnder = (path: string): ReadonlyArray<string> => {
   if (!statSync(path).isDirectory()) return [path]
   return readdirSync(path).flatMap((entry) => {
     const child = join(path, entry)
     if (statSync(child).isDirectory())
-      return entry === "node_modules" ? [] : sourcesUnder(child)
+      return skipped.has(entry) ? [] : sourcesUnder(child)
     return /\.tsx?$/.test(entry) && !entry.endsWith(".d.ts") ? [child] : []
   })
 }
