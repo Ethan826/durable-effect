@@ -1,12 +1,13 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { Clock, Effect, Random } from "effect";
+import { Clock, Duration, Effect, Random } from "effect";
 import { durable } from "../src/adapter/Durable.ts";
 import type { Durable } from "../src/adapter/Durable.ts";
 import type { Op, Outcome, RootExit } from "../src/adapter/Interface.ts";
 import { makeAdapter } from "../src/adapter/Runtime.ts";
 import { scriptedHost } from "./host.ts";
-import type { Journal, LogEntry, ScriptedHost } from "./host.ts";
+import type { Journal } from "./deliveries.ts";
+import type { LogEntry, ScriptedHost } from "./host.ts";
 
 const run: Op = { _tag: "Run", kind: 1, args: 0 };
 const value = (amount: number): Outcome => ({ _tag: "Value", value: amount });
@@ -162,4 +163,48 @@ test("a Sleep token receives Value whatever the journal holds", () => {
   );
   assert.deepEqual(outcomes, [value(0), failure(2)]);
   assert.deepEqual(rootExit(host.log), exitOf({ _tag: "Failure", value: 2 }));
+});
+
+const forever = Effect.sleep(Duration.infinity);
+
+test("a Sleep Forever is never delivered a Value: the run blocks", () => {
+  const host = runWith(script([value(0)]), () => forever);
+  assert.deepEqual(sentTags(host.log), ["StartRoot"]);
+  assert.deepEqual(host.log.at(-1), { _tag: "Blocked" });
+  assert.deepEqual(rootExit(host.log), []);
+});
+
+test("a run beside a Sleep Forever is delivered, then the run blocks", () => {
+  const both = Effect.all([forever, durable(run)], {
+    concurrency: "unbounded",
+  });
+  const host = runWith(script([value(1)]), () => both);
+  const delivered = host.log.flatMap((entry) =>
+    entry._tag === "Sent" && entry.task._tag === "Deliver"
+      ? [entry.task.outcome]
+      : []
+  );
+  assert.deepEqual(delivered, [value(1)]);
+  assert.deepEqual(host.log.at(-1), { _tag: "Blocked" });
+});
+
+test("a cancel ends a Sleep Forever", () => {
+  const host = runWith(script([value(0)], 0), () => forever);
+  assert.deepEqual(sentTags(host.log), ["StartRoot", "DeliverCancel"]);
+  assert.deepEqual(rootExit(host.log), exitOf({ _tag: "Interrupted" }));
+});
+
+test("an operation started while closing is answered with a defect", () => {
+  const child = Effect.ensuring(Effect.never, Effect.ignore(durable(run)));
+  const program = Effect.andThen(Effect.forkDetach(child), Effect.yieldNow);
+  const host = runWith(script([value(0)]), () => program);
+  const tags = sentTags(host.log);
+  assert.deepEqual(tags.slice(tags.indexOf("RequestInterrupt")), [
+    "RequestInterrupt", "DeliverDefect",
+  ]);
+  assert.ok(!tags.includes("Deliver"));
+  assert.ok(host.log.some((entry) =>
+    entry._tag === "Emitted" && entry.event._tag === "FiberExited" &&
+    entry.event.fiber !== 0
+  ));
 });

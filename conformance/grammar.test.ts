@@ -6,7 +6,7 @@ import { makeAdapter } from "../src/adapter/Runtime.ts";
 import { journal, program } from "./grammar.ts";
 import type { Program, Statement } from "./grammar.ts";
 import { scriptedHost } from "./host.ts";
-import type { Journal } from "./host.ts";
+import type { Journal } from "./deliveries.ts";
 import { interpret } from "./interpret.ts";
 
 // The dossier's statement kinds, listed here by hand so that the test does
