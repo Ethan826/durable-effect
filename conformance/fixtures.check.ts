@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
+  comparedEvery,
   fullScan,
   programsPerSeed,
   requiredProgram,
@@ -136,4 +137,12 @@ test("the scan floor needs the full budget and the required program", () => {
   assert.ok(repeats.length >= everything.length);
   assert.equal(fullScan(outcomeOf(repeats)), false);
   assert.equal(fullScan(outcomeOf([])), false);
+});
+
+test("the comparison floor needs every program of the budget compared", () => {
+  const every = seeds.length * programsPerSeed;
+  const everything = outcomeOf(fullBudget(() => false));
+  assert.equal(comparedEvery(programsCompared("I1", everything)), true);
+  assert.equal(comparedEvery(every - 1), false);
+  assert.equal(comparedEvery(every + 1), false);
 });

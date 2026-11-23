@@ -3,7 +3,12 @@ import { test } from "node:test";
 import { evidence } from "./evidence.ts";
 import { mutantNames, mutants } from "./mutants.ts";
 import type { MutantName } from "./mutants.ts";
-import { fullScan, programsPerSeed, runRange, seeds } from "./plan.ts";
+import {
+  comparedEvery,
+  fullScan,
+  programsPerSeed,
+  runRange,
+} from "./plan.ts";
 import type { Outcome } from "./processes.ts";
 import {
   check,
@@ -104,8 +109,8 @@ for (const property of properties) {
         `${most("maxLoop")}; most statement loops in a task ` +
         `${most("statementLoops")}; wall time ${seconds} s`);
       assert.ok(fullScan(outcome), "fewer runs than the full budget");
-      assert.equal(programsCompared(property, outcome),
-        seeds.length * programsPerSeed);
+      const programs = programsCompared(property, outcome);
+      assert.ok(comparedEvery(programs), `${programs} programs compared`);
       const violation = check(property, outcome);
       assert.equal(violation, undefined, describe(violation));
     });
