@@ -40,6 +40,7 @@ Executor/StepSingle.v
 Executor/StepLog.v
 Executor/StepAwait.v
 Executor/StepAwaitTurn.v
+Executor/StepHeld.v
 Executor/ArrivalBase.v
 Executor/ArrivalMicro.v
 Executor/ArrivalExt.v

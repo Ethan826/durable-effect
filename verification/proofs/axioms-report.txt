@@ -564,9 +564,43 @@ Closed under the global context
 Closed under the global context
 == Durable.StepAwait.step_ainv_start
 Closed under the global context
+== Durable.StepAwait.step_asinv_event
+Closed under the global context
 == Durable.StepAwait.step_close_stays
 Closed under the global context
+== Durable.StepAwait.step_cnt_app
+Closed under the global context
+== Durable.StepAwait.step_cnt_cons
+Closed under the global context
+== Durable.StepAwait.step_cnt_filter
+Closed under the global context
+== Durable.StepAwait.step_cnt_in
+Closed under the global context
+== Durable.StepAwait.step_cnt_none
+Closed under the global context
+== Durable.StepAwait.step_cnt_other
+Closed under the global context
+== Durable.StepAwait.step_dropped_false
+Closed under the global context
+== Durable.StepAwait.step_dropped_true
+Closed under the global context
 == Durable.StepAwait.step_follows_active
+Closed under the global context
+== Durable.StepAwait.step_hinv_event
+Closed under the global context
+== Durable.StepAwait.step_hinv_head
+Closed under the global context
+== Durable.StepAwait.step_hinv_nodc
+Closed under the global context
+== Durable.StepAwait.step_hinv_release
+Closed under the global context
+== Durable.StepAwait.step_hinv_same
+Closed under the global context
+== Durable.StepAwait.step_hinv_start
+Closed under the global context
+== Durable.StepAwait.step_hinv_sub
+Closed under the global context
+== Durable.StepAwait.step_issue_op_held
 Closed under the global context
 == Durable.StepAwait.step_issue_op_stays
 Closed under the global context
@@ -586,6 +620,8 @@ Closed under the global context
 Closed under the global context
 == Durable.StepAwait.step_sinv_event
 Closed under the global context
+== Durable.StepAwait.step_sinv_head
+Closed under the global context
 == Durable.StepAwait.step_sinv_interp
 Closed under the global context
 == Durable.StepAwait.step_sinv_mono
@@ -604,7 +640,21 @@ Closed under the global context
 Closed under the global context
 == Durable.StepAwaitTurn.step_ainv_sub_none
 Closed under the global context
+== Durable.StepAwaitTurn.step_asinv_boundary
+Closed under the global context
 == Durable.StepAwaitTurn.step_elog_fst
+Closed under the global context
+== Durable.StepAwaitTurn.step_hinv_after_sample
+Closed under the global context
+== Durable.StepAwaitTurn.step_hinv_boundary
+Closed under the global context
+== Durable.StepAwaitTurn.step_hinv_on_cancel
+Closed under the global context
+== Durable.StepAwaitTurn.step_hinv_on_notify
+Closed under the global context
+== Durable.StepAwaitTurn.step_hinv_short
+Closed under the global context
+== Durable.StepAwaitTurn.step_not_init_held
 Closed under the global context
 == Durable.StepAwaitTurn.step_s4
 Closed under the global context
@@ -630,6 +680,12 @@ Closed under the global context
 Closed under the global context
 == Durable.StepAwaitTurn.step_waiter_none
 Closed under the global context
+== Durable.StepHeld.step_held_cancel_counterexample
+Closed under the global context
+== Durable.StepHeld.step_held_cancel_delivered_refuted
+Closed under the global context
+== Durable.StepHeld.step_held_start_issues_nothing
+Closed under the global context
 == Durable.StepInv.step_apply_sample_cases
 Closed under the global context
 == Durable.StepInv.step_close_active
@@ -637,6 +693,8 @@ Closed under the global context
 == Durable.StepInv.step_close_open
 Closed under the global context
 == Durable.StepInv.step_close_phase
+Closed under the global context
+== Durable.StepInv.step_close_settled
 Closed under the global context
 == Durable.StepInv.step_close_trace
 Closed under the global context
@@ -708,6 +766,8 @@ Closed under the global context
 Closed under the global context
 == Durable.StepInv.step_inv_set_fseen
 Closed under the global context
+== Durable.StepInv.step_inv_set_held
+Closed under the global context
 == Durable.StepInv.step_inv_set_held_false
 Closed under the global context
 == Durable.StepInv.step_inv_set_live
@@ -726,7 +786,9 @@ Closed under the global context
 Closed under the global context
 == Durable.StepInv.step_inv_set_sub_none
 Closed under the global context
-== Durable.StepInv.step_inv_set_waiter
+== Durable.StepInv.step_inv_set_waiter_none
+Closed under the global context
+== Durable.StepInv.step_inv_set_waiter_slot
 Closed under the global context
 == Durable.StepInv.step_inv_step
 Closed under the global context
@@ -734,15 +796,23 @@ Closed under the global context
 Closed under the global context
 == Durable.StepInv.step_issue_op_active
 Closed under the global context
+== Durable.StepInv.step_issue_op_settled
+Closed under the global context
 == Durable.StepInv.step_issue_phase
 Closed under the global context
 == Durable.StepInv.step_on_event_iinv
 Closed under the global context
 == Durable.StepInv.step_on_release_iinv
 Closed under the global context
+== Durable.StepInv.step_on_release_split
+Closed under the global context
 == Durable.StepInv.step_on_start_iinv
 Closed under the global context
 == Durable.StepInv.step_open_no_violation
+Closed under the global context
+== Durable.StepInv.step_release_pre_fields
+Closed under the global context
+== Durable.StepInv.step_release_pre_iinv
 Closed under the global context
 == Durable.StepInv.step_release_sub_cases
 Closed under the global context
@@ -750,11 +820,19 @@ Closed under the global context
 Closed under the global context
 == Durable.StepInv.step_run_head_inv
 Closed under the global context
+== Durable.StepInv.step_settled_same
+Closed under the global context
 == Durable.StepInv.step_violate_active
 Closed under the global context
 == Durable.StepInv.step_violate_open
 Closed under the global context
 == Durable.StepInv.step_violate_phase
+Closed under the global context
+== Durable.StepInv.step_violate_settled
+Closed under the global context
+== Durable.StepInv.step_waiter_free
+Closed under the global context
+== Durable.StepInv.step_waiter_init
 Closed under the global context
 == Durable.StepInv.step_xs
 Closed under the global context
