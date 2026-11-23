@@ -33,10 +33,21 @@ export type LogEntry =
   | { readonly _tag: "Global"; readonly source: GlobalSource }
   | { readonly _tag: "Blocked" };
 
-/** A host that also runs the adapter and keeps a log of everything. */
+/** Awaited after each step of a paced run, with the steps taken so far. */
+export type Pause = (steps: number) => Promise<void>;
+
+/**
+ * A host that also runs the adapter and keeps a log of everything.
+ * `runPaced` runs as `run` does, but awaits `pause` after starting the
+ * root and after each step, so timers and callbacks outside the adapter's
+ * tasks get a chance to fire between tasks. `extend` sends one more task,
+ * inside a slice, after a run has ended.
+ */
 export type ScriptedHost = Host & {
   readonly log: ReadonlyArray<LogEntry>;
   readonly run: (adapter: AdapterRuntime) => void;
+  readonly runPaced: (adapter: AdapterRuntime, pause: Pause) => Promise<void>;
+  readonly extend: (adapter: AdapterRuntime, task: Task) => void;
 };
 
 /**
@@ -151,6 +162,16 @@ const step = (
   return false;
 };
 
+/** `run`, awaiting `pause` after the start and after every step. */
+const pacedRun = (state: HostState, journal: Journal) =>
+  async (adapter: AdapterRuntime, pause: Pause) => {
+    const send = sender(state, adapter);
+    send({ _tag: "StartRoot" });
+    let steps = 1;
+    await pause(steps);
+    while (step(state, journal, send)) await pause(++steps);
+  };
+
 const freshState = (options: HostOptions): HostState => ({
   ...freshDeliveries(),
   log: [],
@@ -189,6 +210,8 @@ export const scriptedHost = (
   return {
     log: state.log,
     run,
+    runPaced: pacedRun(state, journal),
+    extend: (adapter, task) => sender(state, adapter)(task),
     emit: observe(state),
     clock: (fiber) => answer(state, "clock", fiber, state.delivered),
     draw: draw(state),
