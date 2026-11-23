@@ -1,15 +1,9 @@
 import { createHash } from "node:crypto";
 import { setImmediate, setTimeout } from "node:timers/promises";
-import { Effect, Option, Scheduler, Schema } from "effect";
+import { Option, Schema } from "effect";
 import fc from "fast-check";
-import type { Durable } from "../src/adapter/Durable.ts";
-import type {
-  AdapterRuntime,
-  FiberId,
-  Task,
-} from "../src/adapter/Interface.ts";
+import type { FiberId, Task } from "../src/adapter/Interface.ts";
 import { makeAdapter } from "../src/adapter/Runtime.ts";
-import type { AnyFiber } from "../src/adapter/State.ts";
 import { journal, program } from "./grammar.ts";
 import type { Journal } from "./deliveries.ts";
 import type { Program } from "./grammar.ts";
@@ -17,6 +11,7 @@ import { scriptedHost } from "./host.ts";
 import type { LogEntry, Pause } from "./host.ts";
 import { interpret } from "./interpret.ts";
 import { further } from "./further.ts";
+import { counted, freshCount, perTask } from "./opcount.ts";
 import { mutantNames, mutants } from "./mutants.ts";
 
 const roles = ["fresh0", "fresh1", "fresh2", "after", "warmup"] as const;
@@ -70,54 +65,6 @@ export const caseAt = (
     fc.sample(cases, { seed, numRuns: 1, path: String(index) })[0],
   );
 
-/** Operations run in the current task, and the most in any task. */
-interface OpCount {
-  current: number;
-  max: number;
-  /** Each fiber's `currentOpCount` when last seen in this task. */
-  readonly last: Map<AnyFiber, number>;
-}
-
-/**
- * Adds the operations a fiber ran since it was last seen. Effect resets
- * `currentOpCount` when a run loop starts, so a smaller count is a new
- * loop and counts whole.
- */
-const observe = (count: OpCount, fiber: AnyFiber) => {
-  const now = fiber.currentOpCount;
-  const before = count.last.get(fiber) ?? 0;
-  count.current += now < before ? now : now - before;
-  count.last.set(fiber, now);
-};
-
-const counting = (inner: Scheduler.Scheduler, count: OpCount) => ({
-  executionMode: inner.executionMode,
-  makeDispatcher: () => inner.makeDispatcher(),
-  shouldYield: (fiber: AnyFiber) => {
-    observe(count, fiber);
-    return inner.shouldYield(fiber);
-  },
-}) satisfies Scheduler.Scheduler;
-
-/** The program, with every fiber's operations counted (I9). */
-const counted = <A, E>(
-  effect: Effect.Effect<A, E, Durable>,
-  count: OpCount,
-) => Effect.withFiber((fiber) =>
-  Effect.provideService(effect, Scheduler.Scheduler,
-    counting(fiber.getRef(Scheduler.Scheduler), count))
-);
-
-/** The runtime, with the operation count reset before each task. */
-const perTask = (runtime: AdapterRuntime, count: OpCount): AdapterRuntime => ({
-  runTask: (task) => {
-    count.current = 0;
-    count.last.clear();
-    runtime.runTask(task);
-    count.max = Math.max(count.max, count.current);
-  },
-});
-
 const isPowerOfTwo = (steps: number) => (steps & (steps - 1)) === 0;
 
 /**
@@ -167,7 +114,7 @@ const runCase = async (job: Job, [shape, script]: readonly [
   Journal,
 ]): Promise<RunResult> => {
   const host = scriptedHost(script, { seed: job.index });
-  const count: OpCount = { current: 0, max: 0, last: new Map() };
+  const count = freshCount();
   const make = job.mutant === undefined ? makeAdapter
     : mutants[job.mutant].make;
   const adapter = perTask(

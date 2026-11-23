@@ -11,6 +11,13 @@ export const programsPerSeed = 1000;
 
 const freshRoles = ["fresh0", "fresh1", "fresh2"] as const;
 
+/** Runs reported for the full budget: four roles, every seed and program. */
+const fullBudgetRuns = (freshRoles.length + 1) * seeds.length * programsPerSeed;
+
+/** The scan minimum: an outcome holds every run of the full budget. */
+export const fullScan = (outcome: Outcome): boolean =>
+  outcome.results.length >= fullBudgetRuns;
+
 /** Which runs report their whole log: none, or one seed's. */
 type Detail = { readonly seed: number } | undefined;
 
@@ -26,17 +33,19 @@ const job = (mutant: MutantName | undefined, detail: Detail) =>
   });
 
 /**
- * The processes for program `index` of every seed: three fresh ones, each
- * running that program once per seed, so that it has run nothing else from
- * a program's seed before the program; and one that runs program
- * `index + 1` of each seed before program `index`.
+ * The processes for program `index` of every seed. Each fresh run gets a
+ * process of its own, which runs nothing else: three per seed. The last
+ * process runs program `index + 1` of each seed before program `index`, so
+ * each `after` run follows another program of the same seed.
  */
 export const processesFor = (mutant: MutantName | undefined, detail?: Detail) =>
   (index: number): ReadonlyArray<ReadonlyArray<Job>> => {
     const make = job(mutant, detail);
     const next = (index + 1) % programsPerSeed;
     return [
-      ...freshRoles.map((role) => seeds.map((seed) => make(seed, index, role))),
+      ...freshRoles.flatMap((role) =>
+        seeds.map((seed) => [make(seed, index, role)])
+      ),
       seeds.flatMap((seed) => [
         make(seed, next, "warmup"),
         make(seed, index, "after"),
