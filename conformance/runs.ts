@@ -2,16 +2,21 @@ import { createHash } from "node:crypto";
 import { setImmediate, setTimeout } from "node:timers/promises";
 import { Option, Schema } from "effect";
 import fc from "fast-check";
-import type { FiberId, Task } from "../src/adapter/Interface.ts";
+import type {
+  AdapterRuntime,
+  FiberId,
+  Task,
+} from "../src/adapter/Interface.ts";
 import { makeAdapter } from "../src/adapter/Runtime.ts";
 import { journal, program } from "./grammar.ts";
 import type { Journal } from "./deliveries.ts";
 import type { Program } from "./grammar.ts";
 import { scriptedHost } from "./host.ts";
-import type { LogEntry, Pause } from "./host.ts";
+import type { LogEntry, Pause, ScriptedHost } from "./host.ts";
 import { interpret } from "./interpret.ts";
 import { further } from "./further.ts";
 import { counted, freshCount, perTask } from "./opcount.ts";
+import { beginTask, endTask } from "./runloops.ts";
 import { mutantNames, mutants } from "./mutants.ts";
 
 const roles = ["fresh0", "fresh1", "fresh2", "after", "warmup"] as const;
@@ -38,8 +43,12 @@ export type Job = typeof Job.Type;
  * What a worker reports of a run. The hashes cover the log without its
  * `Global` entries (report-only, #37 I2), and the log of the three
  * further tasks; `identities` lists each `register` question's fiber in
- * order; `maxOps` is the most operations any one task ran. `log` is the
- * whole visible log, one JSON string per entry, when the job asked for it.
+ * order. For I9: `maxOps` is the most operations any one task ran,
+ * `maxLoop` the most in one run loop, `framed` the fibers that first met
+ * the scheduler with frames on their stack (opcount.ts), and
+ * `statementLoops` the most statement-fiber run loops in one task
+ * (runloops.ts). `log` is the whole visible log, one JSON string per
+ * entry, when the job asked for it.
  */
 export const RunResult = Schema.Struct({
   seed: Schema.Int,
@@ -49,6 +58,9 @@ export const RunResult = Schema.Struct({
   furtherHash: Schema.String,
   identities: Schema.Array(Schema.Int),
   maxOps: Schema.Int,
+  maxLoop: Schema.Int,
+  framed: Schema.Int,
+  statementLoops: Schema.Int,
   log: Schema.optionalKey(Schema.Array(Schema.String)),
 });
 /** What a worker reports of a run. */
@@ -86,12 +98,30 @@ const identitiesIn = (log: ReadonlyArray<LogEntry>): FiberId[] =>
       : []
   );
 
+/** I9's measures of one run. */
+type Measures = Pick<
+  RunResult,
+  "maxOps" | "maxLoop" | "framed" | "statementLoops"
+>;
+
+/** The runtime, with the statement-loop oracle read after each task. */
+const loopsPerTask = (
+  runtime: AdapterRuntime,
+  most: { statementLoops: number },
+): AdapterRuntime => ({
+  runTask: (task) => {
+    beginTask();
+    runtime.runTask(task);
+    most.statementLoops = Math.max(most.statementLoops, endTask());
+  },
+});
+
 /** The result of a run whose log ends with the further tasks' entries. */
 const summarize = (
   job: Job,
   log: ReadonlyArray<LogEntry>,
   mainLength: number,
-  maxOps: number,
+  measures: Measures,
 ): RunResult => ({
   seed: job.seed,
   index: job.index,
@@ -99,31 +129,47 @@ const summarize = (
   logHash: hashOf(log.slice(0, mainLength).filter(visible)),
   furtherHash: hashOf(log.slice(mainLength).filter(visible)),
   identities: identitiesIn(log),
-  maxOps,
+  ...measures,
   log: job.detail
     ? log.filter(visible).map((entry) => JSON.stringify(entry))
     : undefined,
 });
 
 /**
+ * The adapter, or the job's mutant, for `shape` under `host`, with I9's
+ * counters around it, and a reader of what they measured.
+ */
+const instrumented = (job: Job, shape: Program, host: ScriptedHost) => {
+  const count = freshCount();
+  const most = { statementLoops: 0 };
+  const make = job.mutant === undefined ? makeAdapter
+    : mutants[job.mutant].make;
+  const adapter = loopsPerTask(perTask(
+    make(counted(interpret(shape), count), 0, host), count), most);
+  const measures = (): Measures => ({
+    maxOps: count.max,
+    maxLoop: count.maxLoop,
+    framed: count.framed,
+    statementLoops: most.statementLoops,
+  });
+  return { adapter, measures };
+};
+
+/**
  * Runs one job in this process: the program under the adapter or the named
  * mutant, paced or not, then the three further tasks from its final state.
  */
-const runCase = async (job: Job, [shape, script]: readonly [
+export const runCase = async (job: Job, [shape, script]: readonly [
   Program,
   Journal,
 ]): Promise<RunResult> => {
   const host = scriptedHost(script, { seed: job.index });
-  const count = freshCount();
-  const make = job.mutant === undefined ? makeAdapter
-    : mutants[job.mutant].make;
-  const adapter = perTask(
-    make(counted(interpret(shape), count), 0, host), count);
+  const { adapter, measures } = instrumented(job, shape, host);
   if (job.pacing === "timer") await host.runPaced(adapter, timerPause);
   else host.run(adapter);
   const mainLength = host.log.length;
   further(host.log).forEach((task: Task) => host.extend(adapter, task));
-  return summarize(job, host.log, mainLength, count.max);
+  return summarize(job, host.log, mainLength, measures());
 };
 
 /** Runs one job; none when its seed and index give no program. */

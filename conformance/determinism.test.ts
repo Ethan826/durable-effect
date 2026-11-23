@@ -7,6 +7,9 @@ import { fullScan, programsPerSeed, runRange } from "./plan.ts";
 import type { Outcome } from "./processes.ts";
 import { check, describe, properties } from "./properties.ts";
 import type { Violation } from "./properties.ts";
+import { pinnedCases, pinnedJournal } from "./pinned.ts";
+import { runCase } from "./runs.ts";
+import type { Job } from "./runs.ts";
 
 // Properties I1, I2, I7 and I9 of #37, by the dossier's conformance suite:
 // seeds 1 to 5, 1,000 programs each; each program in three fresh Node
@@ -16,7 +19,7 @@ import type { Violation } from "./properties.ts";
 
 const oneRun = {
   seed: 1, index: 0, role: "fresh0", logHash: "a", furtherHash: "b",
-  identities: [0], maxOps: 1,
+  identities: [0], maxOps: 1, maxLoop: 1, framed: 0, statementLoops: 1,
 } as const;
 
 test("a crash or a missing run is never a property finding", () => {
@@ -25,7 +28,7 @@ test("a crash or a missing run is never a property finding", () => {
   assert.equal(check("I1", crash)?.cause, "run");
   assert.equal(check("I1", missing)?.cause, "run");
   assert.equal(check("I9", { ...missing, results: [
-    { ...oneRun, maxOps: 18_433 }, { ...oneRun, role: "fresh1" },
+    { ...oneRun, maxLoop: 2050 }, { ...oneRun, role: "fresh1" },
     { ...oneRun, role: "fresh2" }, { ...oneRun, role: "after" },
   ] })?.cause, "property");
 });
@@ -33,6 +36,28 @@ test("a crash or a missing run is never a property finding", () => {
 test("the scan minimum rejects an empty outcome", () => {
   assert.equal(fullScan({ results: [], failures: [] }), false);
 });
+
+const pinnedJob: Job = {
+  seed: 0, index: 0, role: "fresh0", pacing: "none", detail: false,
+};
+
+/** The old per-task bound, which each pinned case must exceed. */
+const refutedBound = 2048 * 9;
+
+for (const [name, program] of Object.entries(pinnedCases)) {
+  test(`pinned case ${name} meets I9 and exceeds ${refutedBound}`,
+    async (context) => {
+      const run = await runCase(pinnedJob, [program, pinnedJournal]);
+      context.diagnostic(`most operations: in one task ${run.maxOps}, ` +
+        `in one run loop ${run.maxLoop}; statement loops ` +
+        `${run.statementLoops}`);
+      assert.ok(run.maxOps > refutedBound, `${run.maxOps}`);
+      assert.equal(check("I9", { results: [
+        run, ...(["fresh1", "fresh2", "after"] as const).map((role) =>
+          ({ ...run, role })),
+      ], failures: [] }), undefined);
+    });
+}
 
 /** Programs per round when a mutant is run until its property fails. */
 const roundSize = 25;
@@ -48,9 +73,12 @@ for (const property of properties) {
     async (context) => {
       const outcome = await fullBudget();
       const seconds = Math.round((performance.now() - startedAt) / 1000);
-      const most = Math.max(...outcome.results.map((run) => run.maxOps));
-      context.diagnostic(`${outcome.results.length} runs reported, ` +
-        `most operations in one task ${most}, wall time ${seconds} s`);
+      const most = (measure: "maxOps" | "maxLoop" | "statementLoops") =>
+        Math.max(...outcome.results.map((run) => run[measure]));
+      context.diagnostic(`${outcome.results.length} runs reported; most ` +
+        `operations in one task ${most("maxOps")}, in one run loop ` +
+        `${most("maxLoop")}; most statement loops in a task ` +
+        `${most("statementLoops")}; wall time ${seconds} s`);
       assert.ok(fullScan(outcome), "fewer runs than the full budget");
       const violation = check(property, outcome);
       assert.equal(violation, undefined, describe(violation));
