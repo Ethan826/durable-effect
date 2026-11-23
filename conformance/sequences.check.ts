@@ -12,7 +12,11 @@ import {
   sequenceChecks,
 } from "./sequences.ts";
 import type { Sequence } from "./sequences.ts";
-import { unusualIn } from "./strays.ts";
+import {
+  isRequiredSequence,
+  sequenceScanFull,
+  unusualIn,
+} from "./strays.ts";
 import type { Unusual } from "./strays.ts";
 import { coqLog } from "./logprops.ts";
 
@@ -68,18 +72,19 @@ const checkSeed = (
   seed: number,
   make: Variant | undefined,
   holds: (log: ReturnType<typeof drive>) => boolean,
-  counts: { total: Unusual; runs: number },
+  counts: { total: Unusual; runs: number; reached: boolean },
 ) => fc.check(fc.property(sequence, (one: Sequence) => {
   const log = drive(one, make);
   counts.total = sum(counts.total, unusualIn(log));
   counts.runs += 1;
+  counts.reached ||= isRequiredSequence(seed, counts.runs);
   return holds(log);
 }), { seed, numRuns: programsPerSeed });
 
 
 test("I4, I6, I7 and I8 hold over arbitrary task sequences: seeds 1-5, " +
   "1,000 each", (context) => {
-  const counts = { total: noUnusual, runs: 0 };
+  const counts = { total: noUnusual, runs: 0, reached: false };
   const startedAt = performance.now();
   const failures = seeds.flatMap((seed) => {
     const details = checkSeed(seed, undefined,
@@ -91,7 +96,8 @@ test("I4, I6, I7 and I8 hold over arbitrary task sequences: seeds 1-5, " +
   context.diagnostic(`${counts.runs} sequences; ` +
     `${JSON.stringify(counts.total)}; wall time ${seconds} s`);
   assert.deepEqual(failures, []);
-  assert.equal(counts.runs, seeds.length * programsPerSeed);
+  assert.ok(sequenceScanFull(counts.runs, counts.reached,
+    seeds.length * programsPerSeed), `${counts.runs} ${counts.reached}`);
   assert.deepEqual(shortOf(counts.total), []);
 });
 
@@ -110,7 +116,7 @@ const caught: ReadonlyArray<readonly [keyof typeof sequenceChecks, string,
 for (const [property, name, make] of caught) {
   test(`the ${property} sequence check catches ${name}`, (context) => {
     const check = sequenceChecks[property];
-    const counts = { total: noUnusual, runs: 0 };
+    const counts = { total: noUnusual, runs: 0, reached: false };
     const found = seeds.map((seed) => checkSeed(seed, make,
       (log) => check(coqLog(log)) === undefined, counts))
       .find((details) => details.failed);
