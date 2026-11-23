@@ -26,6 +26,7 @@ Executor/Statements.v
 Executor/Obligations.v
 Executor/Witnesses.v
 Executor/Witnesses2.v
+Executor/Witnesses3.v
 Executor/Compare.v
 Executor/Rev3Monitor.v
 Executor/Rev3ConcreteBase.v

@@ -366,11 +366,18 @@ Definition for_token (f : FiberId) (tok : Token) (t : Task) : bool :=
   end.
 
 (** A fiber reports that it unwound out of an await (I4). Any delivery still queued for that
-    await is dropped, including a 0 ms sleep's. The executor otherwise ignores a release for an
+    await is dropped, including a 0 ms sleep's. A dropped cancellation is held again, so it
+    goes to the next fiber that starts a durable operation (X5; the combined review's F1
+    found it lost). The executor otherwise ignores a release for an
     await it has already delivered, and every release during closing. *)
 Definition on_release (x : XState) (f : FiberId) (tok : Token) : XState :=
+  let dropped_cancel := existsb (fun t => match t with
+                                          | DeliverCancel f' tok' => Nat.eqb f f' && Nat.eqb tok tok'
+                                          | _ => false end) (queue x) in
   let x := match phase x with
-           | POpen => set_queue x (filter (fun t => negb (for_token f tok t)) (queue x))
+           | POpen =>
+               let x1 := set_queue x (filter (fun t => negb (for_token f tok t)) (queue x)) in
+               if dropped_cancel then set_held x1 true else x1
            | _ => x
            end in
   match phase x, awaiter x with
