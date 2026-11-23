@@ -1,5 +1,11 @@
 import { afterAll, describe, expect, test } from "bun:test"
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs"
 import { join } from "node:path"
 
 const gatePath = join(import.meta.dir, "style-gate.ts")
@@ -48,14 +54,18 @@ describe("each rule fails on its own fixture and on no other rule", () => {
 })
 
 describe("suppression comments", () => {
-  test("every directive is reported by its line", () => {
+  const where = (line: string) => line.split(" ")[0]?.split("/").slice(-1)[0]
+
+  test("every directive is reported by file and line, trailing too", () => {
     const { code, out } = runGate(gatePath, [join(fixtures, "suppression")])
     const found = breachesIn(out)
     expect(code).toBe(1)
     expect(found.every((line) => line.includes(" suppression:"))).toBe(true)
-    expect(found.map((line) => line.split(" ")[0]?.split(":").pop())).toEqual(
-      ["1", "2", "3", "4"],
-    )
+    expect(found.map(where).sort()).toEqual([
+      "directives.ts:1", "directives.ts:2", "directives.ts:3",
+      "directives.ts:4", "trailing.ts:1", "trailing.ts:2",
+      "trailing.ts:3", "trailing.ts:4",
+    ])
   })
 })
 
@@ -115,5 +125,43 @@ describe("a gate that never matches a directive", () => {
     const target = join(fixtures, "suppression")
     expect(runGate(gatePath, [target]).code).toBe(1)
     expect(runGate(mutant, [target]).code).toBe(0)
+  })
+})
+
+describe("a gate that ignores trailing comments", () => {
+  test("misses the same-line directives in the trailing fixture", () => {
+    const dropped = /\.\.\.\(ts\.getTrailingCommentRanges[^\n]*\n/
+    const mutant = mutantOf("trailing", dropped, "")
+    const target = join(fixtures, "suppression", "trailing.ts")
+    expect(breachesIn(runGate(gatePath, [target]).out)).toHaveLength(4)
+    expect(breachesIn(runGate(mutant, [target]).out)).toHaveLength(1)
+  })
+})
+
+describe("directories skipped on recursion", () => {
+  const tree = join(scratch, "tree")
+  const bad = "export function f(): void {}\n"
+  for (const dir of ["fixtures", "vendor", "kept"]) {
+    mkdirSync(join(tree, dir), { recursive: true })
+    writeFileSync(join(tree, dir, "bad.ts"), bad)
+  }
+
+  test("fixtures and vendor are skipped when reached by recursion", () => {
+    const { out } = runGate(gatePath, [tree])
+    expect(breachesIn(out).map((line) => line.includes("kept"))).toEqual([true])
+  })
+
+  test("the same directories are scanned when named as arguments", () => {
+    for (const dir of ["fixtures", "vendor"]) {
+      const { code, out } = runGate(gatePath, [join(tree, dir)])
+      expect(code).toBe(1)
+      expect(out).toContain("arrow-function")
+    }
+  })
+
+  test("a gate that skips nothing fails the recursive scan more", () => {
+    const set = /new Set\(\["node_modules"[^\n]*/
+    const mutant = mutantOf("skip", set, "new Set([])")
+    expect(breachesIn(runGate(mutant, [tree]).out)).toHaveLength(3)
   })
 })

@@ -6,8 +6,8 @@
   "scripts": {
     "check": "tsc --noEmit",
     "test": "bun test",
-    "gate:tsdoc": "bun scripts/tsdoc-gate.ts --min 1 src",
-    "gate:style": "bun scripts/style-gate.ts src test scripts/style-gate.ts scripts/style-gate.test.ts scripts/tsdoc-gate.test.ts",
+    "gate:tsdoc": "bun scripts/vendor/tsdoc-gate.ts --min 1 src",
+    "gate:style": "bun scripts/style-gate.ts src test scripts",
     "conformance": "node --test test/conformance/"
   },
   "dependencies": {
