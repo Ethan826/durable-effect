@@ -4,24 +4,34 @@ import type { AdapterRuntime } from "../src/adapter/Interface.ts";
 import type { AnyFiber } from "../src/adapter/State.ts";
 
 /**
- * Operations run in the current task, and the most in any task. Effect
- * counts each run loop's operations in the fiber's `currentOpCount`, which
- * it resets when a loop starts and leaves alone when the loop ends
- * (internal/effect.ts:675-735). So a loop's final count is exact,
- * inline steps after its last scheduler check included (:764-769).
+ * Operations counted for I9. An operation is one increment of a fiber's
+ * `currentOpCount`, which Effect resets when a run loop starts and leaves
+ * alone when the loop ends (internal/effect.ts:685, :693, :765). So a
+ * loop's final count is exact, inline steps after its last scheduler check
+ * included. `current` is this task's sum, `max` the most in any task and
+ * `maxLoop` the most in any one run loop. `framed` counts fibers that
+ * first met the scheduler with frames on their stack.
  */
 export interface OpCount {
   current: number;
   max: number;
+  maxLoop: number;
+  framed: number;
   /** Fibers whose `runLoop` the counter wraps. */
   readonly wrapped: WeakSet<AnyFiber>;
   /** Fibers in a loop that began before the counter wrapped them. */
   readonly early: Set<AnyFiber>;
 }
 
+/** Adds one ended run loop's final count. */
+const addLoop = (count: OpCount, fiber: AnyFiber) => {
+  count.current += fiber.currentOpCount;
+  count.maxLoop = Math.max(count.maxLoop, fiber.currentOpCount);
+};
+
 /** Adds an early loop's final count, once, if the fiber is in one. */
 const settle = (count: OpCount, fiber: AnyFiber) => {
-  if (count.early.delete(fiber)) count.current += fiber.currentOpCount;
+  if (count.early.delete(fiber)) addLoop(count, fiber);
 };
 
 /**
@@ -36,22 +46,36 @@ const wrapRunLoop = (count: OpCount, fiber: AnyFiber) => {
     try {
       return Reflect.apply(original, fiber, args);
     } finally {
-      count.current += fiber.currentOpCount;
+      addLoop(count, fiber);
     }
   };
   Object.defineProperty(fiber, "runLoop", { value: counting });
 };
 
-/**
- * The first time a fiber is seen: its current loop began before the
- * counter could wrap it, so the loop counts whole when it ends, from its
- * first operation, whatever ran before the counter was installed.
- */
-const observe = (count: OpCount, fiber: AnyFiber) => {
-  if (count.wrapped.has(fiber)) return;
+/** Starts counting a fiber that is in its first counted run loop. */
+const admit = (count: OpCount, fiber: AnyFiber) => {
   count.wrapped.add(fiber);
   count.early.add(fiber);
   wrapRunLoop(count, fiber);
+};
+
+/** The number of continuation frames on a fiber's stack (:743-757). */
+const framesOf = (fiber: AnyFiber): number => {
+  const stack: unknown = Reflect.get(fiber, "_stack");
+  return Array.isArray(stack) ? stack.length : 0;
+};
+
+/**
+ * The first time a fiber is seen: its current loop began before the
+ * counter could wrap it, so the loop counts whole when it ends. The
+ * adapter registers a fiber at this same call; with frames on the stack a
+ * registration interrupt leaves `yielding` set for the rest of the loop
+ * (:698-723), so the scheduler could no longer stop it.
+ */
+const observe = (count: OpCount, fiber: AnyFiber) => {
+  if (count.wrapped.has(fiber)) return;
+  if (framesOf(fiber) > 0) count.framed += 1;
+  admit(count, fiber);
 };
 
 const counting = (inner: Scheduler.Scheduler, count: OpCount) => ({
@@ -63,14 +87,19 @@ const counting = (inner: Scheduler.Scheduler, count: OpCount) => ({
   },
 }) satisfies Scheduler.Scheduler;
 
-/** The program, with every fiber's operations counted (I9). */
+/**
+ * The program, with every fiber's operations counted (I9). The root met
+ * the adapter's scheduler at its first operation, before this runs, so it
+ * is admitted here and its first loop still counts from its start.
+ */
 export const counted = <A, E>(
   effect: Effect.Effect<A, E, Durable>,
   count: OpCount,
-) => Effect.withFiber((fiber) =>
-  Effect.provideService(effect, Scheduler.Scheduler,
-    counting(fiber.getRef(Scheduler.Scheduler), count))
-);
+) => Effect.withFiber((root) => {
+  admit(count, root);
+  return Effect.provideService(effect, Scheduler.Scheduler,
+    counting(root.getRef(Scheduler.Scheduler), count));
+});
 
 /** The runtime, with the operation count reset before each task. */
 export const perTask = (
@@ -87,5 +116,11 @@ export const perTask = (
 });
 
 /** A count with nothing counted yet. */
-export const freshCount = (): OpCount =>
-  ({ current: 0, max: 0, wrapped: new WeakSet(), early: new Set() });
+export const freshCount = (): OpCount => ({
+  current: 0,
+  max: 0,
+  maxLoop: 0,
+  framed: 0,
+  wrapped: new WeakSet(),
+  early: new Set(),
+});

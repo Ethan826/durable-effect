@@ -1,15 +1,24 @@
 import type { Property } from "./mutants.ts";
 import type { Outcome } from "./processes.ts";
+import { maxStatementLoops } from "./runloops.ts";
 import type { Role, RunResult } from "./runs.ts";
 
 /** The properties this suite checks, in the order #37's table lists them. */
 export const properties: ReadonlyArray<Property> = ["I1", "I2", "I7", "I9"];
 
 /**
- * I9's bound on one task: `MaxOpsBeforeYield` times the widest immediate
- * fork plus one, a concurrent `forEach` of 8 elements (dossier, "Runs").
+ * I9's main check: no run loop passes B + 1 = 2,049 operations, B being
+ * `MaxOpsBeforeYield`. An operation is one increment of `currentOpCount`;
+ * `succeedWith` returns at multiples of 32 (internal/effect.ts:765, :843)
+ * and 2,048 is one, so a loop checks the scheduler by its 2,049th.
  */
-export const maxOpsPerTask = 2048 * 9;
+export const maxOpsPerLoop = 2049;
+
+/**
+ * I9's per-task ceiling, (B + d)(S·W + K·L) + 2·W·K·L·t with B 2,048,
+ * d 32, S 24, W 8, K 4, L 384 and t 8 (dossier, "Runs").
+ */
+export const maxOpsPerTask = 3_790_848;
 
 /**
  * A property that failed: on which program, and how. `cause` is
@@ -76,12 +85,25 @@ const identitiesHold = (runs: ReadonlyArray<RunResult>): Finding => {
   return { roles: [first.role, other.role], detail: `ids differ: ${shown}` };
 };
 
-/** I9: every task of every run within the bound. */
+type Measure = "maxLoop" | "framed" | "statementLoops" | "maxOps";
+
+/** I9's limits, in the order they are checked, with what each counts. */
+const limits: ReadonlyArray<readonly [Measure, number, string]> = [
+  ["maxLoop", maxOpsPerLoop, "operations in one run loop"],
+  ["framed", 0, "fibers first met the scheduler with frames"],
+  ["statementLoops", maxStatementLoops, "statement-fiber loops in a task"],
+  ["maxOps", maxOpsPerTask, "operations in one task"],
+];
+
+/** I9: every run within each limit, the per-run-loop bound first. */
 const tasksBounded = (runs: ReadonlyArray<RunResult>): Finding => {
-  const over = runs.find((run) => run.maxOps > maxOpsPerTask);
-  if (over === undefined) return undefined;
-  const detail = `a task ran ${over.maxOps} > ${maxOpsPerTask} operations`;
-  return { roles: [over.role], detail };
+  const breaches = limits.flatMap(([measure, limit, what]) =>
+    runs.filter((run) => run[measure] > limit).map((run) => ({
+      roles: [run.role],
+      detail: `${run[measure]} > ${limit} ${what}`,
+    }))
+  );
+  return breaches[0];
 };
 
 const checks: Readonly<Record<Property, typeof logsMatch>> = {

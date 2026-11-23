@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { Effect } from "effect";
+import { Effect, Fiber, Scheduler } from "effect";
 import { makeAdapter } from "../src/adapter/Runtime.ts";
 import { scriptedHost } from "./host.ts";
+import { mutants } from "./mutants.ts";
 import { counted, freshCount, perTask } from "./opcount.ts";
 
 const journal = {
@@ -60,4 +61,59 @@ test("counts the root's operations from the start of its first loop", () => {
   host.run(perTask(makeAdapter(counted(program, count), 0, host), count));
   assert.ok(seen.start > 0);
   assert.ok(count.max >= seen.start, `${count.max} < ${seen.start}`);
+});
+
+/** A loop of `steps` pure steps, each one Effect operation or more. */
+const pureLoop = (steps: number) => Effect.suspend(() => {
+  const done = { steps: 0 };
+  return Effect.whileLoop({
+    while: () => done.steps < steps,
+    body: () => Effect.sync(() => done.steps++),
+    step: () => {},
+  });
+});
+
+/** The count after running `program` under `make`. */
+const countOf = (
+  program: Effect.Effect<unknown>,
+  make: typeof makeAdapter = makeAdapter,
+) => {
+  const host = scriptedHost(journal, { seed: 1 });
+  const count = freshCount();
+  host.run(perTask(make(counted(program, count), 0, host), count));
+  return count;
+};
+
+// I9's main check: every run loop yields by 2,049 operations, B + 1,
+// because succeedWith returns at multiples of 32 (:765, :843).
+test("no run loop passes 2,049 operations; neverYields does", () => {
+  const adapter = countOf(pureLoop(5000));
+  const mutant = countOf(pureLoop(5000), mutants.neverYields.make);
+  assert.ok(adapter.maxLoop <= 2049 && adapter.maxLoop >= 2000,
+    `${adapter.maxLoop}`);
+  assert.ok(mutant.maxLoop > 2049, `${mutant.maxLoop}`);
+});
+
+/**
+ * A fiber forked under a scheduler of the program's own, which then
+ * meets the adapter's scheduler inside `provideService`, with frames on
+ * its stack: the registration condition the restriction rules out.
+ */
+const strayFork = Effect.withFiber((parent) => {
+  const adapterSide = parent.getRef(Scheduler.Scheduler);
+  const own = { ...adapterSide, shouldYield: () => false };
+  const body = Effect.flatMap(
+    Effect.provideService(pureLoop(3), Scheduler.Scheduler, adapterSide),
+    () => pureLoop(3),
+  );
+  return Effect.provideService(
+    Effect.flatMap(Effect.forkChild(body), Fiber.join),
+    Scheduler.Scheduler,
+    own,
+  );
+});
+
+test("a fiber meets the scheduler first with an empty stack", () => {
+  assert.equal(countOf(pureLoop(3)).framed, 0);
+  assert.equal(countOf(strayFork).framed, 1);
 });
