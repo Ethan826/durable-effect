@@ -923,3 +923,5 @@ Durable.Rev3Counter.rev3_spontaneous_meets
 Durable.Rev3Counter.rev3_spontaneous_diverges
 Durable.Rev3Counter.rev3_not_s9_without_violation
 Durable.Witnesses3.held_cancel_survives_release
+Durable.ArrivalRunFrom.arrival_iterate_rel
+Durable.ArrivalRunFrom.arrival_run_from_equivalent

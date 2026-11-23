@@ -56,6 +56,7 @@ Ltac arrival_swap_split :=
   repeat match goal with
   | |- context [match ?e with _ => _ end] =>
       lazymatch e with
+      | existsb _ _ => destruct e
       | context [match _ with _ => _ end] => fail
       | _ => destruct e
       end
