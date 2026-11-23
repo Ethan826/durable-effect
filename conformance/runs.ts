@@ -15,7 +15,12 @@ import { scriptedHost } from "./host.ts";
 import type { LogEntry, Pause, ScriptedHost } from "./host.ts";
 import { interpret } from "./interpret.ts";
 import { further } from "./further.ts";
-import { counted, freshCount, perTask } from "./opcount.ts";
+import {
+  checkedRegistration,
+  counted,
+  freshCount,
+  perTask,
+} from "./opcount.ts";
 import { beginTask, endTask } from "./runloops.ts";
 import { mutantNames, mutants } from "./mutants.ts";
 
@@ -44,8 +49,8 @@ export type Job = typeof Job.Type;
  * `Global` entries (report-only, #37 I2), and the log of the three
  * further tasks; `identities` lists each `register` question's fiber in
  * order. For I9: `maxOps` is the most operations any one task ran,
- * `maxLoop` the most in one run loop, `framed` the fibers that first met
- * the scheduler with frames on their stack (opcount.ts), and
+ * `maxLoop` the most in one run loop, `misregistered` the fibers registered
+ * after their first operation or with frames (opcount.ts), and
  * `statementLoops` the most statement-fiber run loops in one task
  * (runloops.ts). `log` is the whole visible log, one JSON string per
  * entry, when the job asked for it.
@@ -59,7 +64,7 @@ export const RunResult = Schema.Struct({
   identities: Schema.Array(Schema.Int),
   maxOps: Schema.Int,
   maxLoop: Schema.Int,
-  framed: Schema.Int,
+  misregistered: Schema.Int,
   statementLoops: Schema.Int,
   log: Schema.optionalKey(Schema.Array(Schema.String)),
 });
@@ -101,7 +106,7 @@ const identitiesIn = (log: ReadonlyArray<LogEntry>): FiberId[] =>
 /** I9's measures of one run. */
 type Measures = Pick<
   RunResult,
-  "maxOps" | "maxLoop" | "framed" | "statementLoops"
+  "maxOps" | "maxLoop" | "misregistered" | "statementLoops"
 >;
 
 /** The runtime, with the statement-loop oracle read after each task. */
@@ -145,11 +150,12 @@ const instrumented = (job: Job, shape: Program, host: ScriptedHost) => {
   const make = job.mutant === undefined ? makeAdapter
     : mutants[job.mutant].make;
   const adapter = loopsPerTask(perTask(
-    make(counted(interpret(shape), count), 0, host), count), most);
+    make(counted(interpret(shape), count), 0,
+      checkedRegistration(host, count)), count), most);
   const measures = (): Measures => ({
     maxOps: count.max,
     maxLoop: count.maxLoop,
-    framed: count.framed,
+    misregistered: count.misregistered,
     statementLoops: most.statementLoops,
   });
   return { adapter, measures };

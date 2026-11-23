@@ -85,12 +85,12 @@ const identitiesHold = (runs: ReadonlyArray<RunResult>): Finding => {
   return { roles: [first.role, other.role], detail: `ids differ: ${shown}` };
 };
 
-type Measure = "maxLoop" | "framed" | "statementLoops" | "maxOps";
+type Measure = "maxLoop" | "misregistered" | "statementLoops" | "maxOps";
 
 /** I9's limits, in the order they are checked, with what each counts. */
 const limits: ReadonlyArray<readonly [Measure, number, string]> = [
   ["maxLoop", maxOpsPerLoop, "operations in one run loop"],
-  ["framed", 0, "fibers first met the scheduler with frames"],
+  ["misregistered", 0, "fibers registered late or with frames"],
   ["statementLoops", maxStatementLoops, "statement-fiber loops in a task"],
   ["maxOps", maxOpsPerTask, "operations in one task"],
 ];

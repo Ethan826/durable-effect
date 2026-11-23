@@ -9,7 +9,7 @@ import { check, describe, properties } from "./properties.ts";
 import type { Violation } from "./properties.ts";
 import { pinnedCases, pinnedJournal } from "./pinned.ts";
 import { runCase } from "./runs.ts";
-import type { Job } from "./runs.ts";
+import type { Job, RunResult } from "./runs.ts";
 
 // Properties I1, I2, I7 and I9 of #37, by the dossier's conformance suite:
 // seeds 1 to 5, 1,000 programs each; each program in three fresh Node
@@ -19,7 +19,7 @@ import type { Job } from "./runs.ts";
 
 const oneRun = {
   seed: 1, index: 0, role: "fresh0", logHash: "a", furtherHash: "b",
-  identities: [0], maxOps: 1, maxLoop: 1, framed: 0, statementLoops: 1,
+  identities: [0], maxOps: 1, maxLoop: 1, misregistered: 0, statementLoops: 1,
 } as const;
 
 test("a crash or a missing run is never a property finding", () => {
@@ -27,10 +27,25 @@ test("a crash or a missing run is never a property finding", () => {
   const missing = { results: [oneRun], failures: [] };
   assert.equal(check("I1", crash)?.cause, "run");
   assert.equal(check("I1", missing)?.cause, "run");
-  assert.equal(check("I9", { ...missing, results: [
-    { ...oneRun, maxLoop: 2050 }, { ...oneRun, role: "fresh1" },
+});
+
+/** I9's finding when the fresh0 run carries `breach`; the rest are clean. */
+const i9With = (breach: Partial<RunResult>) => check("I9", {
+  failures: [],
+  results: [
+    { ...oneRun, ...breach }, { ...oneRun, role: "fresh1" },
     { ...oneRun, role: "fresh2" }, { ...oneRun, role: "after" },
-  ] })?.cause, "property");
+  ],
+});
+
+test("each of I9's limits is a property finding when passed", () => {
+  const breaches: ReadonlyArray<Partial<RunResult>> = [
+    { maxLoop: 2050 }, { misregistered: 1 }, { statementLoops: 25 },
+    { maxOps: 3_790_849 },
+  ];
+  assert.deepEqual(breaches.map((breach) => i9With(breach)?.cause),
+    ["property", "property", "property", "property"]);
+  assert.equal(i9With({}), undefined);
 });
 
 test("the scan minimum rejects an empty outcome", () => {

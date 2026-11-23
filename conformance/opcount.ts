@@ -1,6 +1,6 @@
-import { Effect, Scheduler } from "effect";
+import { Effect, Fiber, Scheduler } from "effect";
 import type { Durable } from "../src/adapter/Durable.ts";
-import type { AdapterRuntime } from "../src/adapter/Interface.ts";
+import type { AdapterRuntime, Host } from "../src/adapter/Interface.ts";
 import type { AnyFiber } from "../src/adapter/State.ts";
 
 /**
@@ -9,14 +9,15 @@ import type { AnyFiber } from "../src/adapter/State.ts";
  * alone when the loop ends (internal/effect.ts:685, :693, :765). So a
  * loop's final count is exact, inline steps after its last scheduler check
  * included. `current` is this task's sum, `max` the most in any task and
- * `maxLoop` the most in any one run loop. `framed` counts fibers that
- * first met the scheduler with frames on their stack.
+ * `maxLoop` the most in any one run loop. `misregistered` counts fibers the
+ * adapter registered after their first operation or with frames on their
+ * stack.
  */
 export interface OpCount {
   current: number;
   max: number;
   maxLoop: number;
-  framed: number;
+  misregistered: number;
   /** Fibers whose `runLoop` the counter wraps. */
   readonly wrapped: WeakSet<AnyFiber>;
   /** Fibers in a loop that began before the counter wrapped them. */
@@ -67,16 +68,34 @@ const framesOf = (fiber: AnyFiber): number => {
 
 /**
  * The first time a fiber is seen: its current loop began before the
- * counter could wrap it, so the loop counts whole when it ends. The
- * adapter registers a fiber at this same call; with frames on the stack a
- * registration interrupt leaves `yielding` set for the rest of the loop
- * (:698-723), so the scheduler could no longer stop it.
+ * counter could wrap it, so the loop counts whole when it ends.
  */
 const observe = (count: OpCount, fiber: AnyFiber) => {
-  if (count.wrapped.has(fiber)) return;
-  if (framesOf(fiber) > 0) count.framed += 1;
-  admit(count, fiber);
+  if (!count.wrapped.has(fiber)) admit(count, fiber);
 };
+
+/**
+ * Whether a fiber registers as I9's restriction requires: in its first
+ * operation, where Effect has reset `currentOpCount` (:528, :685) and
+ * counted one (:693), with nothing on its stack. Registered later, with
+ * frames, a registration interrupt leaves `yielding` set for the rest of
+ * the loop (:698-723), so the scheduler could no longer stop it.
+ */
+const registersCleanly = (fiber: AnyFiber | undefined) =>
+  fiber !== undefined && fiber.currentOpCount === 1 && framesOf(fiber) === 0;
+
+/**
+ * The host, with each registration checked against I9's restriction. The
+ * adapter registers a fiber from inside that fiber's run loop, so the
+ * fiber registering is the current one. The root goes through it too.
+ */
+export const checkedRegistration = (host: Host, count: OpCount): Host => ({
+  ...host,
+  register: (fiber) => {
+    if (!registersCleanly(Fiber.getCurrent())) count.misregistered += 1;
+    return host.register(fiber);
+  },
+});
 
 const counting = (inner: Scheduler.Scheduler, count: OpCount) => ({
   executionMode: inner.executionMode,
@@ -120,7 +139,7 @@ export const freshCount = (): OpCount => ({
   current: 0,
   max: 0,
   maxLoop: 0,
-  framed: 0,
+  misregistered: 0,
   wrapped: new WeakSet(),
   early: new Set(),
 });
