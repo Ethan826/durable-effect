@@ -46,7 +46,7 @@ Theorem step_held_cancel_counterexample :
      ACommand 2%nat (KOp (ORun 2 2)) (Some (1%nat, 6%nat))].
 Proof. vm_compute. repeat split; reflexivity. Qed.
 
-Theorem step_held_cancel_delivered_refuted : ~ HeldCancelDelivered.
+Theorem step_held_cancel_delivered_refuted : ~ HeldCancelDeliveredFirstForm.
 Proof.
   intros H.
   destruct (H reuse_runtime tt reuse_inputs reuse_schedule 2%nat 2%nat) as [[f [tok Hin]] | Hno];
