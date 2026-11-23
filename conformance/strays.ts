@@ -29,21 +29,32 @@ const notLive = (fiber: FiberId, before: ReadonlyArray<LogEntry>) =>
     event._tag === "FiberExited" && event.fiber === fiber
   );
 
-/** Whether no fiber awaits this token now: never started, or ended. */
+/** Whether the entry is the start of this fiber's await of this token. */
+const startOf = (fiber: number, tok: number) => (entry: LogEntry) =>
+  entry._tag === "Emitted" && entry.event._tag === "Start" &&
+  entry.event.token === tok && entry.event.fiber === fiber;
+
+/** Whether the entry delivers this token to this fiber. */
+const deliveryTo = (fiber: number, tok: number) => (entry: LogEntry) =>
+  entry._tag === "Sent" && "token" in entry.task &&
+  entry.task.token === tok && entry.task.fiber === fiber;
+
+/**
+ * Whether no fiber awaits this token now: never started, or ended. Only a
+ * delivery to the awaiting fiber after the start ends the await; the
+ * adapter ignores any other (Durable.ts `deliver`).
+ */
 const notAwaited = (
   fiber: number,
   tok: number,
   before: ReadonlyArray<LogEntry>,
 ) => {
-  const started = starts(before).some((start) =>
-    start.token === tok && start.fiber === fiber
-  );
-  const answered = before.some((entry) => entry._tag === "Sent" &&
-    "token" in entry.task && entry.task.token === tok);
-  const released = eventsIn(before).some((event) =>
+  const from = before.findIndex(startOf(fiber, tok));
+  const since = before.slice(from);
+  const released = eventsIn(since).some((event) =>
     event._tag === "Release" && event.token === tok
   );
-  return !started || answered || released;
+  return from < 0 || since.some(deliveryTo(fiber, tok)) || released;
 };
 
 /** Which kind of task the executor never sends this is, if any. */
