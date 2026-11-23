@@ -1,6 +1,6 @@
 (** * Step domain: an invariant of every state the executor reaches.
 
-    [Inv] says what holds of [violated], the trace, [sub], [held] and [queue] in every state
+    [Inv] says what holds of [violated], the trace, [sub], [waiter] and [queue] in every state
     reached from an attempt's start, for any runtime. [IInv] is the weaker form that holds
     between the events of one task, while the queue may be anything. Each operation of the
     executor gets a preservation lemma, and [step_inv_reachable] closes the induction. *)
@@ -21,6 +21,9 @@ Definition active (s : option Sub) : bool :=
 Definition released_sample (s : option Sub) : bool :=
   match s with Some (SSample _ (FReleased _ _ _)) => true | _ => false end.
 
+Definition is_init (s : option Sub) : bool :=
+  match s with Some (SSample _ FInitial) => true | _ => false end.
+
 (** An action that is neither a violation nor an exit. *)
 Definition plain_action (a : Action) : bool :=
   match a with AViolation _ | AExit _ => false | _ => true end.
@@ -32,12 +35,18 @@ Record Inv (x : XState) : Prop := {
   inv_exit_defect : forall w v, In (AExit w) (trace x) -> In (AViolation v) (trace x) ->
                     w = VDefect;
   inv_cmd : forall sb, sub x = Some sb -> S (sub_cmd sb) = next_cmd x;
-  inv_held : held x = true -> sub x = None \/ exists c, sub x = Some (SSample c FInitial);
+  inv_waiter : (waiter x <> None -> slot_held x = true \/ (sub x = None /\ queue x = [])) /\
+               (is_init (sub x) = true -> queue x = [] /\ waiter x = None);
   inv_active : active (sub x) = true -> queue x = [];
   inv_released : released_sample (sub x) = false
 }.
 
-Definition IInv (x : XState) : Prop := Inv x /\ active (sub x) = false.
+(** Between the events of a task: no awaited or initial sample is subscribed, and a waiter
+    waits for a held slot. *)
+Definition settled (x : XState) : Prop :=
+  active (sub x) = false /\ is_init (sub x) = false /\ (waiter x <> None -> slot_held x = true).
+
+Definition IInv (x : XState) : Prop := Inv x /\ settled x.
 
 (** ** Field lemmas *)
 
@@ -49,10 +58,19 @@ Ltac fields := cbn [phase queue sub awaiter waiter held logical next_cmd cursor 
 (** An operation that leaves every field [Inv] reads unchanged keeps it. *)
 Lemma step_inv_same : forall x y,
   violated y = violated x -> trace y = trace x -> phase y = phase x -> sub y = sub x ->
-  next_cmd y = next_cmd x -> held y = held x -> queue y = queue x -> Inv x -> Inv y.
+  next_cmd y = next_cmd x -> waiter y = waiter x -> queue y = queue x -> Inv x -> Inv y.
 Proof.
-  intros x y Hv Ht Hp Hs Hn Hh Hq [A B C D E F G J]; constructor;
-    rewrite ?Hv, ?Ht, ?Hp, ?Hs, ?Hn, ?Hh, ?Hq; auto.
+  intros x y Hv Ht Hp Hs Hn Hw Hq [A B C D E F G J].
+  assert (Hsl : slot_held y = slot_held x) by (unfold slot_held; rewrite Hs; reflexivity).
+  constructor; rewrite ?Hv, ?Ht, ?Hp, ?Hs, ?Hn, ?Hw, ?Hq, ?Hsl; auto.
+Qed.
+
+Lemma step_settled_same : forall x y, sub y = sub x -> waiter y = waiter x ->
+  settled x -> settled y.
+Proof.
+  intros x y Hs Hw [A [B C]].
+  assert (Hsl : slot_held y = slot_held x) by (unfold slot_held; rewrite Hs; reflexivity).
+  unfold settled; rewrite Hs, Hw, Hsl; auto.
 Qed.
 
 Lemma step_inv_set_progress : forall x v, Inv x -> Inv (set_progress x v).
@@ -69,8 +87,21 @@ Lemma step_inv_set_draws : forall x v, Inv x -> Inv (set_draws x v).
 Proof. intros x v H; apply (step_inv_same x); auto. Qed.
 Lemma step_inv_set_awaiter : forall x v, Inv x -> Inv (set_awaiter x v).
 Proof. intros x v H; apply (step_inv_same x); auto. Qed.
-Lemma step_inv_set_waiter : forall x v, Inv x -> Inv (set_waiter x v).
+Lemma step_inv_set_held : forall x v, Inv x -> Inv (set_held x v).
 Proof. intros x v H; apply (step_inv_same x); auto. Qed.
+
+Lemma step_inv_set_waiter_none : forall x, Inv x -> Inv (set_waiter x None).
+Proof.
+  intros x [A B C D E [F1 F2] G J]; constructor; fields; auto.
+  split; [congruence | intros H; destruct (F2 H); auto].
+Qed.
+
+Lemma step_inv_set_waiter_slot : forall x w, slot_held x = true -> is_init (sub x) = false ->
+  Inv x -> Inv (set_waiter x (Some w)).
+Proof.
+  intros x w Hs Hi [A B C D E [F1 F2] G J]; constructor; fields; auto.
+  split; [intros _; left; exact Hs | intros H; congruence].
+Qed.
 Lemma step_inv_set_root_exit : forall x v, Inv x -> Inv (set_root_exit x v).
 Proof. intros x v H; apply (step_inv_same x); auto. Qed.
 Lemma step_inv_set_logical : forall x v, Inv x -> Inv (set_logical x v).
@@ -91,24 +122,24 @@ Proof.
     destruct H2 as [H2 | H2]; [| subst; discriminate]. eauto.
 Qed.
 
-Lemma step_inv_set_queue : forall x q, active (sub x) = false -> Inv x -> Inv (set_queue x q).
+Lemma step_inv_set_queue : forall x q, settled x -> Inv x -> Inv (set_queue x q).
 Proof.
-  intros x q Ha [A B C D E F G J]; constructor; fields; auto.
-  intros H; rewrite H in Ha; discriminate.
+  intros x q [Ha [Hi Hw]] [A B C D E F G J]; constructor; fields; auto.
+  - split; [intros H; left; auto | intros H; congruence].
+  - intros H; rewrite H in Ha; discriminate.
 Qed.
 
-Lemma step_inv_enqueue : forall x t, active (sub x) = false -> Inv x -> Inv (enqueue x t).
+Lemma step_inv_enqueue : forall x t, settled x -> Inv x -> Inv (enqueue x t).
 Proof. intros; apply step_inv_set_queue; auto. Qed.
 
-Lemma step_inv_set_sub_none : forall x, Inv x -> Inv (set_sub x None).
+Lemma step_inv_set_sub_none : forall x, queue x = [] -> Inv x -> Inv (set_sub x None).
 Proof.
-  intros x [A B C D E F G J]; constructor; fields; auto; discriminate.
+  intros x Q [A B C D E F G J]; constructor; fields; auto; try discriminate.
+  split; [intros _; right; auto | discriminate].
 Qed.
 
 Lemma step_inv_set_held_false : forall x, Inv x -> Inv (set_held x false).
-Proof.
-  intros x [A B C D E F G J]; constructor; fields; auto; discriminate.
-Qed.
+Proof. intros; apply step_inv_set_held; auto. Qed.
 
 (** ** Closing, violations and the exit *)
 
@@ -136,7 +167,8 @@ Proof.
   intros x c HI; pose proof HI as [A B C D E F G J].
   unfold close; destruct (phase x) eqn:P.
   - constructor; fields; rewrite ?P; auto; try discriminate.
-    intros w H; specialize (C w H); congruence.
+    + intros w H; specialize (C w H); congruence.
+    + split; intros H; [congruence | discriminate].
   - destruct cut as [k |]; [exact HI |].
     destruct c; [| exact HI].
     constructor; fields; rewrite ?P; auto; try discriminate.
@@ -153,7 +185,8 @@ Proof.
     try (intros w H; apply step_in_snoc in H; destruct H as [H | H];
          [specialize (C w H); congruence | discriminate]);
     try (intros w u H; apply step_in_snoc in H; destruct H as [H | H];
-         [specialize (C w H); congruence | discriminate]).
+         [specialize (C w H); congruence | discriminate]);
+    split; intros H; [congruence | discriminate].
 Qed.
 
 Lemma step_violate_phase : forall x v, phase x <> POpen -> phase (violate x v) <> POpen.
@@ -197,13 +230,13 @@ Qed.
 (** ** Issuing *)
 
 Lemma step_inv_issue : forall I x k o s, Inv x -> phase x = POpen ->
-  sub_cmd (s (next_cmd x)) = next_cmd x ->
-  (held x = true -> exists c, s (next_cmd x) = SSample c FInitial) ->
-  (active (Some (s (next_cmd x))) = true -> queue x = []) ->
+  sub_cmd (s (next_cmd x)) = next_cmd x -> waiter x = None ->
+  (active (Some (s (next_cmd x))) = true \/ is_init (Some (s (next_cmd x))) = true ->
+   queue x = []) ->
   released_sample (Some (s (next_cmd x))) = false ->
   Inv (issue I x k o s).
 Proof.
-  intros I x k o s HI P Hc Hh Ha Hr.
+  intros I x k o s HI P Hc Hw Ha Hr.
   assert (Hgo : Inv (set_sub (set_next_cmd (emit x (ACommand (next_cmd x) k o))
                      (S (next_cmd x))) (Some (s (next_cmd x))))).
   { destruct HI as [A B C D E F G J]; constructor; fields; auto.
@@ -212,8 +245,7 @@ Proof.
     - intros w v H1 H2; apply step_in_snoc in H1; apply step_in_snoc in H2.
       destruct H1 as [H1 | H1]; [| discriminate].
       destruct H2 as [H2 | H2]; [| discriminate]. eauto.
-    - intros sb H; inversion H; subst; rewrite Hc; reflexivity.
-    - intros H; destruct (Hh H) as [c Hs]; right; exists c; rewrite Hs; reflexivity. }
+    - intros sb H; inversion H; subst; rewrite Hc; reflexivity. }
   unfold issue; cbv zeta; destruct (nth_error (persisted I) (next_cmd x)); [| exact Hgo].
   destruct (cmd_eqb k c); [exact Hgo |].
   apply step_inv_finish; auto.
@@ -228,24 +260,22 @@ Proof.
     fields; auto; discriminate.
 Qed.
 
-Lemma step_inv_issue_sample : forall I x a, Inv x -> phase x = POpen ->
-  (held x = true -> a = FInitial) ->
-  (active (Some (SSample 0 a)) = true -> queue x = []) ->
+Lemma step_inv_issue_sample : forall I x a, Inv x -> phase x = POpen -> waiter x = None ->
+  (active (Some (SSample 0 a)) = true \/ is_init (Some (SSample 0 a)) = true -> queue x = []) ->
   released_sample (Some (SSample 0 a)) = false ->
   Inv (issue_sample I x a).
 Proof.
-  intros I x a HI P Hh Ha Hr; unfold issue_sample; apply step_inv_issue; auto;
-    try (intros H; exists (next_cmd x); rewrite (Hh H); reflexivity);
+  intros I x a HI P Hw Ha Hr; unfold issue_sample; apply step_inv_issue; auto;
     destruct a; auto.
 Qed.
 
-Lemma step_inv_issue_op : forall I x f tok op, Inv x -> phase x = POpen -> held x = false ->
+Lemma step_inv_issue_op : forall I x f tok op, Inv x -> phase x = POpen -> waiter x = None ->
   Inv (issue_op I x f tok op).
 Proof.
-  intros I x f tok op HI P Hh; unfold issue_op; destruct op as [k a | d].
-  - apply step_inv_issue; auto; intros H; first [congruence | discriminate].
+  intros I x f tok op HI P Hw; unfold issue_op; destruct op as [k a | d].
+  - apply step_inv_issue; auto; intros [H | H]; discriminate.
   - destruct (match d with Millis m => split m | Forever => (max_chunk, Endless) end).
-    apply step_inv_issue; auto; intros H; first [congruence | discriminate].
+    apply step_inv_issue; auto; intros [H | H]; discriminate.
 Qed.
 
 Lemma step_issue_op_active : forall I x f tok op, active (sub x) = false ->
@@ -268,6 +298,28 @@ Proof.
   intros x v H; unfold violate; destruct (violated x); auto; apply step_close_active; auto.
 Qed.
 
+Lemma step_close_settled : forall x c, settled x -> settled (close x c).
+Proof.
+  intros x c H; unfold close; destruct (phase x) as [| [k |] |]; try destruct c; auto.
+  all: unfold settled, slot_held; fields; repeat split; try reflexivity; intros N; congruence.
+Qed.
+
+Lemma step_violate_settled : forall x v, settled x -> settled (violate x v).
+Proof.
+  intros x v H; unfold violate; destruct (violated x); auto; apply step_close_settled; auto.
+Qed.
+
+Lemma step_issue_op_settled : forall I x f tok op, waiter x = None -> settled x ->
+  settled (issue_op I x f tok op).
+Proof.
+  intros I x f tok op Hw H; unfold issue_op, issue; destruct op as [k a | d];
+    [| destruct (match d with Millis m => split m | Forever => (max_chunk, Endless) end)];
+    cbv zeta; destruct (nth_error (persisted I) (next_cmd x));
+    try (match goal with |- context [cmd_eqb ?a ?b] => destruct (cmd_eqb a b) end);
+    unfold settled, slot_held in *; fields; rewrite ?Hw; auto;
+    repeat split; try reflexivity; intros N; congruence.
+Qed.
+
 (** ** Inside a task *)
 
 Lemma step_iinv_emit : forall x a, plain_action a = true -> IInv x -> IInv (emit x a).
@@ -278,11 +330,11 @@ Proof. intros x t [H1 H2]; split; [apply step_inv_enqueue |]; auto. Qed.
 
 Lemma step_iinv_violate : forall x v, phase x <> PDone -> IInv x -> IInv (violate x v).
 Proof.
-  intros x v P [H1 H2]; split; [apply step_inv_violate | apply step_violate_active]; auto.
+  intros x v P [H1 H2]; split; [apply step_inv_violate | apply step_violate_settled]; auto.
 Qed.
 
 Lemma step_iinv_close : forall x c, IInv x -> IInv (close x c).
-Proof. intros x c [H1 H2]; split; [apply step_inv_close | apply step_close_active]; auto. Qed.
+Proof. intros x c [H1 H2]; split; [apply step_inv_close | apply step_close_settled]; auto. Qed.
 
 Lemma step_on_start_iinv : forall I x f tok op, IInv x -> IInv (on_start I x f tok op).
 Proof.
@@ -296,10 +348,16 @@ Proof.
       destruct (held (emit x (AStart f tok op))) eqn:H.
       * split; [apply step_inv_enqueue; [| apply step_inv_set_held_false,
           step_inv_set_awaiter]|]; fields; auto.
-      * destruct (slot_held _).
-        -- split; [apply step_inv_set_waiter, step_inv_set_awaiter |]; fields; auto.
-        -- split; [apply step_inv_issue_op; [apply step_inv_set_awaiter | |] |
-                   apply step_issue_op_active]; fields; auto.
+      * destruct (slot_held _) eqn:Hsl.
+        -- split; [apply step_inv_set_waiter_slot; [| | apply step_inv_set_awaiter] |];
+             fields; auto; try apply HE2.
+           unfold settled in *; fields; repeat split; try apply HE2; auto.
+        -- assert (Hw : waiter (set_awaiter (emit x (AStart f tok op)) (Some (f, tok))) = None).
+           { fields; destruct (waiter x) eqn:W; auto.
+             destruct HE2 as [_ [_ HW]]; fields; rewrite W in HW.
+             unfold slot_held in Hsl, HW; fields; rewrite HW in Hsl; [discriminate | congruence]. }
+           split; [apply step_inv_issue_op; [apply step_inv_set_awaiter | |] |
+                   apply step_issue_op_settled]; fields; auto.
   - apply step_iinv_enqueue, step_iinv_emit; auto.
   - exact HI.
 Qed.
@@ -314,33 +372,94 @@ Proof.
   - discriminate.
 Qed.
 
+(** [on_release] in two parts: the queue filter, which may hold the cancellation again, and
+    the rest. *)
+Definition dropped_cancel (x : XState) (f : FiberId) (tok : Token) : bool :=
+  existsb (fun t => match t with
+                    | DeliverCancel f' tok' => Nat.eqb f f' && Nat.eqb tok tok'
+                    | _ => false end) (queue x).
+
+Definition release_pre (x : XState) (f : FiberId) (tok : Token) : XState :=
+  match phase x with
+  | POpen =>
+      let x1 := set_queue x (filter (fun t => negb (for_token f tok t)) (queue x)) in
+      if dropped_cancel x f tok then set_held x1 true else x1
+  | _ => x
+  end.
+
+Definition release_rest (x : XState) (f : FiberId) (tok : Token) : XState :=
+  match phase x, awaiter x with
+  | POpen, Some a =>
+      if negb (pair_eqb a (f, tok)) then x
+      else
+        let x1 := set_awaiter x None in
+        match waiter x with
+        | Some _ => set_waiter x1 None
+        | None =>
+            match sub x with
+            | Some s => match release_sub s with
+                        | Some (f', tok', s') =>
+                            if pair_eqb (f', tok') (f, tok) then set_sub x1 (Some s') else x1
+                        | None => x1
+                        end
+            | None => x1
+            end
+        end
+  | _, _ => x
+  end.
+
+Lemma step_on_release_split : forall x f tok,
+  on_release x f tok = release_rest (release_pre x f tok) f tok.
+Proof. reflexivity. Qed.
+
+Lemma step_release_pre_fields : forall x f tok,
+  phase (release_pre x f tok) = phase x /\ sub (release_pre x f tok) = sub x /\
+  awaiter (release_pre x f tok) = awaiter x /\ waiter (release_pre x f tok) = waiter x /\
+  trace (release_pre x f tok) = trace x /\ cursor (release_pre x f tok) = cursor x /\
+  (forall t, In t (queue (release_pre x f tok)) -> In t (queue x)) /\
+  (phase x <> POpen -> release_pre x f tok = x).
+Proof.
+  intros x f tok; unfold release_pre; destruct (phase x) eqn:P.
+  - cbv zeta; destruct (dropped_cancel x f tok); fields; rewrite ?P;
+      repeat split; auto; try congruence;
+      intros t Ht; apply filter_In in Ht; tauto.
+  - repeat split; auto.
+  - repeat split; auto.
+Qed.
+
+Lemma step_release_pre_iinv : forall x f tok, IInv x -> IInv (release_pre x f tok).
+Proof.
+  intros x f tok [H1 H2]; unfold release_pre; destruct (phase x); try (split; auto; fail).
+  cbv zeta; destruct (dropped_cancel x f tok); split;
+    try apply step_inv_set_held; try apply step_inv_set_queue; auto.
+Qed.
+
 Lemma step_on_release_iinv : forall x f tok, IInv x -> IInv (on_release x f tok).
 Proof.
-  intros x f tok HI; unfold on_release; cbv zeta.
-  set (y := match phase x with
-            | POpen => set_queue x (filter (fun t => negb (for_token f tok t)) (queue x))
-            | _ => x end).
-  assert (HY : IInv y /\ sub y = sub x /\ held y = held x /\ phase y = phase x).
-  { unfold y; destruct HI as [H1 H2]; destruct (phase x) eqn:E;
-      refine (conj (conj _ _) (conj _ (conj _ _))); auto;
-      apply step_inv_set_queue; auto. }
-  clearbody y; destruct HY as [[HY1 HY2] [Hs [Hh Hp]]].
-  destruct (phase y); [| exact (conj HY1 HY2) | exact (conj HY1 HY2)].
-  destruct (awaiter y); [| exact (conj HY1 HY2)].
-  destruct (negb _); [exact (conj HY1 HY2) |].
+  intros x f tok HI; rewrite step_on_release_split.
+  pose proof (step_release_pre_iinv x f tok HI) as HY.
+  generalize dependent (release_pre x f tok); intros y HY; clear HI.
+  unfold release_rest.
+  destruct (phase y); try exact HY.
+  destruct (awaiter y); [| exact HY].
+  destruct (negb _); [exact HY |].
+  destruct HY as [HY1 HY2].
   assert (HA : IInv (set_awaiter y None)).
   { split; [apply step_inv_set_awaiter |]; fields; auto. }
-  destruct (waiter y).
-  - destruct HA as [HA1 HA2]; split; [apply step_inv_set_waiter |]; fields; auto.
+  cbv zeta; destruct (waiter y) eqn:W.
+  - split; [apply step_inv_set_waiter_none, step_inv_set_awaiter; auto |].
+    unfold settled in *; fields; destruct HY2 as [? [? ?]]; repeat split; auto; congruence.
   - destruct (sub y) as [s |] eqn:Hsub; [| exact HA].
     destruct (release_sub s) as [[[f' tok'] s'] |] eqn:R; [| exact HA].
     destruct (pair_eqb _ _); [| exact HA].
-    destruct (step_release_sub_cases s f' tok' s' R HY2) as (c & f0 & tok0 & op & k & rest
+    destruct HY2 as [Ha [Hi Hw]]; rewrite Hsub in Ha.
+    destruct (step_release_sub_cases s f' tok' s' R Ha) as (c & f0 & tok0 & op & k & rest
       & -> & ->).
     pose proof HY1 as [A B C D E F G J].
     split; [constructor | ]; fields; auto; try discriminate.
     + intros sb Hsb; inversion Hsb; subst. apply (E _ Hsub).
-    + intros Hh'; destruct (F Hh') as [Hn | [c' Hc']]; congruence.
+    + rewrite W; split; intros N; [congruence | discriminate].
+    + unfold settled, slot_held; fields; rewrite W; repeat split; auto; congruence.
 Qed.
 
 Lemma step_on_event_iinv : forall I x e, IInv x -> IInv (on_event I x e).
@@ -397,8 +516,13 @@ Proof.
   intros x t rest HI Q.
   assert (HA : active (sub x) = false).
   { destruct (active (sub x)) eqn:E; auto. rewrite (inv_active _ HI E) in Q; discriminate. }
+  assert (HS : settled x).
+  { destruct (inv_waiter _ HI) as [W1 W2]; split; [exact HA | split].
+    - destruct (is_init (sub x)) eqn:E; auto; destruct (W2 eq_refl); congruence.
+    - intros W; destruct (W1 W) as [H | [_ H]]; [exact H | congruence]. }
   assert (H0 : IInv (set_progress (set_queue x rest) (S (progress x)))).
-  { split; [apply step_inv_set_progress, step_inv_set_queue |]; auto. }
+  { split; [apply step_inv_set_progress, step_inv_set_queue; auto |].
+    apply (step_settled_same x); auto. }
   unfold head_state; cbv zeta.
   assert (H1 : IInv (match task_action t with Some a => emit (set_progress (set_queue x rest)
             (S (progress x))) a | None => set_progress (set_queue x rest) (S (progress x)) end)).
@@ -426,30 +550,47 @@ Proof.
   right; do 2 eexists; split; [| reflexivity]; reflexivity.
 Qed.
 
-Lemma step_inv_after_sample : forall I y after, Inv y -> phase y = POpen -> sub y = None ->
-  (forall f tok k rest, after = FLink f tok k rest -> held y = false) ->
-  Inv (after_sample I y after).
+(** The waiter is [None] when the subscription neither holds the slot nor is empty, or is
+    the initial sample. *)
+Lemma step_waiter_free : forall x, Inv x -> slot_held x = false -> sub x <> None ->
+  waiter x = None.
 Proof.
-  intros I y after HI P S0 Hl; destruct after as [| f tok o | f tok k rest | f tok | f tok k];
-    cbn; try (apply step_inv_enqueue; [rewrite S0; reflexivity | exact HI]); auto.
+  intros x HI Hs Hn; destruct (waiter x) eqn:W; auto.
+  destruct (proj1 (inv_waiter _ HI) ltac:(congruence)) as [H | [H _]]; congruence.
+Qed.
+
+Lemma step_waiter_init : forall x c, Inv x -> sub x = Some (SSample c FInitial) ->
+  waiter x = None.
+Proof.
+  intros x c HI S0; apply (proj2 (inv_waiter _ HI)); rewrite S0; reflexivity.
+Qed.
+
+Lemma step_inv_after_sample : forall I y after, Inv y -> phase y = POpen -> sub y = None ->
+  waiter y = None -> Inv (after_sample I y after).
+Proof.
+  intros I y after HI P S0 Hw.
+  assert (HS : settled y) by (unfold settled; rewrite S0, Hw; repeat split; congruence).
+  destruct after as [| f tok o | f tok k rest | f tok | f tok k];
+    cbn; try (apply step_inv_enqueue; [exact HS | exact HI]); auto.
   destruct (link_of rest) as [[chunk rest'] |].
   - apply step_inv_issue; auto; try discriminate.
-    intros H; rewrite (Hl f tok k rest eq_refl) in H; discriminate.
-  - apply step_inv_enqueue; [rewrite S0; reflexivity | exact HI].
+    intros [H | H]; discriminate.
+  - apply step_inv_enqueue; [exact HS | exact HI].
 Qed.
 
 Lemma step_inv_notify_sample : forall I x c v after, Inv x -> phase x = POpen ->
-  violated x = false -> (forall f tok k rest, after = FLink f tok k rest -> held x = false) ->
+  violated x = false -> queue x = [] -> waiter x = None ->
   Inv (let x1 := apply_sample x c v after in
        match phase x1 with POpen => after_sample I x1 after | _ => x1 end).
 Proof.
-  intros I x c v after HI P Hv Hl; cbv zeta.
+  intros I x c v after HI P Hv Q Hw; cbv zeta.
   destruct (step_apply_sample_cases x c v after) as [E | (a & l & Ha & E)]; rewrite E.
   - destruct (step_violate_open x Overflow P Hv) as [Hp _]; rewrite Hp.
     apply step_inv_violate; [congruence | exact HI].
   - cbn [phase set_sub set_logical emit mk]; rewrite P.
     apply step_inv_after_sample; fields; auto.
-    apply step_inv_set_sub_none, step_inv_set_logical, step_inv_emit; auto.
+    apply step_inv_set_sub_none; [fields; auto |].
+    apply step_inv_set_logical, step_inv_emit; auto.
 Qed.
 
 Lemma step_inv_on_notify : forall I x s r, Inv x -> phase x = POpen -> queue x = [] ->
@@ -458,22 +599,19 @@ Proof.
   intros I x s r HI P Q S0.
   assert (Hv : violated x = false).
   { destruct (violated x) eqn:V; auto; exfalso; exact (inv_viol _ HI V P). }
-  assert (Hh : forall c a, s = SSample c a -> active (Some s) = true -> held x = false).
-  { intros c a -> A; destruct (held x) eqn:H; auto.
-    destruct (inv_held _ HI H) as [E | [c' E]]; rewrite S0 in E; inversion E; subst;
-      discriminate. }
   destruct s as [c f tok op k rest | c after | c]; unfold on_notify.
-  - assert (Hf : held x = false).
-    { destruct (held x) eqn:H; auto.
-      destruct (inv_held _ HI H) as [E | [c' E]]; rewrite S0 in E; discriminate. }
+  - assert (Hw : waiter x = None)
+      by (apply step_waiter_free; auto; [unfold slot_held; rewrite S0 |]; congruence).
     destruct op as [kk aa | d], r as [o | v |]; try exact HI;
-      apply step_inv_issue_sample; auto; congruence.
+      apply step_inv_issue_sample; auto; try discriminate; auto.
   - destruct r as [o | v |].
     + destruct after; try exact HI. apply step_inv_set_sub_none; auto.
     + destruct after as [| f tok o | f tok kk rest | f tok | f tok kk];
         try (apply step_inv_set_sub_none; auto; fail);
-        apply step_inv_notify_sample; auto; intros f' tok' k' rest' Heq; try discriminate;
-        apply (Hh c (FLink f tok kk rest)); auto.
+        apply step_inv_notify_sample; auto;
+        [apply (step_waiter_init x c) |
+         apply step_waiter_free; auto; [unfold slot_held; rewrite S0 |]; congruence ..];
+        auto.
     + destruct after; try (apply step_inv_set_sub_none; auto);
         apply step_inv_violate; auto; congruence.
   - apply step_inv_set_sub_none; auto.
@@ -483,21 +621,19 @@ Lemma step_inv_on_cancel : forall I x s, Inv x -> phase x = POpen -> queue x = [
   sub x = Some s -> Inv (on_cancel I x s).
 Proof.
   intros I x s HI P Q S0.
-  assert (Hh : (forall c, s <> SSample c FInitial) -> held x = false).
-  { intros N; destruct (held x) eqn:H; auto.
-    destruct (inv_held _ HI H) as [E | [c' E]]; rewrite S0 in E; inversion E; subst.
-    exfalso; apply (N c'); reflexivity. }
+  assert (Hw : slot_held x = false -> waiter x = None)
+    by (intros H; apply step_waiter_free; auto; congruence).
   destruct s as [c f tok op k rest | c after | c]; cbn.
-  - apply step_inv_issue_sample; auto; intros H; rewrite Hh in H; congruence.
+  - apply step_inv_issue_sample; auto; try (apply Hw; unfold slot_held; rewrite S0; auto).
   - destruct after as [| f tok o | f tok kk rest | f tok | f tok kk].
     + apply step_inv_issue_sample; fields; auto.
-      pose proof HI as [A B C D E F G J]; constructor; fields; auto.
-      intros _; right; exists c; exact S0.
-    + apply step_inv_issue_sample; auto; intros H; rewrite Hh in H; congruence.
-    + apply step_inv_issue_sample; auto; intros H; rewrite Hh in H; congruence.
-    + apply step_inv_issue_sample; auto; intros H; rewrite Hh in H; congruence.
-    + pose proof HI as [A B C D E F G J]; constructor; fields; auto; try discriminate.
-  - pose proof HI as [A B C D E F G J]; constructor; fields; auto; try discriminate.
+      * apply step_inv_set_held; auto.
+      * apply (step_waiter_init x c); auto.
+    + apply step_inv_issue_sample; auto; try (apply Hw; unfold slot_held; rewrite S0; auto).
+    + apply step_inv_issue_sample; auto; try (apply Hw; unfold slot_held; rewrite S0; auto).
+    + apply step_inv_issue_sample; auto; try (apply Hw; unfold slot_held; rewrite S0; auto).
+    + apply step_inv_set_held, step_inv_set_sub_none; auto.
+  - apply step_inv_set_held, step_inv_set_sub_none; auto.
 Qed.
 
 Lemma step_inv_at_boundary_sub : forall I Sch x s y, Inv x -> phase x = POpen ->
@@ -522,13 +658,18 @@ Proof.
                                discriminate].
   destruct (held x) eqn:H, (waiter x) as [[[f tok] op] |] eqn:W.
   - inversion E; subst. apply step_inv_enqueue.
-    + fields; destruct (inv_held _ HI H) as [S0 | [c S0]]; rewrite S0; reflexivity.
-    + apply step_inv_set_waiter, step_inv_set_held_false; auto.
+    + destruct (inv_waiter _ HI) as [W1 W2].
+      unfold settled; fields; split; [| split; [| congruence]].
+      * destruct (W1 ltac:(congruence)) as [Hs | [Hs _]];
+          [unfold slot_held in Hs | rewrite Hs; reflexivity].
+        destruct (sub x) as [[| c [] |] |]; auto; discriminate.
+      * destruct (is_init (sub x)) eqn:Ei; auto; destruct (W2 eq_refl); congruence.
+    + apply step_inv_set_waiter_none, step_inv_set_held_false; auto.
   - destruct (sub x) as [s |] eqn:S0; [eapply step_inv_at_boundary_sub; eauto |].
     inversion E; subst; apply step_inv_violate; auto; congruence.
   - destruct (sub x) as [s |] eqn:S0; [eapply step_inv_at_boundary_sub; eauto |].
     inversion E; subst; apply step_inv_issue_op; fields; auto.
-    apply step_inv_set_waiter; auto.
+    apply step_inv_set_waiter_none; auto.
   - destruct (sub x) as [s |] eqn:S0; [eapply step_inv_at_boundary_sub; eauto |].
     inversion E; subst; apply step_inv_violate; auto; congruence.
 Qed.
