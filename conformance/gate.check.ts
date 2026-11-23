@@ -11,6 +11,7 @@ import {
 import { join } from "node:path";
 import { after, test } from "node:test";
 import { fileURLToPath } from "node:url";
+import { mutants } from "./checkermutants.ts";
 
 // The checker mutants (gate-integrity): each test copies the suite to a
 // scratch directory, breaks one comparison of a checker there, and runs
@@ -31,11 +32,12 @@ const plainEnv = Object.fromEntries(
   Object.entries(process.env).filter(([name]) => name !== "NODE_TEST_CONTEXT"),
 );
 
-/** Runs the fixtures in the scratch copy. */
+/** Runs the fixtures in the scratch copy, reporting in TAP. */
 const runFixtures = () => {
-  const run = spawnSync(process.execPath,
-    ["--test", join(copy, "fixtures.check.ts")],
-    { encoding: "utf8", env: plainEnv });
+  const run = spawnSync(process.execPath, [
+    "--test", "--test-reporter=tap",
+    join(copy, "fixtures.check.ts"), join(copy, "floors.check.ts"),
+  ], { encoding: "utf8", env: plainEnv });
   return { code: run.status, out: run.stdout };
 };
 
@@ -50,33 +52,6 @@ const runWithout = (file: string, text: string, instead: string) => {
   return run;
 };
 
-/** A comparison, the checker it lives in, what turns it off, and what fails. */
-const mutants: ReadonlyArray<readonly [string, string, string, string,
-  string]> = [
-  ["I1 and I2: logs compared", "properties.ts",
-    "left.logHash === right.logHash && left.furtherHash === right.furtherHash",
-    "true", "I1 catches a differing log"],
-  ["I2: the paced run compared", "properties.ts",
-    'I2: ["fresh2", "fresh0", "after"]', 'I2: ["fresh0", "after"]',
-    "I2 catches a paced run whose log differs"],
-  ["I7: a repeated id", "properties.ts",
-    "new Set(run.identities).size !== run.identities.length", "false",
-    "I7 catches a repeated id"],
-  ["I7: ids between runs", "properties.ts",
-    "JSON.stringify(left.identities) === JSON.stringify(right.identities)",
-    "true", "I7 catches a repeated id"],
-  ["I9: the limits", "properties.ts", "run[measure] > limit", "false",
-    "I9 catches a run past each of its limits"],
-  ["a missing run", "properties.ts", 'cause: "run", roles: missing',
-    'cause: "property", roles: missing',
-    "a run missing from a program is a run finding"],
-  ["programs compared", "properties.ts", "compared[property].every(",
-    "compared[property].some(",
-    "programs compared counts the programs with every run needed"],
-  ["the required program", "plan.ts", "run.index === requiredProgram.index",
-    "true", "the scan floor needs the full budget and the required program"],
-];
-
 test("the fixtures pass on an unbroken copy of the suite", () => {
   const run = runFixtures();
   assert.equal(run.code, 0, run.out);
@@ -86,6 +61,7 @@ for (const [name, file, text, instead, failing] of mutants) {
   test(`a checker without ${name} fails the fixtures`, () => {
     const run = runWithout(file, text, instead);
     assert.notEqual(run.code, 0, "the fixtures passed the broken checker");
-    assert.ok(run.out.includes(`✖ ${failing}`), run.out);
+    const named = new RegExp(`^not ok \\d+ - ${failing}`, "m");
+    assert.ok(named.test(run.out), run.out);
   });
 }

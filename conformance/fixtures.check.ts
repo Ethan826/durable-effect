@@ -74,16 +74,23 @@ test("I7 catches a repeated id, and ids that differ between runs", () => {
   assert.match(differ?.detail ?? "", /^ids differ: 0,1 \/ 0,2$/);
 });
 
-test("I9 catches a run past each of its limits", () => {
-  const limits: ReadonlyArray<Partial<RunResult>> = [
-    { maxLoop: 2050 }, { misregistered: 1 }, { statementLoops: 25 },
-    { maxOps: 3_790_849 },
-  ];
-  const found = limits.map((to) => check("I9", broken("fresh1", to)));
-  assert.deepEqual(found.map((one) => one?.cause),
-    ["property", "property", "property", "property"]);
-  assert.match(found[0]?.detail ?? "", /^2050 > 2049 operations in one run/);
-});
+/** I9's limits, as the dossier fixes them, and the message at each. */
+const i9Limits = [
+  ["maxLoop", 2049, "operations in one run loop"],
+  ["misregistered", 0, "fibers registered late or with frames"],
+  ["statementLoops", 24, "statement-fiber loops in a task"],
+  ["maxOps", 3_790_848, "operations in one task"],
+] as const;
+
+for (const [measure, limit, what] of i9Limits) {
+  test(`I9 allows ${measure} at ${limit} and catches ${limit + 1}`, () => {
+    assert.equal(check("I9", broken("fresh1", { [measure]: limit })),
+      undefined);
+    const found = check("I9", broken("fresh1", { [measure]: limit + 1 }));
+    assert.equal(found?.cause, "property");
+    assert.equal(found?.detail, `${limit + 1} > ${limit} ${what}`);
+  });
+}
 
 test("a run missing from a program is a run finding", () => {
   const present = program(1, 0, undefined).filter((run) =>

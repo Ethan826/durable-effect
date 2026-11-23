@@ -74,3 +74,20 @@ export const unusualIn = (log: ReadonlyArray<LogEntry>): Unusual => {
   });
   return counts;
 };
+
+/**
+ * The sequence every full scan must reach: the last of the last seed, the
+ * 5,000th overall (seeds run in order, 1,000 sequences each).
+ */
+export const requiredSequence = { seed: 5, number: 5000 } as const;
+
+/** Whether sequence number `number` of `seed` is the required one. */
+export const isRequiredSequence = (seed: number, number: number): boolean =>
+  seed === requiredSequence.seed && number === requiredSequence.number;
+
+/** The scan minimum: every sequence ran, the required one among them. */
+export const sequenceScanFull = (
+  runs: number,
+  reachedRequired: boolean,
+  budget: number,
+): boolean => runs === budget && reachedRequired;

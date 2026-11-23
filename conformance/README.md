@@ -22,6 +22,10 @@ is the one that ships.
 Bare `bun test` finds none of it, because the files end in `.check.ts` and bun
 collects only `.test.ts`. `bun run test` covers the unit tests alone.
 
+Run the full suite when `src/adapter/` changes, when the Effect version
+changes, when the grammar changes, and before merging. The quick run is
+enough while working on the harness or the other files.
+
 The full run takes about 14 minutes. `determinism.check.ts` is most of that
 (about 11 minutes): it runs 5,000 programs four times each, and then every I1,
 I2, I7 and I9 mutant until it fails. The quick run is for work on the other
@@ -36,9 +40,11 @@ Files that end in `.check.ts` are the tests:
 - `sequences`: arbitrary task sequences against the log properties of
   `Runtime.v`, tasks the executor never sends included.
 - `closing`: the two pinned I8 cases that the grammar cannot reach.
-- `fixtures`: runs that break exactly one comparison of an I1, I2, I7 or I9
-  check, and the scan floor. `gate`: runs `fixtures` against copies of the
-  checkers with one comparison turned off; each copy must fail.
+- `fixtures` and `floors`: runs that break exactly one comparison of a
+  checker, and the scan floors, inventory and file lists. `gate`: runs both
+  against copies of the checkers with one comparison turned off; each copy
+  must fail. `listing`: the file lists in `package.json` against the
+  directory, so a new check file cannot run nowhere.
 - `grammar`: the grammar's inventory and bounds. `interpret`, `host`,
   `discard`, `opcount` and `logprops`: the harness's own tests.
 
