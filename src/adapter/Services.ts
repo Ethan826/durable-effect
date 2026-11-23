@@ -16,7 +16,6 @@ type AwaitOp = (op: Op) => Effect.Effect<number, number>;
 
 const nanosPerMilli = BigInt(1_000_000);
 const twoTo32 = 2 ** 32;
-const twoTo21 = 2 ** 21;
 
 /** The id the adapter gave this fiber, if it has registered it. */
 const idOf = (state: AdapterState) =>
@@ -108,34 +107,33 @@ export const makeClock = (
   };
 };
 
-/**
- * A safe integer from two draws, the first taken first. The low 21 bits of
- * the first and all 32 of the second give a magnitude in [0, 2^53 - 1]; bit
- * 21 of the first gives the sign. Zero has both signs, so it comes up twice
- * as often as any other value.
- */
-const safeInteger = (high: number, low: number): number => {
-  const magnitude = (high % twoTo21) * twoTo32 + low;
-  const negative = Math.floor(high / twoTo21) % 2 === 1;
-  return negative ? 0 - magnitude : magnitude;
-};
+const lowBits21 = 0x1f_ffff;
+const twoTo53 = 2 ** 53;
+const safeSpan = Number.MAX_SAFE_INTEGER - Number.MIN_SAFE_INTEGER + 1;
 
 /**
  * The adapter's `Random`, built from `host.draw`, which answers a 32-bit
  * unsigned integer for the current fiber. Effect 4.1.5's `Random` has two
  * methods, and every generator in `effect/Random` and `Schedule` goes
- * through them: `nextDoubleUnsafe` is one draw divided by 2^32, in [0, 1);
- * `nextIntUnsafe` is two draws read as a sign and 53 bits.
+ * through them. Both follow Effect's own layout (provenance: effect 4.1.5
+ * src/Random.ts:611-627, the seeded generator). `nextDoubleUnsafe` takes
+ * two draws, the low 21 bits of the first over all 32 of the second, and
+ * divides that 53-bit integer by 2^53, giving [0, 1). `nextIntUnsafe`
+ * scales one such double onto the safe integers.
  */
 export const makeRandom = (
   state: AdapterState,
   host: Host,
 ): Random.Random => {
   const draw = () => host.draw(currentIdUnsafe(state));
-  return {
-    nextDoubleUnsafe: () => draw() / twoTo32,
-    nextIntUnsafe: () => safeInteger(draw(), draw()),
+  const nextDoubleUnsafe = () => {
+    const high = draw() & lowBits21;
+    const low = draw();
+    return (high * twoTo32 + low) / twoTo53;
   };
+  const nextIntUnsafe = () =>
+    Math.floor(nextDoubleUnsafe() * safeSpan) + Number.MIN_SAFE_INTEGER;
+  return { nextDoubleUnsafe, nextIntUnsafe };
 };
 
 /**
