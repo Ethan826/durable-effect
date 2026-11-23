@@ -168,3 +168,6 @@ bun.lockb.bak
 
 # Claude Code per-user settings
 .claude/settings.local.json
+
+# Mutant scratch directories made by the gate tests
+scripts/.mutant-*
