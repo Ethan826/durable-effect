@@ -17,12 +17,25 @@ Definition ReleasedSampleUnreachable : Prop :=
   forall R p I Sch s, reachable R p I Sch s ->
     forall c f tok k, sub (xs s) <> Some (SSample c (FReleased f tok k)).
 
-(** X5: a held cancellation reaches the next fiber that starts a durable operation. From a
-    reachable open state with a cancellation held, as long as the attempt stays open, no
-    durable command is issued before a cancellation is delivered. The combined review found a
-    model in which it was lost when its fiber unwound before receiving it (F1). *)
-Definition HeldCancelDelivered : Prop :=
+(** X5's held cancellation, first form, refuted and kept on record: without [Meets], a
+    runtime that starts one token twice makes the executor issue a command while the
+    cancellation waits in the queue ([step_held_cancel_delivered_refuted], StepHeld.v). *)
+Definition HeldCancelDeliveredFirstForm : Prop :=
   forall R p I Sch n m,
+    let x := xs (iterate R I Sch n (initial R p I)) in
+    let y := xs (iterate R I Sch (n + m) (initial R p I)) in
+    phase x = POpen -> held x = true -> phase y = POpen ->
+    let suffix := skipn (length (trace x)) (trace y) in
+    (exists f tok, In (ACancelled f tok) suffix) \/
+    (forall c op o, ~ In (ACommand c (KOp op) o) suffix).
+
+(** X5: a held cancellation reaches the next fiber that starts a durable operation. For a
+    runtime that meets the interface, from a reachable open state with a cancellation held,
+    as long as the attempt stays open, no durable command is issued before a cancellation is
+    delivered. The combined review found a model in which it was lost when its fiber unwound
+    before receiving it (F1). *)
+Definition HeldCancelDelivered : Prop :=
+  forall R, Meets R -> forall p I Sch n m,
     let x := xs (iterate R I Sch n (initial R p I)) in
     let y := xs (iterate R I Sch (n + m) (initial R p I)) in
     phase x = POpen -> held x = true -> phase y = POpen ->
