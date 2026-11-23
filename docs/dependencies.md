@@ -49,3 +49,24 @@ checked on 2026-11-22; "not checked" marks the rest.
   `prebuild`). `@types/node` install scripts: not checked.
 - License: MIT, compatible.
 - Pinning: exact `1.3.6` in `devDependencies`, hash in `bun.lock`.
+
+## typescript-ast (alias of typescript 6.0.3)
+
+- Why: `scripts/tsdoc-gate.ts` decides on the TypeScript syntax tree, and
+  typescript 7.0.2 has no classic compiler API (its main export is only the
+  version). 6.0.3 is the last release of the JavaScript compiler.
+- Alternatives considered: rewriting the gate on 7.0's `unstable/sync` API
+  (unstable, reaches syntax trees only through a project server); another
+  parser (a different syntax tree than the one `tsc` uses). Neither checked
+  further.
+- Footprint: dev-only, used only by `scripts/`. Nothing ships to users.
+  Install size: not checked.
+- Fit: imported as `typescript-ast` by the gate; `tsc` and `bun run check`
+  keep using typescript 7.0.2.
+- Release cycle and maintenance: no further 6.x releases are expected. Cost:
+  syntax that TypeScript 7.x adds later may be misparsed by the gates until
+  the alias moves.
+- Security and supply chain: install scripts: not checked.
+- License: Apache-2.0, compatible.
+- Pinning: exact `npm:typescript@6.0.3` in `devDependencies`, hash in
+  `bun.lock`.
