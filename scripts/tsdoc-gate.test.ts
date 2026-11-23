@@ -32,7 +32,8 @@ describe("tsdoc gate", () => {
   })
 
   test("fewer exports than --min fails", () => {
-    const { code, out } = runGate(gatePath, ["--min", "3", join(fixtures, "documented")])
+    const documented = join(fixtures, "documented")
+    const { code, out } = runGate(gatePath, ["--min", "3", documented])
     expect(code).toBe(1)
     expect(out).toContain("fewer than the minimum 3")
   })
@@ -43,7 +44,9 @@ describe("checker mutant", () => {
   afterAll(() => rmSync(scratch, { recursive: true, force: true }))
 
   const skipArrowExports = (source: string): string => {
-    const target = "if (!ts.isExportAssignment(statement) && !hasExportModifier(statement)) continue"
+    const target =
+      "if (!ts.isExportAssignment(statement) && " +
+      "!hasExportModifier(statement)) continue"
     const mutated = source.replace(
       target,
       `${target}\n    if (ts.isVariableStatement(statement)) continue`,
@@ -52,13 +55,17 @@ describe("checker mutant", () => {
     return mutated
   }
 
-  test("a gate that skips variable (arrow) exports is caught by the fixture", () => {
-    const mutant = join(scratch, "mutant-gate.ts")
-    writeFileSync(mutant, skipArrowExports(readFileSync(gatePath, "utf8")))
-    const arrowOnly = join(fixtures, "undocumented", "arrow.ts")
-    const real = runGate(gatePath, [join(fixtures, "undocumented")])
-    const mutated = runGate(mutant, [join(fixtures, "undocumented")])
-    expect(real.out).toContain(`${arrowOnly}:1: double: exported without TSDoc`)
-    expect(mutated.out).not.toContain("double: exported without TSDoc")
-  })
+  test(
+    "a gate that skips variable (arrow) exports is caught by the fixture",
+    () => {
+      const mutant = join(scratch, "mutant-gate.ts")
+      writeFileSync(mutant, skipArrowExports(readFileSync(gatePath, "utf8")))
+      const arrowOnly = join(fixtures, "undocumented", "arrow.ts")
+      const real = runGate(gatePath, [join(fixtures, "undocumented")])
+      const mutated = runGate(mutant, [join(fixtures, "undocumented")])
+      const expected = `${arrowOnly}:1: double: exported without TSDoc`
+      expect(real.out).toContain(expected)
+      expect(mutated.out).not.toContain("double: exported without TSDoc")
+    },
+  )
 })
