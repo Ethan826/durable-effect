@@ -14,9 +14,18 @@ const freshRoles = ["fresh0", "fresh1", "fresh2"] as const;
 /** Runs reported for the full budget: four roles, every seed and program. */
 const fullBudgetRuns = (freshRoles.length + 1) * seeds.length * programsPerSeed;
 
-/** The scan minimum: an outcome holds every run of the full budget. */
+/**
+ * The program every full scan must reach: the last of the last seed. A
+ * scan that stops early, or skips a seed, does not contain it.
+ */
+export const requiredProgram = { seed: 5, index: 999 } as const;
+
+/** The scan minimum: every run of the full budget, the required program's. */
 export const fullScan = (outcome: Outcome): boolean =>
-  outcome.results.length >= fullBudgetRuns;
+  outcome.results.length >= fullBudgetRuns &&
+  outcome.results.filter((run) =>
+    run.seed === requiredProgram.seed && run.index === requiredProgram.index
+  ).length >= freshRoles.length + 1;
 
 /** Which runs report their whole log: none, or one seed's. */
 type Detail = { readonly seed: number } | undefined;

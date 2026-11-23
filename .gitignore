@@ -171,3 +171,6 @@ bun.lockb.bak
 
 # Mutant scratch directories made by the gate tests
 scripts/.mutant-*
+
+# Mutant scratch directories made by the conformance gate
+.mutant-*

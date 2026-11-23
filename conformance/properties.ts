@@ -121,6 +121,18 @@ const byProgram = (results: ReadonlyArray<RunResult>) =>
     return groups;
   }, new Map<string, Runs>());
 
+/**
+ * How many programs `property` compared in an outcome: those with every
+ * run it needs. The full budget compares seeds x programs of each.
+ */
+export const programsCompared = (
+  property: Property,
+  outcome: Outcome,
+): number =>
+  [...byProgram(outcome.results).values()].filter((runs) =>
+    compared[property].every((role) => runs[role] !== undefined)
+  ).length;
+
 /** A missing run, else what the property's check finds in the runs. */
 const findingIn = (
   property: Property,

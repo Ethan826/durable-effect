@@ -8,7 +8,8 @@
     "test": "bun test ./test ./scripts",
     "gate:tsdoc": "bun scripts/vendor/tsdoc-gate.ts --min 1 src conformance",
     "gate:style": "bun scripts/style-gate.ts src test scripts conformance",
-    "conformance": "node --test test/conformance/"
+    "conformance": "node --test conformance/closing.check.ts conformance/discard.check.ts conformance/fixtures.check.ts conformance/gate.check.ts conformance/grammar.check.ts conformance/host.check.ts conformance/interpret.check.ts conformance/lifecycle.check.ts conformance/logprops.check.ts conformance/opcount.check.ts conformance/sequences.check.ts conformance/determinism.check.ts",
+    "conformance:quick": "node --test conformance/closing.check.ts conformance/discard.check.ts conformance/fixtures.check.ts conformance/gate.check.ts conformance/grammar.check.ts conformance/host.check.ts conformance/interpret.check.ts conformance/lifecycle.check.ts conformance/logprops.check.ts conformance/opcount.check.ts conformance/sequences.check.ts"
   },
   "dependencies": {
     "effect": "4.1.5"

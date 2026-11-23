@@ -13,7 +13,7 @@ Revision 3 of the dossier, for the model revision of #37. It replaces revision 2
 | Link | How it is established | State |
 |---|---|---|
 | The theorems about the executor model, for every runtime meeting the interface | Proved in Coq | Proved: S1 to S8, S10 and S11; `Meets concrete`, `ReleasedSampleUnreachable`, `RunFromEquivalent`, `HeldStartIssuesNothing` and `HeldCancelDelivered`; S9 refuted and dropped. Reviewed as a whole, and its fixes reviewed again; both approved with fixes, which are applied |
-| Effect 4.1.5 meets each interface property | Conformance tests with failing mutants, bounded evidence; checked at runtime where the interface table says so | Grammar and bounds fixed below; not started |
+| Effect 4.1.5 meets each interface property | Conformance tests with failing mutants, bounded evidence; checked at runtime where the interface table says so | Built and passing on 2026-11-23; bounded evidence, with the counts under "Conformance results" below |
 | The SDK and Restate behave as the executor model assumes | Live fixtures against SDK 1.18.4, bounded evidence | Listed below; not started |
 | The TypeScript executor implements the Coq executor model | Differential tests against the Coq executor extracted to JavaScript, bounded evidence | The executor extracts to OCaml and compiles to JavaScript through js_of_ocaml; `verification/proofs/extraction/check-extraction.sh` checks both against the kernel (see Model-to-implementation gap). The TypeScript executor does not exist yet |
 | The real stack replays deterministically | Property tests of S1's and S2's conclusions on the real executor, Effect and a fake journal, and Restate's own replay check | Not started |
@@ -197,6 +197,24 @@ I9's bounds, as the owner approved them on 2026-11-23. B is `MaxOpsBeforeYield`,
 The first bound, 2,048 × 9 per task, was refuted. A deferred resumes its waiters inside the task that completes it (:1226), so one task can run several forks' slices, and a race whose large side loses runs a full slice inline while its parent continues (:1749-1801). Each of the pinned cases exceeds it.
 
 This is bounded evidence. A property that passes here holds for these programs and these journals, not for every program.
+
+### Conformance results
+
+`bun run conformance` ran the whole suite on Node 26.6.0 on 2026-11-23: 128 tests, all passing, in 13 minutes 38 seconds. These counts come from that run's output. They are bounded evidence: each property held for these programs, seeds and journals.
+
+| Property | Result | Counts |
+|---|---|---|
+| I1, I2, I7, I9 | pass | 5,000 programs each (seeds 1 to 5, 1,000 per seed), 20,000 runs reported; most operations in one task 14,371, in one run loop 2,048; most statement-fiber loops in a task 5. 10 mutants (`randomChoice`, `privateBit`, `timeoutResume`, `timerCell`, `capturedTimer`, `hashSetOrder`, `processCounter`, `sameIdentity`, `reuseExited`, `neverYields`) each fail their property |
+| I3, I4, I5, I6, I8 | pass | 5,000 programs each; 13 mutants each fail their property. The floors held, for example 1,898 masked waiters resumed, 2,034 unmasked and 30,094 masked interrupts of awaits, 112,666 idle tasks, 1,294 success, 193 failure and 2,035 interrupted root exits, 10,100 fibers, 66 registered while closing |
+| I4, I6, I7, I8 over arbitrary task sequences | pass | 5,000 sequences; 10,840 second starts, 46,776 stray deliveries, 10,018 stale interrupts, 2,407 awaits and 3,718 root exits; the check of each property catches one mutant |
+
+The suite fails on an empty grammar inventory (38 statement kinds, 1,000 samples), and a full scan must reach program 999 of seed 5. Each of I1, I2, I7 and I9 must compare 5,000 programs, and the lifecycle and sequence runs must cover 5,000 each. A mutant that turns off one comparison of the I1, I2, I7 or I9 checker, the scan floor or the compared-program count fails the fixtures (`conformance/gate.check.ts`).
+
+Pinned I9 cases, always run: two forks woken inline by one deferred, each running a `forEach` of 8, ran 32,784 operations in one task (4 statement-fiber loops); chain2 ran 3,014,585 (7 statement-fiber loops). Each ran at most 2,048 operations in one run loop and exceeded 18,432 in one task.
+
+Grammar gap: `Fork` has no masked-start option (`conformance/grammar.ts:59`), and 5,000 programs registered no fiber that Effect had masked during closing. #37's two I8 closing cases, an uninterruptible detached fork and a concurrent `forEach` in a closing finalizer, are therefore covered only by the pinned cases in `conformance/closing.ts`. In each, a masked fiber registers during closing, I6, I8 and the log properties hold, and the I8 mutant that leaves that fiber out fails.
+
+The resume guard in `src/adapter/Scheduler.ts` (commit 27e06e2) was added in Task 12. The owner had approved detecting a foreign resume through `shouldYield` on #27, but no earlier task had built it. I3's tests needed it.
 
 ## Non-vacuity
 

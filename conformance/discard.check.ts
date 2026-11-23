@@ -7,7 +7,7 @@ import { scriptedHost } from "./host.ts";
 import type { LogEntry } from "./host.ts";
 
 // The scripted host's side of #37 I3: the executor discards any task
-// queued outside a slice of one of its turns. (host.test.ts is at the
+// queued outside a slice of one of its turns. (host.check.ts is at the
 // 250-line limit, so these tests live here.)
 
 const journal = { outcomes: [], cancelBefore: undefined };
