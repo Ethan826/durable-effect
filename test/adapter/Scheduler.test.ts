@@ -104,9 +104,18 @@ test("shouldYield calls the state's registration step", () => {
   const seen: unknown[] = [];
   state.register = (fiber) => {
     seen.push(fiber);
+    return false;
   };
   start(state, [], Effect.void);
   expect(seen.length).toBeGreaterThan(0);
+});
+
+test("shouldYield yields when registration answers true", () => {
+  const state = makeState();
+  const events: Event[] = [];
+  state.register = () => true;
+  start(state, events, Effect.void);
+  expect(events[0]).toMatchObject({ _tag: "Queue", priority: 0 });
 });
 
 test("two adapters number their tasks independently", () => {

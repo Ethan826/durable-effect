@@ -25,9 +25,11 @@ export const deterministicScheduler = (
   };
   return {
     executionMode: "sync",
+    // Yield when registration has just asked for an interruption, so it
+    // fires before the fiber's first operation, or when the budget is spent.
     shouldYield: (fiber) => {
-      state.register(fiber);
-      return fiber.currentOpCount >= maxOpsBeforeYield;
+      const interrupting = state.register(fiber);
+      return interrupting || fiber.currentOpCount >= maxOpsBeforeYield;
     },
     makeDispatcher: () => dispatcher,
   };
