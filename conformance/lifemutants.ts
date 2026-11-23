@@ -139,6 +139,43 @@ const exitBeforeCleanup: Variant = (program, seed, outer) => {
   return makeAdapter(Effect.onExit(program, report), seed, host);
 };
 
+/** The root, once seen, and whether a variant reported its end early. */
+interface RootSeen {
+  id?: FiberId;
+  early: boolean;
+  ended: boolean;
+}
+
+/** The root's own end: its `FiberExited`, or a `RootExit`. */
+const endsRoot = (root: RootSeen, event: Event) =>
+  event._tag === "RootExit" ||
+  (event._tag === "FiberExited" && event.fiber === root.id);
+
+/**
+ * I6: at an interruption request for the root, its `FiberExited` and an
+ * interrupted `RootExit` are reported at once, before the task runs the
+ * root's finalizers; the adapter's own reports of both are dropped later.
+ */
+const exitAtRequest = wrapped((host) => {
+  const root: RootSeen = { early: false, ended: false };
+  const register = (fiber: FiberId) => {
+    root.id ??= fiber;
+    return host.register(fiber);
+  };
+  const keep = (event: Event) => {
+    if (event._tag === "RootExit") root.ended = true;
+    return !(root.early && endsRoot(root, event));
+  };
+  const before = (task: Task) => {
+    if (task._tag !== "RequestInterrupt" || task.fiber !== root.id) return;
+    if (root.early || root.ended) return;
+    root.early = true;
+    host.emit({ _tag: "FiberExited", fiber: task.fiber });
+    host.emit({ _tag: "RootExit", exit: { _tag: "Interrupted" } });
+  };
+  return { host: { ...filtering(host, keep), register }, before };
+});
+
 /** Whether the fiber registering now is one the registry leaves out. */
 type Omits = (first: boolean) => boolean;
 
@@ -179,6 +216,7 @@ export const lifeMutants = {
   maskAll,
   privateQueue,
   exitBeforeCleanup,
+  exitAtRequest,
   omitDetached: omitting(isDetached),
   omitInternal: omitting(isInternal),
 } as const;
