@@ -6,7 +6,7 @@
   "scripts": {
     "check": "tsc --noEmit",
     "test": "bun test",
-    "gate:tsdoc": "bun run scripts/gate-tsdoc.ts",
+    "gate:tsdoc": "bun scripts/tsdoc-gate.ts --min 1 src",
     "gate:style": "bun run scripts/gate-style.ts",
     "conformance": "node --test test/conformance/"
   },
@@ -16,6 +16,7 @@
   "devDependencies": {
     "@types/bun": "1.3.6",
     "fast-check": "4.11.0",
-    "typescript": "7.0.2"
+    "typescript": "7.0.2",
+    "typescript-ast": "npm:typescript@6.0.3"
   }
 }
