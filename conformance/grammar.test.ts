@@ -4,7 +4,7 @@ import { Effect } from "effect";
 import fc from "fast-check";
 import { makeAdapter } from "../src/adapter/Runtime.ts";
 import { journal, program } from "./grammar.ts";
-import type { Program, Statement } from "./grammar.ts";
+import type { Program, Sequence, Statement } from "./grammar.ts";
 import { scriptedHost } from "./host.ts";
 import type { Journal } from "./deliveries.ts";
 import { interpret } from "./interpret.ts";
@@ -119,8 +119,35 @@ const ended = (log: ReturnType<typeof runUnderHost>) => ({
   blocked: log.some((entry) => entry._tag === "Blocked"),
 });
 
+const forkTarget = (statement: Statement): ReadonlyArray<number> =>
+  statement._tag === "Fork" ? [statement.fiber] : [];
+
+const forkTargets = (body: Sequence): ReadonlyArray<number> =>
+  body.flatMap(flatten).flatMap(forkTarget);
+
+/** The fork bodies a `Fork` reachable from `body` names, transitively. */
+const forkedFrom = (
+  sample: Program,
+  body: Sequence,
+  seen: ReadonlySet<number>,
+): ReadonlySet<number> =>
+  forkTargets(body).reduce((reached, fiber) =>
+    reached.has(fiber)
+      ? reached
+      : forkedFrom(sample, sample.forks[fiber] ?? [], new Set([
+        ...reached, fiber,
+      ])), seen);
+
+/** The statements that can run: the root's and those of bodies it forks. */
+const reachable = (sample: Program): ReadonlyArray<Statement> => {
+  const forked = [...forkedFrom(sample, sample.root, new Set())];
+  const bodies = forked.map((fiber) => sample.forks[fiber] ?? []);
+  return [sample.root, ...bodies].flat().flatMap(flatten);
+};
+
+/** Whether a statement that can run may wait for ever. */
 const canBlock = (sample: Program) =>
-  allStatements(sample).some((statement) => blockingKinds.has(statement._tag));
+  reachable(sample).some((statement) => blockingKinds.has(statement._tag));
 
 test("a sample runs to an exit, or blocks only where it can", () => {
   fc.assert(
@@ -133,12 +160,26 @@ test("a sample runs to an exit, or blocks only where it can", () => {
   );
 });
 
-const onlyRoot = (root: ReadonlyArray<Statement>): Program =>
-  ({ root, forks: [] });
 const valueJournal: Journal = {
   outcomes: [{ _tag: "Value", value: 1 }],
   cancelBefore: undefined,
 };
+
+test("only a body a reachable Fork names can excuse a block", () => {
+  const never: Sequence = [{ _tag: "Never" }];
+  const unforked: Program = { root: [{ _tag: "YieldNow" }], forks: [never] };
+  const forked: Program = {
+    root: [{ _tag: "Fork", fiber: 0, detach: false }],
+    forks: [never],
+  };
+  assert.equal(canBlock(unforked), false);
+  assert.equal(canBlock(forked), true);
+  const end = ended(runUnderHost(unforked, valueJournal));
+  assert.deepEqual(end, { exited: true, blocked: false });
+});
+
+const onlyRoot = (root: ReadonlyArray<Statement>): Program =>
+  ({ root, forks: [] });
 
 test("Effect.never and the two-fiber deadlock end blocked", () => {
   const never = runUnderHost(onlyRoot([{ _tag: "Never" }]), valueJournal);
