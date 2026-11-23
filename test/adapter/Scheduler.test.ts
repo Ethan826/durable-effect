@@ -17,6 +17,7 @@ const recordingHost = (events: Event[]): Host => ({
   register: () => true,
   inSlice: () => true,
   foreign: () => {},
+  noteGlobal: () => {},
 });
 
 /** The `Queue` event for a priority and a task number. */

@@ -31,6 +31,7 @@ const loggingHost = (log: Event[]): Host => ({
   register: () => false,
   inSlice: () => true,
   foreign: () => {},
+  noteGlobal: () => {},
 });
 
 const fiberId = Brand.nominal<FiberId>();
