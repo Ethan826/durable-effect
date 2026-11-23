@@ -1,0 +1,67 @@
+import type { Host } from "./Interface.ts";
+import { freshFiberId } from "./State.ts";
+import type { AdapterState, AnyFiber, RegisteredFiber } from "./State.ts";
+
+type Interrupt = AnyFiber["interruptUnsafe"];
+
+/**
+ * The interrupt a registered fiber exposes to other code. Inside a slice it
+ * is forwarded; outside one it is reported to the host and dropped, because
+ * a timer or callback outside any slice must not change the fiber's trace.
+ * Task 8 moves this to its own module.
+ */
+const guarded = (
+  host: Host,
+  known: RegisteredFiber,
+): Interrupt => (fiberId, annotations) => {
+  if (host.inSlice()) known.interruptUnsafe(fiberId, annotations);
+  else host.foreign("interrupt", known.id);
+};
+
+/** Reports the fiber's exit, after its finalizers have run. */
+const observeExit = (host: Host, fiber: AnyFiber, known: RegisteredFiber) =>
+  fiber.addObserver(() => {
+    host.emit({ _tag: "FiberExited", fiber: known.id });
+  });
+
+/** Gives a fiber its id, its guarded interrupt and its exit report. */
+const admit = (
+  state: AdapterState,
+  host: Host,
+  fiber: AnyFiber,
+): RegisteredFiber => {
+  const known: RegisteredFiber = {
+    id: freshFiberId(state),
+    interruptUnsafe: fiber.interruptUnsafe.bind(fiber),
+  };
+  state.fibers.set(fiber, known);
+  // The Fiber type marks the field readonly; the adapter owns these fibers.
+  Object.defineProperty(fiber, "interruptUnsafe", {
+    value: guarded(host, known),
+  });
+  observeExit(host, fiber, known);
+  return known;
+};
+
+/**
+ * The registration step the scheduler calls before each operation. A fiber
+ * is registered the first time it is seen, which is before its first step.
+ * Answers `true` when the host asked for the new fiber to be interrupted;
+ * the interrupt goes through the original, and the scheduler then yields so
+ * that it fires before the fiber's first operation.
+ */
+export const registration =
+  (state: AdapterState, host: Host) => (fiber: AnyFiber): boolean => {
+    if (state.fibers.has(fiber)) return false;
+    const known = admit(state, host, fiber);
+    const interrupt = host.register(known.id);
+    // On a running fiber the original only sets `_deferredInterrupt`
+    // (effect 4.1.5 internal/effect.ts:594-616). The `true` we return makes
+    // the loop queue a resume (`yieldNow`, :775-785, so the host sees a
+    // `Queue`), then, finding the interrupt deferred, cancel that resume and
+    // fail with the interrupt in the same run (:713-723, :689-692). The
+    // queued task does nothing, and the fiber never takes its first step,
+    // unless it started masked: then the interrupt waits for the mask's end.
+    if (interrupt) known.interruptUnsafe();
+    return interrupt;
+  };
