@@ -1,4 +1,4 @@
-import type { Property } from "./mutants.ts";
+import type { LifecycleProperty, Property } from "./mutants.ts";
 import type { Outcome } from "./processes.ts";
 import { maxStatementLoops } from "./runloops.ts";
 import type { Role, RunResult } from "./runs.ts";
@@ -27,7 +27,7 @@ export const maxOpsPerTask = 3_790_848;
  * which says nothing about the property.
  */
 export interface Violation {
-  readonly property: Property;
+  readonly property: Property | LifecycleProperty;
   readonly cause: "property" | "run";
   readonly seed: number;
   readonly index: number;
