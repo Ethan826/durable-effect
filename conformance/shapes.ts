@@ -2,10 +2,13 @@ import type { LogEntry } from "./host.ts";
 import type { Program, Sequence, Statement } from "./grammar.ts";
 import type { LifecycleRun } from "./lifecycle.ts";
 
-// The cases #37's "Conformance test" column names for I4, I5, I6 and I8,
+// The cases #37's "Conformance test" column names for I4, I5 and I6,
 // counted in the runs so that a floor can require each one. Where the log
 // cannot tell a case apart, the count is of runs whose program holds the
-// shape and whose log shows the moment it matters (a root exit, closing).
+// shape and whose log shows the moment it matters (a root exit). I8's
+// cases, a fiber masked when it first runs during closing, are beyond the
+// grammar (grammar.ts:59: a `Fork` has no mask of its own), so they are
+// pinned cases in closing.ts.
 
 /** The counts, one per named case. */
 export interface ShapeScans {
@@ -19,13 +22,6 @@ export interface ShapeScans {
   readonly blockedChildren: number;
   /** I6: runs whose root exited past a finalizer that may yield. */
   readonly yieldingFinalizers: number;
-  /**
-   * I8: closing's interruption requests that found the fiber masked, by
-   * Effect's own flag. Only detached fibers outlive the root.
-   */
-  readonly maskedAtClosing: number;
-  /** I8: runs that closed with a detached `forEach` in a finalizer. */
-  readonly closingForEach: number;
 }
 
 /** The sub-sequences a statement holds, in order. */
@@ -86,27 +82,7 @@ const tagged = (tag: Statement["_tag"]) => (one: Statement) =>
 const emitted = (log: ReadonlyArray<LogEntry>, tag: string) =>
   log.some((entry) => entry._tag === "Emitted" && entry.event._tag === tag);
 
-/** Whether the host interrupted live fibers after the root exited. */
-const closed = (log: ReadonlyArray<LogEntry>) => {
-  const exit = log.findIndex((entry) =>
-    entry._tag === "Emitted" && entry.event._tag === "RootExit"
-  );
-  return exit !== -1 && log.slice(exit).some((entry) =>
-    entry._tag === "Sent" && entry.task._tag === "RequestInterrupt"
-  );
-};
-
 const one = (yes: boolean) => yes ? 1 : 0;
-
-/** The host's requests after the root exit that found the target masked. */
-const maskedAtClosing = (run: LifecycleRun) => {
-  const exit = run.log.findIndex((entry) =>
-    entry._tag === "Emitted" && entry.event._tag === "RootExit"
-  );
-  return exit === -1 ? 0 : run.records.filter((record) =>
-    record.kind === "host" && record.from > exit && record.masked === true
-  ).length;
-};
 
 /** The named cases one lifecycle run reached. */
 export const shapeScans = (run: LifecycleRun): ShapeScans => {
@@ -120,8 +96,5 @@ export const shapeScans = (run: LifecycleRun): ShapeScans => {
       .some((body) => holds(body, tagged("DeferredAwait")))),
     yieldingFinalizers: one(emitted(log, "RootExit") &&
       finalizersIn(program.root).some((body) => holds(body, yields))),
-    maskedAtClosing: maskedAtClosing(run),
-    closingForEach: one(closed(log) && detached.some((body) =>
-      finalizersIn(body).some((sub) => holds(sub, tagged("ForEach"))))),
   };
 };
