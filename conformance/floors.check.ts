@@ -1,15 +1,19 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { Brand } from "effect";
+import type { FiberId, Token } from "../src/adapter/Interface.ts";
 import { makeAdapter } from "../src/adapter/Runtime.ts";
 import { inventoryGaps } from "./inventory.ts";
 import { listingGaps } from "./listing.ts";
 import { fullScanOf, runLifecycle, zeroScans } from "./lifeplan.ts";
 import type { LifeOutcome } from "./lifeplan.ts";
 import { programsPerSeed, seeds } from "./plan.ts";
+import type { LogEntry } from "./host.ts";
 import {
   isRequiredSequence,
   noteSequence,
   sequenceScanFull,
+  unusualIn,
 } from "./strays.ts";
 
 // Fixtures for the scan floors of the lifecycle and sequence runs, the
@@ -93,4 +97,37 @@ test("the quick list is the full list without determinism", () => {
 
 test("a directory below the minimum file count is a gap", () => {
   assert.deepEqual(listingGaps([], [], [], 3), ["only 0 files"]);
+});
+
+const fiber = Brand.nominal<FiberId>();
+const token = Brand.nominal<Token>();
+
+const started = (id: number, tok: number): LogEntry => ({
+  _tag: "Emitted",
+  event: {
+    _tag: "Start", fiber: fiber(id), token: token(tok),
+    op: { _tag: "Run", kind: 0, args: 0 },
+  },
+});
+const delivered = (id: number, tok: number): LogEntry => ({
+  _tag: "Sent",
+  task: {
+    _tag: "Deliver", fiber: fiber(id), token: token(tok),
+    outcome: { _tag: "Value", value: 0 },
+  },
+});
+const strays = (log: ReadonlyArray<LogEntry>) => unusualIn(log).strayDeliveries;
+
+// The adapter ignores a delivery for the wrong fiber or before the await
+// starts (Durable.ts `deliver`), so neither answers the token.
+test("a wrong-fiber delivery leaves the token unanswered", () => {
+  assert.equal(strays([started(0, 0), delivered(1, 0), delivered(0, 0)]), 1);
+});
+
+test("a delivery before the await starts leaves it unanswered", () => {
+  assert.equal(strays([delivered(0, 0), started(0, 0), delivered(0, 0)]), 1);
+});
+
+test("a second delivery to an answered await is stray", () => {
+  assert.equal(strays([started(0, 0), delivered(0, 0), delivered(0, 0)]), 1);
 });

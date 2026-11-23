@@ -31,8 +31,10 @@ import { coqLog } from "./logprops.ts";
  * sends that the sequences must have sent, and the awaits and root exits
  * the checks judged. Each is the count the full budget gave when it was
  * set (Task 12), rounded down to two significant figures. Measured:
- * second starts 10,840, stray deliveries 46,776, stale interrupts 10,018,
- * awaits 2,407, root exits 3,718.
+ * second starts 10,840, stray deliveries 46,255, stale interrupts
+ * 10,018, awaits 2,407, root exits 3,718. Stray deliveries were 46,776
+ * until a delivery to the wrong fiber, or before the await's start,
+ * stopped counting as the await's answer (PR #43 review).
  */
 const unusualFloors: Unusual = {
   secondStarts: 10_000,
