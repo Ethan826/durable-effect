@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "check": "tsc --noEmit",
-    "test": "bun test",
+    "test": "bun test ./test ./scripts",
     "gate:tsdoc": "bun scripts/vendor/tsdoc-gate.ts --min 1 src conformance",
     "gate:style": "bun scripts/style-gate.ts src test scripts conformance",
     "conformance": "node --test test/conformance/"
