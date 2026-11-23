@@ -30,6 +30,7 @@ const slicedHost = (log: Event[], foreign: Foreign[]) => {
     foreign: (kind, fiber) => {
       foreign.push([kind, fiber]);
     },
+    noteGlobal: () => {},
   };
   return { host, state };
 };

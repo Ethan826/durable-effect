@@ -1,4 +1,12 @@
-import { Effect, Exit, Layer, Match, Option, Schema } from "effect";
+import {
+  Context,
+  Effect,
+  Exit,
+  Layer,
+  Match,
+  Option,
+  Schema,
+} from "effect";
 import { deliver, Durable, makeDurable } from "./Durable.ts";
 import { registration, requestInterrupt } from "./Fibers.ts";
 import type {
@@ -9,6 +17,7 @@ import type {
   TaskId,
 } from "./Interface.ts";
 import { deterministicScheduler } from "./Scheduler.ts";
+import { deterministicServices, withGlobalSourceLog } from "./Services.ts";
 import { makeState } from "./State.ts";
 import type { AdapterState } from "./State.ts";
 
@@ -43,7 +52,8 @@ const toRootExit = <A, E>(exit: Exit.Exit<A, E>): RootExit =>
   Exit.isSuccess(exit) ? success(exit.value) : failed(exit);
 
 /**
- * Forks the program with the `Durable` service's layer. The root registers
+ * Forks the program with one layer holding `Durable`, `Clock` and `Random`;
+ * the clock's sleep awaits through the same `Durable`. The root registers
  * in its first `shouldYield`, so its `FiberExited` observer is added before
  * this one and fires first.
  */
@@ -53,8 +63,11 @@ const startRoot = <A, E>(
   program: Effect.Effect<A, E, Durable>,
 ) => {
   const scheduler = deterministicScheduler(state, host);
-  const durables = Layer.succeed(Durable, makeDurable(state, host));
-  const provided = Effect.provide(program, durables);
+  const durables = makeDurable(state, host);
+  const services = deterministicServices(state, host, durables.await).pipe(
+    Context.add(Durable, durables),
+  );
+  const provided = Effect.provide(program, Layer.succeedContext(services));
   const root = Effect.runFork(provided, { scheduler });
   root.addObserver((exit) => {
     host.emit({ _tag: "RootExit", exit: toRootExit(exit) });
@@ -72,7 +85,9 @@ const runQueued = (state: AdapterState, task: TaskId) => {
  * Builds the runtime side of the interface for one handler run. `StartRoot`
  * forks the program the first time and does nothing after; `RunQueued` runs
  * a stored thunk; the three deliveries answer an await; `RequestInterrupt`
- * interrupts a fiber. `seed` is for the deterministic services (Task 9).
+ * interrupts a fiber. Every task runs inside `withGlobalSourceLog`, so the
+ * host hears of any use of the logged globals. `seed` is unused: the clock
+ * and random answers come from the host.
  */
 export const makeAdapter = <A, E>(
   program: Effect.Effect<A, E, Durable>,
@@ -89,7 +104,7 @@ export const makeAdapter = <A, E>(
     started = true;
     startRoot(state, host, program);
   };
-  const runTask = (task: Task) =>
+  const dispatch = (task: Task) =>
     Match.value(task).pipe(Match.tagsExhaustive({
       StartRoot: startOnce,
       RunQueued: (queued) => runQueued(state, queued.task),
@@ -98,5 +113,7 @@ export const makeAdapter = <A, E>(
       DeliverDefect: (delivery) => deliver(state, delivery),
       RequestInterrupt: (request) => requestInterrupt(state, request.fiber),
     }));
+  const runTask = (task: Task) =>
+    withGlobalSourceLog(host, () => dispatch(task));
   return { runTask };
 };

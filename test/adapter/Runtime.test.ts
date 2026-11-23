@@ -21,6 +21,7 @@ const reenteringHost = (
   },
   inSlice: () => true,
   foreign: () => {},
+  noteGlobal: () => {},
 });
 
 test("a StartRoot sent during the root's first slice does nothing", () => {
