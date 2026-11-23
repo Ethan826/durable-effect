@@ -1,13 +1,15 @@
-import { Brand } from "effect";
+import { Brand, Fiber } from "effect";
 import type {
   AdapterRuntime,
   Event,
+  Host,
   Task,
   TaskId,
 } from "../src/adapter/Interface.ts";
 import { makeAdapter } from "../src/adapter/Runtime.ts";
 import type { AnyFiber } from "../src/adapter/State.ts";
 import { beginRun, fibersRun, openTask, startedKinds } from "./census.ts";
+import type { Started } from "./census.ts";
 import type { Journal } from "./deliveries.ts";
 import type { Program } from "./grammar.ts";
 import { scriptedHost } from "./host.ts";
@@ -31,32 +33,73 @@ export interface TaskRecord {
   /** The task's entries are `log.slice(from, to)`, after its `Sent`. */
   readonly from: number;
   readonly to: number;
+  /**
+   * For a `RequestInterrupt`: whether Effect had the target fiber masked
+   * when the request was sent (its own `interruptible` flag, :594-616), read
+   * before the task, not from anything the adapter reported.
+   */
+  readonly masked?: boolean | undefined;
+}
+
+/** Why the next task is sent. */
+interface Mark {
+  kind: Kind;
 }
 
 /** What a lifecycle run leaves for the checks. */
 export interface LifecycleRun {
+  readonly program: Program;
   readonly log: ReadonlyArray<LogEntry>;
   readonly records: ReadonlyArray<TaskRecord>;
   /** Every fiber that ran in a task, as the census saw it. */
   readonly fibers: ReadonlyArray<AnyFiber>;
-  /** Of those, how many started internal, and how many detached. */
-  readonly kinds: { readonly internal: number; readonly detached: number };
+  /** Of those, how many started internal or detached; inline wakes. */
+  readonly kinds: Started;
 }
 
 // Above every id a run queues, so `RunQueued` of it names no task.
 const idleTask = Brand.nominal<TaskId>()(Number.MAX_SAFE_INTEGER);
+
+/** The Effect fibers by the ids the adapter registered them under. */
+type Registry = Map<number, AnyFiber>;
+
+/**
+ * The host the adapter talks to: each `register` question notes the
+ * fiber asking, which is the current one: the adapter registers a fiber
+ * from inside its own run loop (Fibers.ts, Scheduler.ts).
+ */
+const noting = (host: Host, registry: Registry): Host => ({
+  ...host,
+  register: (fiber) => {
+    const current = Fiber.getCurrent();
+    if (current !== undefined) registry.set(fiber, current);
+    return host.register(fiber);
+  },
+});
+
+/** Effect's own mask on the fiber a request names, if it is known. */
+const maskOf = (registry: Registry, task: Task) => {
+  const fiber = "fiber" in task ? registry.get(task.fiber) : undefined;
+  return fiber === undefined ? undefined
+    : Reflect.get(fiber, "interruptible") === false;
+};
 
 /** The adapter with each task's loops and log entries recorded. */
 const recording = (
   host: ScriptedHost,
   inner: AdapterRuntime,
   records: TaskRecord[],
-  mark: { kind: Kind },
+  mark: Mark,
+  registry: Registry,
 ): AdapterRuntime => ({
   runTask: (task) => {
     const from = host.log.length;
+    const masked = task._tag === "RequestInterrupt"
+      ? maskOf(registry, task)
+      : undefined;
     const loops = openTask(() => inner.runTask(task));
-    records.push({ task, kind: mark.kind, loops, from, to: host.log.length });
+    const { kind } = mark;
+    records.push({ task, kind, loops, from, to: host.log.length, masked });
     mark.kind = "host";
   },
 });
@@ -75,9 +118,11 @@ const endedTokens = (log: ReadonlyArray<LogEntry>) => new Set([
 ]);
 
 /** Sends tasks of its own between the host's steps, each then an idle. */
-const injector = (host: ScriptedHost, adapter: AdapterRuntime, mark: {
-  kind: Kind;
-}) => {
+const injector = (
+  host: ScriptedHost,
+  adapter: AdapterRuntime,
+  mark: Mark,
+) => {
   const send = (kind: Kind, task: Task) => {
     mark.kind = kind;
     host.extend(adapter, task);
@@ -120,10 +165,12 @@ const afterStep = (
 };
 
 /** The adapter, recorded, with the injector that sends tasks into it. */
-const instrumented = (host: ScriptedHost, inner: AdapterRuntime) => {
+const instrumented = (host: ScriptedHost, program: Program, make: Variant) => {
   const records: TaskRecord[] = [];
-  const mark: { kind: Kind } = { kind: "host" };
-  const adapter = recording(host, inner, records, mark);
+  const mark: Mark = { kind: "host" };
+  const registry: Registry = new Map();
+  const inner = make(interpret(program), 0, noting(host, registry));
+  const adapter = recording(host, inner, records, mark, registry);
   return { adapter, records, inject: injector(host, adapter, mark) };
 };
 
@@ -138,12 +185,14 @@ export const lifecycleRun = async (
 ): Promise<LifecycleRun> => {
   beginRun();
   const host = scriptedHost(journal, { seed });
-  const run = instrumented(host, make(interpret(program), 0, host));
+  const run = instrumented(host, program, make);
   const cursor = { at: 0 };
   await host.runPaced(run.adapter, async () => {
     afterStep(host, run.inject, cursor);
   });
   afterStep(host, run.inject, cursor);
-  const fibers = fibersRun();
-  return { log: host.log, records: run.records, fibers, kinds: startedKinds() };
+  return {
+    program, log: host.log, records: run.records,
+    fibers: fibersRun(), kinds: startedKinds(),
+  };
 };

@@ -67,6 +67,20 @@ test("I4: a delivery to another fiber does not end the await", () => {
   assert.match(i4Breach(log) ?? "", /acts at entry 3/);
 });
 
+/** A task that ends fiber `id`'s await of `tok` without a value. */
+const ending = (tag: "DeliverCancel" | "DeliverDefect") =>
+  (id: number, tok: number): CoqEntry => ({
+    _tag: "LTask",
+    task: { _tag: tag, fiber: fiber(id), token: token(tok) },
+  });
+
+for (const tag of ["DeliverCancel", "DeliverDefect"] as const) {
+  test(`I4: ${tag} ends an await, so the fiber may act after it`, () => {
+    const log = [register(0), start(0, 0), ending(tag)(0, 0), clock(0)];
+    assert.equal(i4Breach(log), undefined);
+  });
+}
+
 test("I4: a token started twice is caught", () => {
   const log = [register(0), start(0, 0), deliver(0, 0), start(0, 0)];
   assert.match(i4Breach(log) ?? "", /token 0 started twice/);
