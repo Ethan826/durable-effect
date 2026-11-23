@@ -1,4 +1,4 @@
-import type { Host } from "./Interface.ts";
+import type { FiberId, Host } from "./Interface.ts";
 import { freshFiberId } from "./State.ts";
 import type { AdapterState, AnyFiber, RegisteredFiber } from "./State.ts";
 
@@ -48,7 +48,9 @@ const admit = (
  * is registered the first time it is seen, which is before its first step.
  * Answers `true` when the host asked for the new fiber to be interrupted;
  * the interrupt goes through the original, and the scheduler then yields so
- * that it fires before the fiber's first operation.
+ * that it fires before the fiber's first operation. A fiber that starts
+ * masked is the exception: Effect defers the interrupt until the mask ends,
+ * so such a fiber runs its masked steps first.
  */
 export const registration =
   (state: AdapterState, host: Host) => (fiber: AnyFiber): boolean => {
@@ -65,3 +67,15 @@ export const registration =
     if (interrupt) known.interruptUnsafe();
     return interrupt;
   };
+
+/**
+ * `RequestInterrupt`: interrupts the fiber with this id through its original
+ * `interruptUnsafe`, since the executor's request is never foreign. An
+ * unknown id does nothing; so does a fiber that has exited.
+ */
+export const requestInterrupt = (state: AdapterState, fiber: FiberId) => {
+  const known = [...state.fibers.values()].find(
+    (registered) => registered.id === fiber,
+  );
+  known?.interruptUnsafe();
+};
