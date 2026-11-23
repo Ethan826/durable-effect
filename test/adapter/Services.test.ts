@@ -226,9 +226,8 @@ test("withGlobalSourceLog notes each global, then calls the original", () => {
 test("withGlobalSourceLog restores the globals, even after a throw", () => {
   const log = asked();
   const host = askingHost(log, []);
-  const fails = () => {
-    throw new Error("inside");
-  };
+  withGlobalSourceLog(host, () => 0);
+  const fails = () => { throw new Error("inside"); };
   expect(() => withGlobalSourceLog(host, fails)).toThrow("inside");
   useGlobals();
   expect(log.noted).toEqual([]);
