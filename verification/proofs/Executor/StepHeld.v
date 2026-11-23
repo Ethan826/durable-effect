@@ -1,14 +1,17 @@
-(** * Step domain: [HeldStartIssuesNothing], and a counterexample to [HeldCancelDelivered].
+(** * Step domain: [HeldStartIssuesNothing], and a counterexample to
+    [HeldCancelDeliveredFirstForm].
 
     [HeldStartIssuesNothing] follows from [on_start] alone.
 
-    [HeldCancelDelivered] fails for a runtime that reuses a token.
+    [HeldCancelDeliveredFirstForm], the statement without [Meets], fails for a runtime that
+    reuses a token; [HeldCancelDelivered] and [HeldCancelDeliveredFirst], which assume
+    [Meets], are proved in StepHeldRun.v and StepHeldOrder.v.
 
     The runtime below starts a 0 ms sleep and then an operation with the same fiber and token
     while a cancellation is held. The executor queues the sleep's delivery and the held
     cancellation for the same await; the delivery clears the awaiter, so a second fiber's
     operation is issued while the cancellation is still queued. The runtime breaks I4 (the
-    token is started twice), and [HeldCancelDelivered] does not assume [Meets]. *)
+    token is started twice), and the first form does not assume [Meets]. *)
 
 From Coq Require Import List ZArith Bool Arith.
 From Durable Require Import Runtime Exec Statements Obligations.

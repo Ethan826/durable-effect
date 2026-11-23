@@ -198,6 +198,10 @@ Closed under the global context
 Closed under the global context
 == Durable.ArrivalRunFrom.arrival_run_from_equivalent
 Closed under the global context
+== Durable.ArrivalRunFromState.arrival_run_from_state
+Closed under the global context
+== Durable.ArrivalRunFromState.arrival_s4_from_equivalent
+Closed under the global context
 == Durable.ArrivalSim.arrival_at_boundary_sinf
 Closed under the global context
 == Durable.ArrivalSim.arrival_before_cut_app
@@ -729,6 +733,20 @@ Closed under the global context
 == Durable.StepHeld.step_held_cancel_delivered_refuted
 Closed under the global context
 == Durable.StepHeld.step_held_start_issues_nothing
+Closed under the global context
+== Durable.StepHeldOrder.step_before_cancel_app
+Closed under the global context
+== Durable.StepHeldOrder.step_before_cancel_head
+Closed under the global context
+== Durable.StepHeldOrder.step_before_cancel_nokop
+Closed under the global context
+== Durable.StepHeldOrder.step_held_cancel_delivered_first
+Closed under the global context
+== Durable.StepHeldOrder.step_list_eq_dec_app
+Closed under the global context
+== Durable.StepHeldOrder.step_strong_hc_run
+Closed under the global context
+== Durable.StepHeldOrder.step_strong_hc_step
 Closed under the global context
 == Durable.StepHeldRun.step_apply_sample_sampled
 Closed under the global context
@@ -1543,6 +1561,18 @@ Closed under the global context
 == Durable.Witnesses2.zero_sleep_release_drops_delivery
 Closed under the global context
 == Durable.Witnesses3.held_cancel_survives_release
+Closed under the global context
+== Durable.Witnesses4.closing_drops_queued_cancel
+Closed under the global context
+== Durable.Witnesses4.finalizer_absorbs_held_cancel
+Closed under the global context
+== Durable.Witnesses4.rev3_differs_on_blocked_root
+Closed under the global context
+== Durable.Witnesses4.rev3_differs_on_infinite_sleep
+Closed under the global context
+== Durable.Witnesses4.rev3_differs_on_long_sleep
+Closed under the global context
+== Durable.Witnesses4.rev3_differs_on_priority
 Closed under the global context
 == Scheduling.Abandonment.Inv0_initial
 Closed under the global context
