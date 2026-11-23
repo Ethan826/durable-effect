@@ -52,7 +52,7 @@ checked on 2026-11-22; "not checked" marks the rest.
 
 ## typescript-ast (alias of typescript 6.0.3)
 
-- Why: `scripts/tsdoc-gate.ts` decides on the TypeScript syntax tree, and
+- Why: `scripts/vendor/tsdoc-gate.ts` decides on the TypeScript syntax tree, and
   typescript 7.0.2 has no classic compiler API (its main export is only the
   version). 6.0.3 is the last release of the JavaScript compiler.
 - Alternatives considered: rewriting the gate on 7.0's `unstable/sync` API
