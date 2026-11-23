@@ -27,6 +27,15 @@ const foreignResume = (
 /**
  * A scheduler that runs nothing itself. A scheduled thunk is stored under a
  * fresh task id and reported as `Queue`; the executor decides when it runs.
+ *
+ * A foreign interrupt of a fiber that has never run is reported as
+ * `foreign("resume")`, not `foreign("interrupt")`, and `host.register` is
+ * asked for that fiber outside a task. The fiber is not registered yet, so
+ * it has no guarded interrupt, and Effect's original `interruptUnsafe`
+ * evaluates a fiber that is not running at once (effect 4.1.5
+ * internal/effect.ts:607-613). Its first step asks `shouldYield` outside
+ * a slice: that registers the fiber, then trips the resume guard, and the
+ * fiber yields before the step.
  */
 export const deterministicScheduler = (
   state: AdapterState,
