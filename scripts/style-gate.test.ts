@@ -9,7 +9,7 @@ import {
 import { join } from "node:path"
 
 const gatePath = join(import.meta.dir, "style-gate.ts")
-const fixtures = join(import.meta.dir, "fixtures", "style")
+const fixtures = join(import.meta.dir, "..", "fixtures", "style")
 const scratch = mkdtempSync(join(import.meta.dir, ".mutant-"))
 afterAll(() => rmSync(scratch, { recursive: true, force: true }))
 
