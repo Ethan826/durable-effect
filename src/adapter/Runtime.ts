@@ -1,4 +1,4 @@
-import { Effect, Exit, Match, Option, Schema } from "effect";
+import { Effect, Exit, Layer, Match, Option, Schema } from "effect";
 import { deliver, Durable, makeDurable } from "./Durable.ts";
 import { registration, requestInterrupt } from "./Fibers.ts";
 import type {
@@ -43,9 +43,9 @@ const toRootExit = <A, E>(exit: Exit.Exit<A, E>): RootExit =>
   Exit.isSuccess(exit) ? success(exit.value) : failed(exit);
 
 /**
- * Forks the program with the `Durable` service. The root registers in its
- * first `shouldYield`, so its `FiberExited` observer is added before this
- * one and fires first.
+ * Forks the program with the `Durable` service's layer. The root registers
+ * in its first `shouldYield`, so its `FiberExited` observer is added before
+ * this one and fires first.
  */
 const startRoot = <A, E>(
   state: AdapterState,
@@ -53,11 +53,8 @@ const startRoot = <A, E>(
   program: Effect.Effect<A, E, Durable>,
 ) => {
   const scheduler = deterministicScheduler(state, host);
-  const provided = Effect.provideService(
-    program,
-    Durable,
-    makeDurable(state, host),
-  );
+  const durables = Layer.succeed(Durable, makeDurable(state, host));
+  const provided = Effect.provide(program, durables);
   const root = Effect.runFork(provided, { scheduler });
   root.addObserver((exit) => {
     host.emit({ _tag: "RootExit", exit: toRootExit(exit) });
