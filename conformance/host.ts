@@ -12,9 +12,11 @@ import type {
 } from "../src/adapter/Interface.ts";
 
 /**
- * A scripted journal. The notification for token `t` carries
- * `outcomes[t mod outcomes.length]`, so tokens take the outcomes in order
- * and start again from the first when they run out. `cancelBefore`, when
+ * A scripted journal. The `n`-th `Run` token, counted from 0 in token
+ * order, gets `outcomes[n mod outcomes.length]`, so `Run` tokens take the
+ * outcomes in order and start again from the first when they run out. A
+ * `Sleep` token always gets `Value` 0: a real executor completes or
+ * cancels a sleep and never fails it. `cancelBefore`, when
  * set to `k`, sends a `DeliverCancel` in place of the `k`-th notification
  * (counted from 0), to the fiber awaiting at that point.
  */
@@ -52,12 +54,19 @@ export type ScriptedHost = Host & {
   readonly run: (adapter: AdapterRuntime) => void;
 };
 
+/** An awaited token's fiber, and its place among `Run` tokens if a run. */
+interface Awaited {
+  readonly fiber: FiberId;
+  readonly run: number | undefined;
+}
+
 interface HostState {
   readonly log: LogEntry[];
   readonly queue: TaskId[];
-  readonly awaited: Map<Token, FiberId>;
+  readonly awaited: Map<Token, Awaited>;
   readonly live: Set<FiberId>;
   delivered: number;
+  runs: number;
   random: number;
   slice: boolean;
   closing: boolean;
@@ -73,11 +82,21 @@ const nextRandom = (current: number): number =>
 
 const valueZero: Outcome = { _tag: "Value", value: 0 };
 
+/** Numbers a `Run` token among the runs; a `Sleep` token gets none. */
+const awaitedOf = (
+  state: HostState,
+  start: Extract<Event, { readonly _tag: "Start" }>,
+): Awaited => {
+  if (start.op._tag === "Sleep") return { fiber: start.fiber, run: undefined };
+  return { fiber: start.fiber, run: state.runs++ };
+};
+
 /** What the host learns from an event: awaits, queue, fibers, closing. */
 const observe = (state: HostState) => (event: Event) => {
   state.log.push({ _tag: "Emitted", event });
   Match.value(event).pipe(Match.tagsExhaustive({
-    Start: (start) => state.awaited.set(start.token, start.fiber),
+    Start: (start) =>
+      state.awaited.set(start.token, awaitedOf(state, start)),
     Release: (release) => state.awaited.delete(release.token),
     Queue: (queued) => state.queue.push(queued.task),
     FiberExited: (exited) => state.live.delete(exited.fiber),
@@ -117,7 +136,7 @@ const sender = (state: HostState, adapter: AdapterRuntime) =>
     state.slice = false;
   };
 
-/** The awaited token with the lowest number, with its fiber. */
+/** The awaited token with the lowest number, with what awaits it. */
 const oldestAwait = (state: HostState) =>
   [...state.awaited].sort(([left], [right]) => left - right)[0];
 
@@ -130,7 +149,7 @@ const deliverTo = (
   state: HostState,
   journal: Journal,
   send: (task: Task) => void,
-) => ([token, fiber]: readonly [Token, FiberId]) => {
+) => ([token, { fiber, run }]: readonly [Token, Awaited]) => {
   state.awaited.delete(token);
   const cancelDue = !state.cancelled &&
     state.delivered === journal.cancelBefore;
@@ -138,10 +157,15 @@ const deliverTo = (
     state.cancelled = true;
     return send({ _tag: "DeliverCancel", fiber, token });
   }
-  const scripted = journal.outcomes[token % journal.outcomes.length];
   state.delivered += 1;
-  send({ _tag: "Deliver", fiber, token, outcome: scripted ?? valueZero });
+  send({ _tag: "Deliver", fiber, token, outcome: outcomeOf(journal, run) });
 };
+
+/** A run's scripted outcome; `Value` 0 for a sleep. */
+const outcomeOf = (journal: Journal, run: number | undefined): Outcome =>
+  run === undefined
+    ? valueZero
+    : journal.outcomes[run % journal.outcomes.length] ?? valueZero;
 
 /** Once the root has exited, asks every live fiber to stop, lowest first. */
 const interruptLive = (state: HostState, send: (task: Task) => void) => {
@@ -182,6 +206,7 @@ const freshState = (options: HostOptions): HostState => ({
   awaited: new Map(),
   live: new Set(),
   delivered: 0,
+  runs: 0,
   random: options.seed >>> 0,
   slice: false,
   closing: false,
@@ -192,14 +217,14 @@ const freshState = (options: HostOptions): HostState => ({
 /**
  * A stand-in for the executor, not the executor. `run` sends `StartRoot`,
  * then runs queued tasks first in, first out, whatever their priority. When
- * the queue is empty it answers the oldest awaited token from the journal
- * (see {@link Journal}); when nothing is awaited either, and the root has
- * not exited, it logs `Blocked` and stops. Once the root exits it is
- * closing: `register` answers true, every live fiber gets a
- * `RequestInterrupt`, nothing more is delivered, and it stops when the
- * queue is empty. The clock answers the number of notifications delivered
- * so far, in milliseconds; draws come from an LCG started at the seed.
- * `inSlice` is true only inside `runTask`.
+ * the queue is empty it answers the oldest awaited token: a run from the
+ * journal, a sleep with `Value` (see {@link Journal}). When nothing is
+ * awaited either, and the root has not exited, it logs `Blocked` and
+ * stops. Once the root exits it is closing: `register` answers true,
+ * every live fiber gets a `RequestInterrupt`, nothing more is delivered,
+ * and it stops when the queue is empty. The clock answers the number of
+ * notifications delivered so far, in milliseconds; draws come from an LCG
+ * started at the seed. `inSlice` is true only inside `runTask`.
  */
 export const scriptedHost = (
   journal: Journal,

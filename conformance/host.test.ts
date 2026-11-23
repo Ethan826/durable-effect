@@ -151,3 +151,15 @@ test("the log holds each task sent and each event, in order", () => {
     "Sent", "Answered", "Emitted", "Sent", "Emitted", "Emitted",
   ]);
 });
+
+test("a Sleep token receives Value whatever the journal holds", () => {
+  const program = Effect.andThen(Effect.sleep("1 millis"), durable(run));
+  const host = runWith(script([failure(2), failure(1)]), () => program);
+  const outcomes = host.log.flatMap((entry) =>
+    entry._tag === "Sent" && entry.task._tag === "Deliver"
+      ? [entry.task.outcome]
+      : []
+  );
+  assert.deepEqual(outcomes, [value(0), failure(2)]);
+  assert.deepEqual(rootExit(host.log), exitOf({ _tag: "Failure", value: 2 }));
+});
