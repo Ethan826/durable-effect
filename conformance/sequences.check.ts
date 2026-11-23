@@ -20,7 +20,7 @@ import { coqLog } from "./logprops.ts";
 // owner's decision of 2026-11-22: 1,000 sequences for each of the pinned
 // fast-check seeds 1 to 5, tasks the executor never sends included. Each
 // check mirrors a Runtime.v definition (logprops.ts) and reads only the
-// log. Runs on Node: `node --test conformance/`.
+// log. Runs on Node, by `bun run conformance`.
 
 /**
  * The scan minimums over the full budget: the tasks the executor never
@@ -91,7 +91,7 @@ test("I4, I6, I7 and I8 hold over arbitrary task sequences: seeds 1-5, " +
   context.diagnostic(`${counts.runs} sequences; ` +
     `${JSON.stringify(counts.total)}; wall time ${seconds} s`);
   assert.deepEqual(failures, []);
-  assert.ok(counts.runs >= seeds.length * programsPerSeed, `${counts.runs}`);
+  assert.equal(counts.runs, seeds.length * programsPerSeed);
   assert.deepEqual(shortOf(counts.total), []);
 });
 
