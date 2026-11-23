@@ -202,6 +202,18 @@ test("an await on an unregistered fiber dies without a Start", () => {
   expect(log.at(-1)).toEqual(exitWith({ _tag: "Defect" }));
 });
 
+// The root still awaits, so interrupting the wrong fiber would show as its
+// Release.
+test("a RequestInterrupt for a fiber that has exited does nothing", () => {
+  const program = Effect.andThen(Effect.forkChild(Effect.void), durable(run));
+  const { log, runTask } = started(program);
+  drain(runTask, log);
+  expect(log.at(-1)).toEqual({ _tag: "FiberExited", fiber: fiberId(1) });
+  const settled = log.length;
+  runTask({ _tag: "RequestInterrupt", fiber: fiberId(1) });
+  expect(log.length).toBe(settled);
+});
+
 // Effect's callback already ignores a second resume; the adapter forgets
 // the resume too, so a finished await holds nothing.
 test("an await is forgotten once resumed or released", () => {
