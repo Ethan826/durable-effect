@@ -194,6 +194,10 @@ Closed under the global context
 Closed under the global context
 == Durable.ArrivalReplayLemmas.arrival_stuck
 Closed under the global context
+== Durable.ArrivalRunFrom.arrival_iterate_rel
+Closed under the global context
+== Durable.ArrivalRunFrom.arrival_run_from_equivalent
+Closed under the global context
 == Durable.ArrivalSim.arrival_at_boundary_sinf
 Closed under the global context
 == Durable.ArrivalSim.arrival_before_cut_app

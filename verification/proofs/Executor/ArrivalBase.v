@@ -37,6 +37,7 @@ Ltac arrival_split :=
           match goal with
           | |- context [match ?e with _ => _ end] =>
               lazymatch e with
+              | existsb _ _ => let E := fresh "D" in destruct e eqn:E
               | context [match _ with _ => _ end] => fail
               | _ => destruct e
               end
