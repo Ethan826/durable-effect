@@ -137,7 +137,7 @@ const drawsOf = (seed: number) => {
 };
 
 test("draws come from the seed: the same seed gives the same draws", () => {
-  assert.equal(drawsOf(3).length, 2);
+  assert.equal(drawsOf(3).length, 4, "Random.next takes two draws");
   assert.deepEqual(drawsOf(3), drawsOf(3));
   assert.notDeepEqual(drawsOf(3), drawsOf(4));
 });

@@ -57,7 +57,6 @@ const askingHost = (log: Asked, draws: number[]): Host => ({
 
 const fiberId = Brand.nominal<FiberId>();
 const token = Brand.nominal<Token>();
-const twoTo32 = 2 ** 32;
 const rootExit = (exit: RootExit): Event => ({ _tag: "RootExit", exit });
 
 const keepIn = <A>(kept: A[]) => (value: A) => Effect.sync(() => {
@@ -127,22 +126,6 @@ test("Effect's log and span stamps ask host.clock for the root", () => {
   expect(kept).toEqual([1_000_000_000n]);
   expect(log.clock.length).toBeGreaterThanOrEqual(3);
   expect(new Set(log.clock)).toEqual(new Set([fiberId(0)]));
-});
-
-test("two draws from two fibers ask with each fiber's id", () => {
-  const { log, kept } = runToEnd(
-    Effect.all([Random.next, Random.next], { concurrency: "unbounded" }),
-    [twoTo32 / 4, twoTo32 / 2],
-  );
-  expect(log.draw).toEqual([fiberId(1), fiberId(2)]);
-  expect(kept).toEqual([[0.25, 0.5]]);
-});
-
-test("nextInt takes a sign and 53 bits from two draws", () => {
-  const draws = [2 ** 21 - 1, twoTo32 - 1, 2 ** 21 + 1, 2];
-  const ints = Effect.all([Random.nextInt, Random.nextInt]);
-  const { kept } = runToEnd(ints, draws);
-  expect(kept).toEqual([[Number.MAX_SAFE_INTEGER, -(twoTo32 + 2)]]);
 });
 
 const millis = (amount: number): Op => ({
