@@ -1,4 +1,6 @@
 import { Brand, Fiber } from "effect";
+import type { Effect } from "effect";
+import type { Durable } from "../src/adapter/Durable.ts";
 import type {
   AdapterRuntime,
   Event,
@@ -55,13 +57,32 @@ export interface LifecycleRun {
   readonly fibers: ReadonlyArray<AnyFiber>;
   /** Of those, how many started internal or detached; inline wakes. */
   readonly kinds: Started;
+  /** Every registration, with the host's answer and Effect's mask. */
+  readonly registrations: ReadonlyArray<Registration>;
 }
 
 // Above every id a run queues, so `RunQueued` of it names no task.
 const idleTask = Brand.nominal<TaskId>()(Number.MAX_SAFE_INTEGER);
 
-/** The Effect fibers by the ids the adapter registered them under. */
-type Registry = Map<number, AnyFiber>;
+/**
+ * One `register` question: the fiber, whether the host asked for its
+ * interruption (it does while closing), and whether Effect had the fiber
+ * masked as it registered, by its own `interruptible` flag.
+ */
+export interface Registration {
+  readonly fiber: number;
+  readonly closing: boolean;
+  readonly masked: boolean;
+}
+
+/** The Effect fibers by registered id, and every registration. */
+interface Registry {
+  readonly fibers: Map<number, AnyFiber>;
+  readonly registrations: Registration[];
+}
+
+const isMasked = (fiber: AnyFiber) =>
+  Reflect.get(fiber, "interruptible") === false;
 
 /**
  * The host the adapter talks to: each `register` question notes the
@@ -72,16 +93,19 @@ const noting = (host: Host, registry: Registry): Host => ({
   ...host,
   register: (fiber) => {
     const current = Fiber.getCurrent();
-    if (current !== undefined) registry.set(fiber, current);
-    return host.register(fiber);
+    const closing = host.register(fiber);
+    if (current === undefined) return closing;
+    registry.fibers.set(fiber, current);
+    const masked = isMasked(current);
+    registry.registrations.push({ fiber, closing, masked });
+    return closing;
   },
 });
 
 /** Effect's own mask on the fiber a request names, if it is known. */
 const maskOf = (registry: Registry, task: Task) => {
-  const fiber = "fiber" in task ? registry.get(task.fiber) : undefined;
-  return fiber === undefined ? undefined
-    : Reflect.get(fiber, "interruptible") === false;
+  const fiber = "fiber" in task ? registry.fibers.get(task.fiber) : undefined;
+  return fiber === undefined ? undefined : isMasked(fiber);
 };
 
 /** The adapter with each task's loops and log entries recorded. */
@@ -164,35 +188,52 @@ const afterStep = (
   });
 };
 
+/** A handler as the adapter takes it. */
+export type Handler = Effect.Effect<unknown, unknown, Durable>;
+
 /** The adapter, recorded, with the injector that sends tasks into it. */
-const instrumented = (host: ScriptedHost, program: Program, make: Variant) => {
+const instrumented = (host: ScriptedHost, handler: Handler, make: Variant) => {
   const records: TaskRecord[] = [];
   const mark: Mark = { kind: "host" };
-  const registry: Registry = new Map();
-  const inner = make(interpret(program), 0, noting(host, registry));
-  const adapter = recording(host, inner, records, mark, registry);
-  return { adapter, records, inject: injector(host, adapter, mark) };
+  const registry: Registry = { fibers: new Map(), registrations: [] };
+  const adapter = recording(host, make(handler, 0, noting(host, registry)),
+    records, mark, registry);
+  return { adapter, records, inject: injector(host, adapter, mark), registry };
 };
 
 /**
- * Runs a program under the adapter, or a variant, with the scripted host
- * paced so that the lifecycle tasks go in between its steps.
+ * Runs a handler written directly in Effect, as `lifecycleRun` runs a
+ * program of the grammar; `program` is what the shape counts read, and
+ * is empty for such a handler.
  */
-export const lifecycleRun = async (
-  [program, journal]: readonly [Program, Journal],
+export const lifecycleRunOf = async (
+  handler: Handler,
+  sampled: readonly [Program, Journal],
   seed: number,
   make: Variant = makeAdapter,
 ): Promise<LifecycleRun> => {
   beginRun();
-  const host = scriptedHost(journal, { seed });
-  const run = instrumented(host, program, make);
+  const host = scriptedHost(sampled[1], { seed });
+  const run = instrumented(host, handler, make);
   const cursor = { at: 0 };
   await host.runPaced(run.adapter, async () => {
     afterStep(host, run.inject, cursor);
   });
   afterStep(host, run.inject, cursor);
   return {
-    program, log: host.log, records: run.records,
-    fibers: fibersRun(), kinds: startedKinds(),
+    program: sampled[0], log: host.log, records: run.records,
+    fibers: fibersRun(),
+    kinds: startedKinds(), registrations: run.registry.registrations,
   };
 };
+
+/**
+ * Runs a program under the adapter, or a variant, with the scripted host
+ * paced so that the lifecycle tasks go in between its steps.
+ */
+export const lifecycleRun = (
+  sampled: readonly [Program, Journal],
+  seed: number,
+  make: Variant = makeAdapter,
+): Promise<LifecycleRun> =>
+  lifecycleRunOf(interpret(sampled[0]), sampled, seed, make);

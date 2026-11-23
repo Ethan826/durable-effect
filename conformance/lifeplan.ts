@@ -32,8 +32,7 @@ export const zeroScans: AllScans = {
   cancels: 0, idleTasks: 0, successExits: 0, failureExits: 0,
   interruptedExits: 0, fibers: 0, internalFibers: 0, detachedFibers: 0,
   closingRegistrations: 0, durableRaces: 0, pureTimeouts: 0, inlineWakes: 0,
-  blockedChildren: 0, yieldingFinalizers: 0, maskedAtClosing: 0,
-  closingForEach: 0,
+  blockedChildren: 0, yieldingFinalizers: 0, maskedClosingRegistrations: 0,
   foreignResumes: 0, foreignInterrupts: 0, maskedWaiters: 0,
 };
 
@@ -48,19 +47,22 @@ type Floor = readonly [keyof AllScans, number];
 
 /**
  * The scan minimums: what each property's check must have examined over
- * the full budget, and each case #37's "Conformance test" column names
- * (shapes.ts). Each is the count the adapter's full budget gave when it
- * was set (Task 12), rounded down to two significant figures, so a check
- * that stops looking, or a grammar that stops reaching a case, fails
- * here. Measured: foreign resumes 3,775, foreign interrupts 520,241,
- * masked waiters resumed 1,898; interrupts of awaits 2,034 unmasked and
- * 30,094 masked, late deliveries 2,384, cancels 144, programs with a
- * durable race 1,384 and with a pure timeout 1,383; idle tasks 112,666,
- * inline forks 4,530, inline wakes 550, forked bodies awaiting a
- * deferred 100; root exits 1,294 success, 193 failure, 2,035
+ * the full budget, and the cases of #37's "Conformance test" column the
+ * grammar reaches (shapes.ts). Each is the count the adapter's full
+ * budget gave when it was set (Task 12), rounded down to two significant
+ * figures, so a check that stops looking, or a grammar that stops
+ * reaching a case, fails here. Measured: foreign resumes 3,775 (in the
+ * first resuming run), foreign interrupts 520,241 (in the interrupt-only
+ * run), masked waiters resumed 1,898; interrupts of awaits 2,034
+ * unmasked and 30,094 masked, late deliveries 2,384, cancels 144,
+ * programs with a durable race 1,384 and with a pure timeout 1,383; idle
+ * tasks 112,666, inline forks 4,530, inline wakes 550, forked bodies
+ * awaiting a deferred 100; root exits 1,294 success, 193 failure, 2,035
  * interrupted, past a finalizer that may yield 316; fibers 10,100,
- * detached 153, registered while closing 66, masked at closing 7,
- * closing with a detached `forEach` in a finalizer 1.
+ * detached 153, registered while closing 66. I8's case of a fiber masked
+ * when it registers during closing measures 0 here and has no floor: the
+ * grammar cannot start a fork masked (grammar.ts:59), so closing.ts pins
+ * it.
  */
 export const scanMinimums: Readonly<Record<LifecycleProperty, ReadonlyArray<
   Floor
@@ -84,8 +86,7 @@ export const scanMinimums: Readonly<Record<LifecycleProperty, ReadonlyArray<
   ],
   I8: [
     ["fibers", 10_000], ["internalFibers", 4500], ["detachedFibers", 150],
-    ["closingRegistrations", 66], ["maskedAtClosing", 7],
-    ["closingForEach", 1],
+    ["closingRegistrations", 66],
   ],
 };
 
