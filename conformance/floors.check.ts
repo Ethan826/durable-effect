@@ -6,7 +6,11 @@ import { listingGaps } from "./listing.ts";
 import { fullScanOf, runLifecycle, zeroScans } from "./lifeplan.ts";
 import type { LifeOutcome } from "./lifeplan.ts";
 import { programsPerSeed, seeds } from "./plan.ts";
-import { isRequiredSequence, sequenceScanFull } from "./strays.ts";
+import {
+  isRequiredSequence,
+  noteSequence,
+  sequenceScanFull,
+} from "./strays.ts";
 
 // Fixtures for the scan floors of the lifecycle and sequence runs, the
 // grammar inventory and the file lists (gate-integrity). gate.check.ts
@@ -52,6 +56,18 @@ test("the sequence scan needs the exact count and the required one", () => {
   assert.equal(sequenceScanFull(every - 1, true, every), false);
   assert.equal(sequenceScanFull(every + 1, true, every), false);
 });
+
+test("the sequence scan counts each sequence and keeps the required one",
+  () => {
+    assert.deepEqual(noteSequence({ runs: 0, reached: false }, 1),
+      { runs: 1, reached: false });
+    assert.deepEqual(noteSequence({ runs: 4999, reached: false }, 5),
+      { runs: 5000, reached: true });
+    assert.deepEqual(noteSequence({ runs: 4999, reached: false }, 4),
+      { runs: 5000, reached: false });
+    assert.deepEqual(noteSequence({ runs: 5000, reached: true }, 5),
+      { runs: 5001, reached: true });
+  });
 
 const files = ["a.check.ts", "b.check.ts", "determinism.check.ts"];
 const quick = ["a.check.ts", "b.check.ts"];

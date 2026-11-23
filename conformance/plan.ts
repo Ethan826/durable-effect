@@ -27,6 +27,10 @@ export const fullScan = (outcome: Outcome): boolean =>
     run.seed === requiredProgram.seed && run.index === requiredProgram.index
   ).length >= freshRoles.length + 1;
 
+/** The comparison floor: a property compared every program of the budget. */
+export const comparedEvery = (programs: number): boolean =>
+  programs === seeds.length * programsPerSeed;
+
 /** Which runs report their whole log: none, or one seed's. */
 type Detail = { readonly seed: number } | undefined;
 

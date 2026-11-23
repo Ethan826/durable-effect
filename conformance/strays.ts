@@ -91,3 +91,24 @@ export const sequenceScanFull = (
   reachedRequired: boolean,
   budget: number,
 ): boolean => runs === budget && reachedRequired;
+
+/** How far a sequence scan has got: sequences run, the required one seen. */
+export interface SequenceProgress {
+  readonly runs: number;
+  readonly reached: boolean;
+}
+
+/**
+ * The progress after one more sequence of `seed`. Once the required
+ * sequence has run, the scan has reached it for good.
+ */
+export const noteSequence = (
+  progress: SequenceProgress,
+  seed: number,
+): SequenceProgress => {
+  const runs = progress.runs + 1;
+  return {
+    runs,
+    reached: progress.reached || isRequiredSequence(seed, runs),
+  };
+};

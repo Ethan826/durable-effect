@@ -13,7 +13,7 @@ import {
 } from "./sequences.ts";
 import type { Sequence } from "./sequences.ts";
 import {
-  isRequiredSequence,
+  noteSequence,
   sequenceScanFull,
   unusualIn,
 } from "./strays.ts";
@@ -76,8 +76,7 @@ const checkSeed = (
 ) => fc.check(fc.property(sequence, (one: Sequence) => {
   const log = drive(one, make);
   counts.total = sum(counts.total, unusualIn(log));
-  counts.runs += 1;
-  counts.reached ||= isRequiredSequence(seed, counts.runs);
+  Object.assign(counts, noteSequence(counts, seed));
   return holds(log);
 }), { seed, numRuns: programsPerSeed });
 
