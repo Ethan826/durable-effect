@@ -63,18 +63,43 @@ const records = (run: LifecycleRun, kind: TaskRecord["kind"]) =>
 const ranSomething = (record: TaskRecord) =>
   record.loops > 0 || record.to > record.from;
 
-/** An interruption of an awaiting fiber: did each await release? */
+/**
+ * Each await open at an interruption request, with Effect's mask on the
+ * target as the harness read it before the task (lifecycle.ts), and
+ * whether the task reported its release.
+ */
 const interruptsOf = (run: LifecycleRun) =>
   records(run, "interrupt").flatMap((record) => {
     const target = "fiber" in record.task ? record.task.fiber : -1;
     const released = releases(entriesOf(run.log, record));
-    return awaitedBy(run.log, record.from - 1, target).map((token) =>
-      ({ token, masked: !released.has(token), after: record.from }));
+    return awaitedBy(run.log, record.from - 1, target).map((token) => ({
+      token,
+      masked: record.masked,
+      released: released.has(token),
+      after: record.from,
+    }));
   });
+
+type Interrupted = ReturnType<typeof interruptsOf>[number];
+
+/**
+ * The branch Effect's mask selects. Unmasked: the release is reported in
+ * the interrupt's own task. Masked: no release. A target the registry
+ * never saw cannot be judged, which is itself a finding.
+ */
+const wrongBranch = ({ token, masked, released }: Interrupted) => {
+  if (masked === undefined) return `interrupt of an unregistered fiber`;
+  if (!masked && !released) {
+    return `unmasked await of token ${token} reported no release`;
+  }
+  return masked && released
+    ? `masked await of token ${token} reported a release`
+    : undefined;
+};
 
 /** A masked await kept through an interruption accepts its delivery. */
 const maskedRefused = (run: LifecycleRun) => {
-  const masked = interruptsOf(run).filter((one) => one.masked);
+  const masked = interruptsOf(run).filter((one) => one.masked === true);
   return masked.flatMap(({ token, after }) => {
     const delivery = run.records.find((record) => record.from > after &&
       record.kind === "host" && record.task._tag === "Deliver" &&
@@ -98,12 +123,14 @@ const cancelUnreleased = (run: LifecycleRun) =>
 
 /**
  * I4: Runtime.v's log form (quiet until the await ends, no token twice);
- * a delivery after a release does nothing; a masked await keeps its
+ * the branch Effect's own mask selects at an interruption request; a
+ * delivery after a release does nothing; a masked await keeps its
  * delivery; a delivered cancellation releases.
  */
 const i4 = (run: LifecycleRun): string | undefined => {
   const late = records(run, "late").find(ranSomething);
   return i4Breach(coqLog(run.log)) ??
+    interruptsOf(run).map(wrongBranch).find((found) => found) ??
     (late && `a delivery after the release of ${JSON.stringify(late.task)}` +
       ` ran ${late.loops} loops`) ??
     maskedRefused(run) ?? cancelUnreleased(run);
@@ -170,9 +197,10 @@ const exitKinds = (log: ReadonlyArray<LogEntry>) => ({
 /** What one run's checks examined. */
 export const scansOf = (run: LifecycleRun): Scans => {
   const interrupts = interruptsOf(run);
-  const masked = interrupts.filter((one) => one.masked).length;
+  const masked = interrupts.filter((one) => one.masked === true).length;
   return {
-    unmaskedInterrupts: interrupts.length - masked,
+    unmaskedInterrupts: interrupts.filter((one) => one.masked === false)
+      .length,
     maskedInterrupts: masked,
     lateDeliveries: records(run, "late").length,
     cancels: run.records.filter((record) =>

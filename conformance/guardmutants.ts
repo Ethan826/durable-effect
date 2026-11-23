@@ -7,7 +7,8 @@ import type { Variant } from "./mutants.ts";
 // I3's mutants, #37's table: a callback resumed with
 // `PreventSchedulerYield` set; an adapter that runs the resumed
 // continuation; one without the `interruptUnsafe` wrapper; and a wrapper
-// that records the violation and then forwards the call.
+// that records the violation and then forwards the call; and one more, an
+// executor action after a foreign resume.
 
 type Wrap = (inner: Scheduler.Scheduler, host: Host) => Scheduler.Scheduler;
 
@@ -89,10 +90,25 @@ const recordsThenForwards = rewired((guard, original, host) =>
     if (!host.inSlice()) original(...args);
   });
 
+/**
+ * After reporting a foreign resume, takes an executor action: it reports
+ * the resumed fiber as exited, outside any slice. Not in #37's list; the
+ * review asked for it, to show the check after a resume can fail.
+ */
+const actsOnResume: Variant = (program, seed, host) =>
+  makeAdapter(program, seed, {
+    ...host,
+    foreign: (kind, fiber) => {
+      host.foreign(kind, fiber);
+      if (kind === "resume") host.emit({ _tag: "FiberExited", fiber });
+    },
+  });
+
 /** I3's mutants, by name. */
 export const guardMutants = {
   preventYield,
   runsContinuation,
   withoutWrapper,
   recordsThenForwards,
+  actsOnResume,
 } as const;

@@ -12,10 +12,10 @@ import { interpret } from "./interpret.ts";
 import type { Variant } from "./mutants.ts";
 
 // I3's runs (#37's table): a program with a foreign waiter added, run
-// three times. The baseline sends nothing foreign. The two foreign runs,
-// between every pair of tasks, call `interruptUnsafe` on every live
-// fiber, and resume the waiter once its callback is waiting, each run
-// with its own arguments and value. Neither may change the trace.
+// four times. The baseline sends nothing foreign. The other three, between
+// every pair of tasks, call `interruptUnsafe` on every live fiber; the
+// last two also resume the waiter once its callback is waiting, each with
+// its own arguments and value. i3check.ts judges them.
 
 /** Which fiber waits for the foreign callback. */
 export type Target = "root" | "child" | "detached";
@@ -26,15 +26,20 @@ export interface Placement {
   readonly masked: boolean;
 }
 
-/** A foreign run's inputs: the interrupt's arguments, the value. */
+/**
+ * A foreign run's inputs: the interrupt's arguments, and the value of
+ * the resume, if the run resumes the waiter at all.
+ */
 interface Inputs {
   readonly args: Parameters<AnyFiber["interruptUnsafe"]>;
-  readonly value: number;
+  readonly resume: number | undefined;
 }
 
-const foreignInputs: readonly [Inputs, Inputs] = [
-  { args: [], value: 1 },
-  { args: [42, Context.empty()], value: 2 },
+/** Foreign interrupts only; then interrupts and a resume, twice. */
+const foreignInputs: readonly [Inputs, Inputs, Inputs] = [
+  { args: [42, Context.empty()], resume: undefined },
+  { args: [], resume: 1 },
+  { args: [42, Context.empty()], resume: 2 },
 ];
 
 /** The waiter's callback, and the cell its continuation writes first. */
@@ -83,9 +88,10 @@ const foreignStep = (point: Point, inputs: Inputs, sent: Sent) => {
       fiber.interruptUnsafe(...inputs.args);
     });
   const resume = point.resume;
-  if (resume === undefined || sent.resumes > 0) return;
+  const value = inputs.resume;
+  if (resume === undefined || value === undefined || sent.resumes > 0) return;
   sent.resumes += 1;
-  resume(Effect.succeed(inputs.value));
+  resume(Effect.succeed(value));
 };
 
 /** One of I3's runs: the log, the cell, and what was sent. */
@@ -132,7 +138,10 @@ const runOnce = async (
   return { log: host.log, cell: point.cell, sent };
 };
 
-/** The baseline and the two foreign runs of one program. */
+/**
+ * The runs of one program, in order: the baseline; foreign interrupts
+ * only; and foreign interrupts with a resume, by each value.
+ */
 export const foreignRuns = async (
   sampled: readonly [Program, Journal],
   seed: number,
@@ -142,74 +151,9 @@ export const foreignRuns = async (
   // One after another: the census holds one run's fibers at a time.
   const run = (inputs: Inputs | undefined) =>
     runOnce({ sampled, seed, placement, make }, inputs);
-  const [first, second] = foreignInputs;
-  return [await run(undefined), await run(first), await run(second)];
-};
-
-const hostNote = (entry: LogEntry) => entry._tag === "Foreign" ||
-  entry._tag === "Discarded" || entry._tag === "Global";
-
-const isForeignResume = (entry: LogEntry) =>
-  entry._tag === "Foreign" && entry.kind === "resume";
-
-/** The trace: the log without the host's notes of foreign calls. */
-const traceOf = (log: ReadonlyArray<LogEntry>) =>
-  log.filter((entry) => !hostNote(entry)).map((entry) =>
-    JSON.stringify(entry)
-  );
-
-/** The trace before the first foreign resume: interrupts only. */
-const beforeResume = (run: ForeignRun) => {
-  const at = run.log.findIndex(isForeignResume);
-  return traceOf(at === -1 ? run.log : run.log.slice(0, at));
-};
-
-const foreignCount = (run: ForeignRun, kind: "resume" | "interrupt") =>
-  run.log.filter((entry) => entry._tag === "Foreign" && entry.kind === kind)
-    .length;
-
-const sameTrace = (left: ReadonlyArray<string>, right: ReadonlyArray<string>) =>
-  left.length === right.length && left.every((entry, at) =>
-    entry === right[at]
-  );
-
-/** What is wrong with one foreign run, on its own or against baseline. */
-const foreignBreach = (baseline: ReadonlyArray<string>) =>
-  (run: ForeignRun, at: number) => {
-    const name = `foreign run ${at + 1}`;
-    if (run.cell !== 0) return `${name}: the continuation wrote ${run.cell}`;
-    const resumes = foreignCount(run, "resume");
-    const interrupts = foreignCount(run, "interrupt");
-    if (resumes !== run.sent.resumes || interrupts !== run.sent.interrupts) {
-      return `${name}: ${run.sent.resumes} resumes and ` +
-        `${run.sent.interrupts} interrupts sent, ${resumes} and ` +
-        `${interrupts} reported foreign`;
-    }
-    const prefix = beforeResume(run);
-    return sameTrace(prefix, baseline.slice(0, prefix.length)) ? undefined
-      : `${name}: a foreign interrupt changed the trace`;
-  };
-
-/**
- * I3, #37's test: in each foreign run the waiter's continuation never
- * wrote its cell, and each foreign call was reported as foreign. Before
- * the foreign resume, when only foreign interrupts have been sent, the
- * trace is the baseline's: a foreign interrupt leaves the state as it
- * was. The two foreign runs, with their different arguments and values,
- * give the same trace. After a foreign resume the runtime's own
- * bookkeeping may have changed (#37), such as the task counter that the
- * discarded yield used, so the baseline is not compared there.
- */
-export const i3Breach = (
-  runs: ReadonlyArray<ForeignRun>,
-): string | undefined => {
-  const [baseline, first, second] = runs;
-  if (baseline === undefined || first === undefined || second === undefined) {
-    return "a run is missing";
-  }
-  const own = [first, second].map(foreignBreach(traceOf(baseline.log)))
-    .find((breach) => breach !== undefined);
-  return own ?? (sameTrace(traceOf(first.log), traceOf(second.log))
-    ? undefined
-    : "the two foreign runs' traces differ");
+  const [only, first, second] = foreignInputs;
+  return [
+    await run(undefined), await run(only), await run(first),
+    await run(second),
+  ];
 };
