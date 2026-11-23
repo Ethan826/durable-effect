@@ -15,9 +15,10 @@
 #
 # Run from verification/proofs, with the project's opam switch active and the project
 # built, and with Node on the PATH. Exits 0 only if every case agrees in both targets, at
-# least $FLOOR cases against the kernel ran, and both mutants fail.
+# exactly $EXPECTED cases against the kernel ran (a pinned count, so coverage cannot
+# shrink silently), and both mutants fail. Skipped statements are printed by name.
 set -u
-FLOOR=30
+EXPECTED=57
 STACK=8000
 here=$(pwd)
 work=$(mktemp -d)
@@ -31,7 +32,8 @@ names=$(grep -H -E '^(Theorem|Lemma) ' Executor/Witnesses*.v Executor/Rev3Counte
 {
   cat <<'EOF'
 From Coq Require Import List ZArith String Extraction.
-From Durable Require Import Runtime Exec Concrete Rev3 Witnesses Witnesses2 Witnesses3.
+From Durable Require Import Runtime Exec Concrete Rev3 Witnesses Witnesses2 Witnesses3
+  Witnesses4.
 From Durable Require Rev3Counter.
 Import ListNotations.
 Open Scope string_scope.
@@ -39,15 +41,15 @@ Open Scope string_scope.
    expected side is marked when it is itself a run of an executor. *)
 Ltac self_mark r := match r with
   | run _ _ _ _ _ => constr:(true) | run3 _ _ _ _ _ => constr:(true) | _ => constr:(false) end.
+Ltac eqs_of name T := match T with
+  | ?A /\ ?B =>
+      let a := eqs_of name A in let b := eqs_of name B in constr:(List.app a b)
+  | ?l = ?r => let s := self_mark r in constr:([(name, s, l, r)])
+  end.
 Ltac cases_of name th :=
   let T := type of th in
   let T' := eval cbv zeta in T in
-  match T' with
-  | ?l1 = ?r1 /\ ?l2 = ?r2 =>
-      let s1 := self_mark r1 in let s2 := self_mark r2 in
-      exact [(name, s1, l1, r1); (append name " (2)", s2, l2, r2)]
-  | ?l = ?r => let s := self_mark r in exact [(name, s, l, r)]
-  end.
+  let cs := eqs_of name T' in exact cs.
 EOF
   for t in $names; do
     id=$(printf '%s' "$t" | tr . _)
@@ -70,7 +72,8 @@ let () =
   let ok = ref 0 and self = ref 0 and bad = ref 0 and skipped = ref 0 in
   List.iter (fun (((n, is_self), computed), expected) ->
       let n = name_of n in
-      if String.length n >= 8 && String.sub n 0 8 = "SKIPPED " then incr skipped
+      if String.length n >= 8 && String.sub n 0 8 = "SKIPPED " then
+        (incr skipped; Printf.printf "skip %s\n" n)
       else if computed <> expected then (incr bad; Printf.printf "MISMATCH %s\n" n)
       else if is_self then incr self
       else incr ok)
@@ -97,13 +100,15 @@ build() {
 build .
 native=$(./check); nstatus=$?
 js=$(node --stack-size=$STACK check.js); jstatus=$?
-echo "native: $native"
-echo "javascript: $js"
+echo "native: $(printf '%s\n' "$native" | tail -1)"
+echo "javascript: $(printf '%s\n' "$js" | tail -1)"
+printf '%s\n' "$native" | grep '^skip ' || true
 [ "$nstatus" -eq 0 ] || fail "the native extracted executor disagrees with the kernel"
 [ "$jstatus" -eq 0 ] || fail "the JavaScript extracted executor disagrees with the kernel"
 [ "$native" = "$js" ] || fail "native and JavaScript results differ"
 agreed=$(printf '%s\n' "$native" | sed -n 's/^agree=\([0-9]*\).*/\1/p')
-[ -n "$agreed" ] && [ "$agreed" -ge "$FLOOR" ] || fail "only ${agreed:-0} cases ran, floor $FLOOR"
+[ -n "$agreed" ] && [ "$agreed" -eq "$EXPECTED" ] \
+  || fail "${agreed:-0} cases agree, pinned count $EXPECTED"
 
 mkdir mutant && cp durable_cases.mli main.ml mutant/ || fail "no mutant directory"
 sed 's/^let cmd_eqb a b =$/let cmd_eqb _ _ = true\nlet _cmd_eqb_orig a b =/' durable_cases.ml \

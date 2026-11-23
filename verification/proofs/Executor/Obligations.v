@@ -60,3 +60,30 @@ Definition HeldStartIssuesNothing : Prop :=
 Definition RunFromEquivalent : Prop :=
   forall R, Meets R -> forall p I Sch r n,
     requiv R r (init R p (seed I)) -> run_from R p I Sch r n = run R p I Sch n.
+
+(** No durable command comes before the first delivered cancellation in a window of the
+    trace. *)
+Definition before_cancel (suf : list Action) : Prop :=
+  forall pre c op o post, suf = pre ++ ACommand c (KOp op) o :: post ->
+    exists f tok, In (ACancelled f tok) pre.
+
+(** X5 in the order it states: for a runtime that meets the interface, from a reachable open
+    state with a cancellation held, while the attempt stays open, every durable command is
+    preceded by a delivered cancellation. [HeldCancelDelivered] says only that a cancellation
+    is delivered somewhere in the window or no command is issued; the second independent
+    review found that weaker than X5 (its finding 1). *)
+Definition HeldCancelDeliveredFirst : Prop :=
+  forall R, Meets R -> forall p I Sch n m,
+    let x := xs (iterate R I Sch n (initial R p I)) in
+    let y := xs (iterate R I Sch (n + m) (initial R p I)) in
+    phase x = POpen -> held x = true -> phase y = POpen ->
+    before_cancel (skipn (length (trace x)) (trace y)).
+
+(** A run from any runtime state equivalent to the initial one reaches the same executor state
+    at every step, not only the same trace, so the statements about executor states (S4,
+    [HeldCancelDelivered]) hold for attempts in any process (the second independent review's
+    finding 2). *)
+Definition RunFromEquivalentState : Prop :=
+  forall R, Meets R -> forall p I Sch r n,
+    requiv R r (init R p (seed I)) ->
+    xs (iterate R I Sch n (start_from R p I r)) = xs (iterate R I Sch n (initial R p I)).
