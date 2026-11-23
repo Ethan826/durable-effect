@@ -1364,6 +1364,8 @@ Closed under the global context
 Closed under the global context
 == Durable.Witnesses2.zero_sleep_release_drops_delivery
 Closed under the global context
+== Durable.Witnesses3.held_cancel_survives_release
+Closed under the global context
 == Scheduling.Abandonment.Inv0_initial
 Closed under the global context
 == Scheduling.Abandonment.deliver_after
