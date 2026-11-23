@@ -19,6 +19,11 @@ const omitting = [
   ["closingForEach", closingCases.closingForEach, lifeMutants.omitInternal],
 ] as const;
 
+test("the pinned I8 cases are the two #37 names", () => {
+  assert.deepEqual(cases.map(([name]) => name),
+    ["maskedDetached", "closingForEach"]);
+});
+
 for (const [name, handler] of cases) {
   test(`pinned case ${name}: a masked fiber registers during closing, ` +
     "and I6, I8 and Runtime.v's log properties hold", async (context) => {

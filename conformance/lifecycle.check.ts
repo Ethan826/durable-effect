@@ -21,9 +21,12 @@ import type { LifeOutcome } from "./lifeplan.ts";
 // suite: seeds 1 to 5, 1,000 programs each, run in this one process (the
 // dossier asks for fresh processes only for I1 and I2). Each mutant of
 // #37's table must fail its property on a property finding within that
-// budget. Runs on Node: `node --test conformance/`.
+// budget. Runs on Node, by `bun run conformance`.
 
-const empty: LifeOutcome = { programs: 0, violations: {}, scans: zeroScans };
+const empty: LifeOutcome = {
+  programs: 0, violations: {}, scans: zeroScans,
+  reachedRequired: false,
+};
 
 test("every scan minimum names its shortfall when its count is low", () => {
   const short = lifecycleProperties.map((property) =>
@@ -34,6 +37,14 @@ test("every scan minimum names its shortfall when its count is low", () => {
   );
   assert.deepEqual(short, floors);
   assert.equal(fullScanOf(empty), false);
+});
+
+test("the full scan needs every program and the required one", () => {
+  const every = seeds.length * programsPerSeed;
+  const all: LifeOutcome = { ...empty, programs: every, reachedRequired: true };
+  assert.equal(fullScanOf(all), true);
+  assert.equal(fullScanOf({ ...all, reachedRequired: false }), false);
+  assert.equal(fullScanOf({ ...all, programs: every - 1 }), false);
 });
 
 /** A variant whose first task throws, as a crashed run would. */
@@ -70,6 +81,7 @@ for (const property of lifecycleProperties) {
       context.diagnostic(`${outcome.programs} programs; scans ` +
         `${JSON.stringify(outcome.scans)}; wall time ${seconds} s`);
       assert.equal(outcome.programs, seeds.length * programsPerSeed);
+      assert.ok(fullScanOf(outcome), "the required program did not finish");
       const violation = outcome.violations[property];
       assert.equal(violation, undefined, describe(violation));
       assert.deepEqual(shortfall(property, outcome), []);

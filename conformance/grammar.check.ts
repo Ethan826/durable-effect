@@ -53,9 +53,32 @@ const countsIn = (statement: Statement): ReadonlyArray<unknown> =>
 const samples = fc.sample(program, { seed: 1, numRuns: sampleCount });
 const statements = samples.flatMap(allStatements);
 
+/** What is wrong with the inventory: empty, or a kind never generated. */
+const inventoryGaps = (
+  required: ReadonlyArray<string>,
+  seen: ReadonlySet<string>,
+): ReadonlyArray<string> =>
+  required.length === 0
+    ? ["the grammar inventory is empty"]
+    : required.filter((kind) => !seen.has(kind)).map((kind) => `no ${kind}`);
+
+test("an empty inventory, or a kind never generated, is a gap", () => {
+  assert.deepEqual(inventoryGaps([], new Set(["Run"])),
+    ["the grammar inventory is empty"]);
+  assert.deepEqual(inventoryGaps(["Run", "Sleep"], new Set(["Run"])),
+    ["no Sleep"]);
+  assert.deepEqual(inventoryGaps(["Run"], new Set(["Run"])), []);
+});
+
+test("the inventory lists the 38 statement kinds, and 1,000 samples", () => {
+  assert.equal(statementKinds.length, 38);
+  assert.equal(new Set(statementKinds).size, 38);
+  assert.equal(samples.length, sampleCount);
+});
+
 test("over 1,000 samples every statement kind occurs", () => {
   const seen = new Set<string>(statements.map((one) => one._tag));
-  assert.deepEqual(statementKinds.filter((kind) => !seen.has(kind)), []);
+  assert.deepEqual(inventoryGaps(statementKinds, seen), []);
   assert.equal(seen.size, statementKinds.length);
 });
 

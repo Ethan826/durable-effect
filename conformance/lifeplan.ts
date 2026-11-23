@@ -10,7 +10,7 @@ import { shapeScans } from "./shapes.ts";
 import type { ShapeScans } from "./shapes.ts";
 import { lifecycleRun } from "./lifecycle.ts";
 import type { LifecycleProperty, Variant } from "./mutants.ts";
-import { programsPerSeed, seeds } from "./plan.ts";
+import { programsPerSeed, requiredProgram, seeds } from "./plan.ts";
 import type { Violation } from "./properties.ts";
 import { caseAt } from "./runs.ts";
 
@@ -41,6 +41,8 @@ export interface LifeOutcome {
   readonly programs: number;
   readonly violations: Partial<Record<LifecycleProperty, Violation>>;
   readonly scans: AllScans;
+  /** Whether the run of `requiredProgram` finished. */
+  readonly reachedRequired: boolean;
 }
 
 type Floor = readonly [keyof AllScans, number];
@@ -102,7 +104,8 @@ export const shortfall = (
 
 /** The scan minimum on programs: every program of the full budget ran. */
 export const fullScanOf = (outcome: LifeOutcome): boolean =>
-  outcome.programs >= seeds.length * programsPerSeed;
+  outcome.programs >= seeds.length * programsPerSeed &&
+  outcome.reachedRequired;
 
 const targets: ReadonlyArray<Target> = ["root", "child", "detached"];
 
@@ -117,6 +120,7 @@ interface Tally {
   programs: number;
   readonly violations: Partial<Record<LifecycleProperty, Violation>>;
   scans: AllScans;
+  reachedRequired: boolean;
 }
 
 const scanNames = Object.keys(zeroScans).filter(
@@ -212,6 +216,8 @@ const runPlace = async (
     await runProgram({ sampled: sampled.value, place, make }, properties,
       tally);
     tally.programs += 1;
+    tally.reachedRequired ||= place.seed === requiredProgram.seed &&
+      place.index === requiredProgram.index;
   } catch (error) {
     failed(`the run threw: ${String(error)}`);
   }
@@ -227,7 +233,9 @@ export const runLifecycle = async (
   to: number,
   properties: ReadonlyArray<LifecycleProperty> = lifecycleProperties,
 ): Promise<LifeOutcome> => {
-  const tally: Tally = { programs: 0, violations: {}, scans: zeroScans };
+  const tally: Tally = {
+    programs: 0, violations: {}, scans: zeroScans, reachedRequired: false,
+  };
   const places = Array.from({ length: to - from }, (_, at) => from + at)
     .flatMap((index) => seeds.map((seed) => ({ seed, index })));
   await places.reduce(
