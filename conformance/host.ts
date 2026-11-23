@@ -6,6 +6,7 @@ import type {
   GlobalSource,
   Host,
   Task,
+  TaskId,
 } from "../src/adapter/Interface.ts";
 import { freshDeliveries, nextNotification, noteStart } from "./deliveries.ts";
 import type { Deliveries, Journal, Start } from "./deliveries.ts";
@@ -31,6 +32,7 @@ export type LogEntry =
     readonly fiber: FiberId;
   }
   | { readonly _tag: "Global"; readonly source: GlobalSource }
+  | { readonly _tag: "Discarded"; readonly task: TaskId }
   | { readonly _tag: "Blocked" };
 
 /** Awaited after each step of a paced run, with the steps taken so far. */
@@ -80,8 +82,16 @@ const onStart = (state: HostState, start: Start) => {
   state.queue.push({ _tag: "DeliverDefect", fiber, token });
 };
 
-/** What the host learns from an event: awaits, queue, fibers, closing. */
+/**
+ * What the host learns from an event: awaits, queue, fibers, closing. A
+ * task queued outside a slice is logged as discarded and never run, as
+ * the executor discards it (#37 I3, runtime check).
+ */
 const observe = (state: HostState) => (event: Event) => {
+  if (event._tag === "Queue" && !state.slice) {
+    state.log.push({ _tag: "Discarded", task: event.task });
+    return;
+  }
   state.log.push({ _tag: "Emitted", event });
   Match.value(event).pipe(Match.tagsExhaustive({
     Start: (start) => onStart(state, start),
@@ -192,7 +202,8 @@ const freshState = (options: HostOptions): HostState => ({
  * exited, it logs `Blocked` and stops. Once the root exits it is closing:
  * `register` answers true, every live fiber gets a `RequestInterrupt`,
  * nothing more is delivered, an operation started now gets a
- * `DeliverDefect`, and it stops when the queue is empty. The clock
+ * `DeliverDefect`, and it stops when the queue is empty. A `Queue`
+ * emitted outside a slice is logged as `Discarded` and never run. The clock
  * answers the number of notifications delivered so far, in milliseconds;
  * draws come from an LCG started at the seed. `inSlice` is true only
  * inside `runTask`.
