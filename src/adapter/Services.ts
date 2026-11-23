@@ -58,18 +58,19 @@ const toNanos = (millis: number): bigint => BigInt(millis) * nanosPerMilli;
  * 0 turns the -0 that rounding a small negative gives into 0.
  */
 const wholeMillis = (millis: number): number =>
-  Number.isFinite(millis) ? Math.ceil(millis) + 0 : 0;
+  millis === -Infinity ? 0 : Math.ceil(millis) + 0;
 
-/** The durable sleep for a duration; an infinite one sleeps forever. */
+/**
+ * The durable sleep for a duration. An infinite one sleeps forever, and so
+ * does one longer than `Number.MAX_SAFE_INTEGER` whole milliseconds: that
+ * has no exact integer, and such a sleep could never end in practice.
+ */
 const sleepOp = (duration: Duration.Duration): Op => {
-  const millis = Duration.toMillis(duration);
-  if (millis === Infinity) {
+  const millis = wholeMillis(Duration.toMillis(duration));
+  if (millis > Number.MAX_SAFE_INTEGER) {
     return { _tag: "Sleep", duration: { _tag: "Forever" } };
   }
-  return {
-    _tag: "Sleep",
-    duration: { _tag: "Millis", millis: wholeMillis(millis) },
-  };
+  return { _tag: "Sleep", duration: { _tag: "Millis", millis } };
 };
 
 /** A durable sleep; a `Failure` outcome, which no sleep should get, dies. */
@@ -83,6 +84,9 @@ const durableSleep = (awaitOp: AwaitOp) =>
  * answer it as is, and the wall and monotonic nanosecond readers answer it
  * times 10^6. `sleep` is a durable `Sleep` of the duration in whole
  * milliseconds, rounded up, through the `Durable` service's await.
+ * Effect's own log, span and error-report timestamps read this clock too.
+ * Such a read is not journaled (design revision 5, the time rule); stamps
+ * in real time belong to the telemetry layer.
  */
 export const makeClock = (
   state: AdapterState,
@@ -184,6 +188,9 @@ const restore = (step: () => void) => step();
  * replaced by versions that report each use through `host.noteGlobal` and
  * then call the original, so a use is seen but its result is unchanged
  * (report-only, #37 I2). The originals are back when `f` returns or throws.
+ * The log does not see a reference taken before the task (for example
+ * `const now = Date.now`), `new Date()`, `performance.now`, `setInterval`
+ * or `queueMicrotask`.
  */
 export const withGlobalSourceLog = <A>(host: Host, f: () => A): A => {
   const restores = loggedGlobals.map(replaceGlobal(host));
