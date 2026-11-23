@@ -116,7 +116,9 @@ for (const [property, name, make] of caught) {
       .find((details) => details.failed);
     assert.ok(found !== undefined, `${name} passed ${property}`);
     const [shrunk] = found.counterexample ?? [];
-    const breach = shrunk && check(coqLog(drive(shrunk, make)));
+    assert.ok(shrunk !== undefined, "no counterexample");
+    const breach = check(coqLog(drive(shrunk, make)));
+    assert.ok(breach !== undefined, "the counterexample did not re-fail");
     context.diagnostic(`${breach}; case ${JSON.stringify(shrunk)}`);
   });
 }

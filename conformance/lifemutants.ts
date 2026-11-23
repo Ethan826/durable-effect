@@ -19,16 +19,19 @@ type Around = (host: Host) => {
   readonly host: Host;
   readonly before?: (task: Task, run: (task: Task) => void) => void;
   readonly after?: () => void;
+  /** A task the variant drops instead of running. */
+  readonly skip?: (task: Task) => boolean;
 };
 
 /** The adapter with a host and a task runner made by `around`. */
 const wrapped = (around: Around): Variant => (program, seed, outer) => {
-  const { host, before, after } = around(outer);
-  const inner = makeAdapter(program, seed, host);
+  const parts = around(outer);
+  const inner = makeAdapter(program, seed, parts.host);
   const runTask = (task: Task) => {
-    before?.(task, inner.runTask);
+    if (parts.skip?.(task)) return;
+    parts.before?.(task, inner.runTask);
     inner.runTask(task);
-    after?.();
+    parts.after?.();
   };
   return { runTask };
 };
@@ -90,6 +93,25 @@ const releaseAtRequest = wrapped((host) => {
   return { host: filtering(host, keep), before };
 });
 
+/**
+ * I4: an interruption request is dropped for any fiber with an open
+ * await, as if every await were masked. Not in #37's list; the review's
+ * probe showed it passed a check that took the mask from the adapter.
+ */
+const maskAll = wrapped((host) => {
+  const awaits = new Map<Token, FiberId>();
+  const note = (event: Event) => {
+    if (event._tag === "Start") awaits.set(event.token, event.fiber);
+    if (event._tag === "Release") awaits.delete(event.token);
+    return true;
+  };
+  return { host: filtering(host, note), skip: (task: Task) => {
+    if ("token" in task) awaits.delete(task.token);
+    return task._tag === "RequestInterrupt" &&
+      [...awaits.values()].includes(task.fiber);
+  } };
+});
+
 /** I5: every other queued task is kept back and run before the next. */
 const privateQueue = wrapped((host) => {
   const hidden: Event[] = [];
@@ -125,6 +147,8 @@ type Omits = (first: boolean) => boolean;
  * not reported; their other entries still reach the host.
  */
 const omitting = (omits: Omits) => wrapped((host) => {
+  // Installs the census now, before any fiber runs, so depths are true.
+  loopDepth();
   const hidden = new Set<FiberId>();
   const registry = { count: 0 };
   const register = (fiber: FiberId) => {
@@ -152,6 +176,7 @@ export const lifeMutants = {
   releaseAfterCleanup,
   neverReleases,
   releaseAtRequest,
+  maskAll,
   privateQueue,
   exitBeforeCleanup,
   omitDetached: omitting(isDetached),

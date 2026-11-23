@@ -4,12 +4,14 @@ import { makeAdapter } from "../src/adapter/Runtime.ts";
 import { programsPerSeed, seeds } from "./plan.ts";
 import { describe } from "./properties.ts";
 import type { Violation } from "./properties.ts";
-import { lifecycleMutants } from "./mutants.ts";
-import type { LifecycleMutantName, Variant } from "./mutants.ts";
+import { lifecycleMutants } from "./liferegistry.ts";
+import type { LifecycleMutantName } from "./liferegistry.ts";
+import type { Variant } from "./mutants.ts";
 import {
   fullScanOf,
   lifecycleProperties,
   runLifecycle,
+  scanMinimums,
   shortfall,
   zeroScans,
 } from "./lifeplan.ts";
@@ -23,11 +25,14 @@ import type { LifeOutcome } from "./lifeplan.ts";
 
 const empty: LifeOutcome = { programs: 0, violations: {}, scans: zeroScans };
 
-test("each scan minimum names its shortfall when the count is low", () => {
+test("every scan minimum names its shortfall when its count is low", () => {
   const short = lifecycleProperties.map((property) =>
-    shortfall(property, empty)
+    shortfall(property, empty).length
   );
-  assert.ok(short.every((found) => found.length > 0), JSON.stringify(short));
+  const floors = lifecycleProperties.map((property) =>
+    scanMinimums[property].length
+  );
+  assert.deepEqual(short, floors);
   assert.equal(fullScanOf(empty), false);
 });
 
@@ -90,6 +95,18 @@ const mutantNames = Object.keys(lifecycleMutants).filter(
   (name): name is LifecycleMutantName => name in lifecycleMutants,
 );
 
+/**
+ * The check a mutant must fail, where the review named it: the I3 check
+ * after a resume, the interrupt-only comparison, and the mask branch.
+ */
+const expected: Partial<Record<LifecycleMutantName, RegExp>> = {
+  actsOnResume: /an executor action after a foreign resume/,
+  withoutWrapper: /interrupt-only run: foreign interrupts changed the trace/,
+  recordsThenForwards:
+    /interrupt-only run: foreign interrupts changed the trace/,
+  maskAll: /unmasked await of token \d+ reported no release/,
+};
+
 for (const mutant of mutantNames) {
   const property = lifecycleMutants[mutant].property;
   test(`mutant ${mutant} fails ${property} within the budget`,
@@ -100,5 +117,7 @@ for (const mutant of mutantNames) {
       assert.equal(violation?.cause, "property", describe(violation) ||
         `${mutant} passed ${property}`);
       context.diagnostic(describe(violation));
+      const pattern = expected[mutant];
+      if (pattern) assert.match(violation?.detail ?? "", pattern);
     });
 }
