@@ -6,6 +6,7 @@ import {
   Effect,
   Equal,
   Fiber,
+  Logger,
   Random,
   Scheduler,
 } from "effect";
@@ -17,6 +18,7 @@ import type {
   Host,
   Op,
   Outcome,
+  RootExit,
   Token,
 } from "../../src/adapter/Interface.ts";
 import { makeAdapter } from "../../src/adapter/Runtime.ts";
@@ -56,6 +58,11 @@ const askingHost = (log: Asked, draws: number[]): Host => ({
 const fiberId = Brand.nominal<FiberId>();
 const token = Brand.nominal<Token>();
 const twoTo32 = 2 ** 32;
+const rootExit = (exit: RootExit): Event => ({ _tag: "RootExit", exit });
+
+const keepIn = <A>(kept: A[]) => (value: A) => Effect.sync(() => {
+  kept.push(value);
+});
 
 /** Starts the program, runs every queued task; answers what it kept. */
 const runToEnd = <A>(
@@ -64,14 +71,8 @@ const runToEnd = <A>(
 ) => {
   const log = asked();
   const kept: A[] = [];
-  const keep = (value: A) => Effect.sync(() => {
-    kept.push(value);
-  });
-  const adapter = makeAdapter(
-    Effect.tap(program, keep),
-    0,
-    askingHost(log, draws),
-  );
+  const host = askingHost(log, draws);
+  const adapter = makeAdapter(Effect.tap(program, keepIn(kept)), 0, host);
   adapter.runTask({ _tag: "StartRoot" });
   let seen = 0;
   while (seen < log.events.length) {
@@ -87,21 +88,45 @@ const unsafeMillis = Clock.clockWith((clock) =>
   Effect.sync(() => clock.currentTimeMillisUnsafe())
 );
 
-test("Clock.currentTimeMillis returns the host's answer", () => {
+test("every clock reader answers the host's millis, nanos times 10^6", () => {
   const { log, kept } = runToEnd(Effect.all([
     Clock.currentTimeMillis,
     unsafeMillis,
-  ]));
-  expect(kept).toEqual([[1_000, 1_000]]);
-  expect(log.clock).toEqual([fiberId(0), fiberId(0)]);
-});
-
-test("the nanosecond readers answer the host's millis times 10^6", () => {
-  const { kept } = runToEnd(Effect.all([
     Clock.currentTimeNanos,
     Clock.monotonicTimeNanos,
   ]));
-  expect(kept).toEqual([[1_000_000_000n, 1_000_000_000n]]);
+  expect(kept).toEqual([[1_000, 1_000, 1_000_000_000n, 1_000_000_000n]]);
+  expect(log.clock).toEqual([0, 0, 0, 0].map(fiberId));
+});
+
+/** A logger that keeps the timestamp of each line. */
+const stampLogger = (stamps: number[]) =>
+  Logger.make(({ date }) => {
+    stamps.push(date.getTime());
+  });
+
+/** Two log lines inside a span; answers the span's start time. */
+const loggedSpan = Effect.withSpan(
+  Effect.andThen(
+    Effect.andThen(Effect.log("first"), Effect.log("second")),
+    Effect.map(Effect.currentSpan, (span) => span.status.startTime),
+  ),
+  "work",
+);
+
+// Revision 5's time rule: a clock read is not journaled, and with no
+// durable await between them two reads ask at the same point in L.
+test("Effect's log and span stamps ask host.clock for the root", () => {
+  const stamps: number[] = [];
+  const { log, kept } = runToEnd(Effect.provideService(
+    loggedSpan,
+    Logger.CurrentLoggers,
+    new Set([stampLogger(stamps)]),
+  ));
+  expect(stamps).toEqual([1_000, 1_000]);
+  expect(kept).toEqual([1_000_000_000n]);
+  expect(log.clock.length).toBeGreaterThanOrEqual(3);
+  expect(new Set(log.clock)).toEqual(new Set([fiberId(0)]));
 });
 
 test("two draws from two fibers ask with each fiber's id", () => {
@@ -114,13 +139,9 @@ test("two draws from two fibers ask with each fiber's id", () => {
 });
 
 test("nextInt takes a sign and 53 bits from two draws", () => {
-  const top = 2 ** 21;
-  const { kept } = runToEnd(Effect.all([Random.nextInt, Random.nextInt]), [
-    top - 1,
-    twoTo32 - 1,
-    top + 1,
-    2,
-  ]);
+  const draws = [2 ** 21 - 1, twoTo32 - 1, 2 ** 21 + 1, 2];
+  const ints = Effect.all([Random.nextInt, Random.nextInt]);
+  const { kept } = runToEnd(ints, draws);
   expect(kept).toEqual([[Number.MAX_SAFE_INTEGER, -(twoTo32 + 2)]]);
 });
 
@@ -139,22 +160,16 @@ const sleepSent = (duration: Duration.Input) =>
 // Rounding -0.5 up gives -0, which a journal would print as 0 but toEqual
 // tells apart; -Infinity has no whole number of milliseconds.
 test("Clock.sleep is a durable sleep of whole milliseconds, rounded up", () => {
-  const inputs: Duration.Input[] = [
-    "1500 micros",
-    0,
-    "Infinity",
-    "-0.5 millis",
-    "-3 millis",
-    "-Infinity",
+  const table: Array<readonly [Duration.Input, Op]> = [
+    ["1500 micros", millis(2)],
+    [0, millis(0)],
+    ["Infinity", forever],
+    ["-0.5 millis", millis(0)],
+    ["-3 millis", millis(-3)],
+    ["-Infinity", millis(0)],
+    [Duration.millis(Number.MAX_SAFE_INTEGER + 2), forever],
   ];
-  expect(inputs.map(sleepSent)).toEqual([
-    [millis(2)],
-    [millis(0)],
-    [forever],
-    [millis(0)],
-    [millis(-3)],
-    [millis(0)],
-  ]);
+  for (const [input, op] of table) expect(sleepSent(input)).toEqual([op]);
 });
 
 /** Runs a sleep of 5 ms then 7, answers it, and gives the root's exit. */
@@ -165,14 +180,10 @@ const answeredSleep = (outcome: Outcome) => {
 };
 
 test("a sleep resumes on a Value and dies on a Failure", () => {
-  expect(answeredSleep({ _tag: "Value", value: 0 })).toEqual({
-    _tag: "RootExit",
-    exit: { _tag: "Success", value: 7 },
-  });
-  expect(answeredSleep({ _tag: "Failure", value: 2 })).toEqual({
-    _tag: "RootExit",
-    exit: { _tag: "Defect" },
-  });
+  expect(answeredSleep({ _tag: "Value", value: 0 }))
+    .toEqual(rootExit({ _tag: "Success", value: 7 }));
+  expect(answeredSleep({ _tag: "Failure", value: 2 }))
+    .toEqual(rootExit({ _tag: "Defect" }));
 });
 
 // PreventSchedulerYield keeps the child from ever reaching shouldYield, so
@@ -185,10 +196,9 @@ const unregistered = <A>(read: Effect.Effect<A>) =>
   )).log;
 
 test("a clock or random read on an unregistered fiber dies", () => {
-  const defect: Event = { _tag: "RootExit", exit: { _tag: "Defect" } };
   for (const read of [Clock.currentTimeMillis, unsafeMillis, Random.next]) {
     const log = unregistered<unknown>(read);
-    expect(log.events.at(-1)).toEqual(defect);
+    expect(log.events.at(-1)).toEqual(rootExit({ _tag: "Defect" }));
     expect([...log.clock, ...log.draw]).toEqual([]);
   }
 });
@@ -209,19 +219,13 @@ test("withGlobalSourceLog notes each global, then calls the original", () => {
     return Date.now();
   });
   expect(now).toBeGreaterThanOrEqual(before);
-  expect(log.noted).toEqual([
-    "Date.now",
-    "Math.random",
-    "setTimeout",
-    "setImmediate",
-    "Date.now",
-  ]);
+  const sources = ["Date.now", "Math.random", "setTimeout", "setImmediate"];
+  expect<string[]>(log.noted).toEqual([...sources, "Date.now"]);
 });
 
 test("withGlobalSourceLog restores the globals, even after a throw", () => {
   const log = asked();
   const host = askingHost(log, []);
-  withGlobalSourceLog(host, () => 0);
   const fails = () => {
     throw new Error("inside");
   };
@@ -242,8 +246,5 @@ test("Effect's own Math.random during a task is noted, not fatal", () => {
   const { log, kept } = runToEnd(equalsOverFunctions);
   expect(kept).toEqual([false]);
   expect(log.noted).toContain("Math.random");
-  expect(log.events.at(-1)).toEqual({
-    _tag: "RootExit",
-    exit: { _tag: "Success", value: 0 },
-  });
+  expect(log.events.at(-1)).toEqual(rootExit({ _tag: "Success", value: 0 }));
 });
