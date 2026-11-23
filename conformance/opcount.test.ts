@@ -4,7 +4,12 @@ import { Effect, Fiber, Scheduler } from "effect";
 import { makeAdapter } from "../src/adapter/Runtime.ts";
 import { scriptedHost } from "./host.ts";
 import { mutants } from "./mutants.ts";
-import { counted, freshCount, perTask } from "./opcount.ts";
+import {
+  checkedRegistration,
+  counted,
+  freshCount,
+  perTask,
+} from "./opcount.ts";
 
 const journal = {
   outcomes: [{ _tag: "Value", value: 0 }],
@@ -80,7 +85,8 @@ const countOf = (
 ) => {
   const host = scriptedHost(journal, { seed: 1 });
   const count = freshCount();
-  host.run(perTask(make(counted(program, count), 0, host), count));
+  const checked = checkedRegistration(host, count);
+  host.run(perTask(make(counted(program, count), 0, checked), count));
   return count;
 };
 
@@ -113,7 +119,7 @@ const strayFork = Effect.withFiber((parent) => {
   );
 });
 
-test("a fiber meets the scheduler first with an empty stack", () => {
-  assert.equal(countOf(pureLoop(3)).framed, 0);
-  assert.equal(countOf(strayFork).framed, 1);
+test("each fiber, the root too, registers at its first operation", () => {
+  assert.equal(countOf(pureLoop(3)).misregistered, 0);
+  assert.equal(countOf(strayFork).misregistered, 1);
 });
