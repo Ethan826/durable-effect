@@ -1,9 +1,15 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { Clock, Duration, Effect, Random } from "effect";
+import { Brand, Clock, Duration, Effect, Random } from "effect";
 import { durable } from "../src/adapter/Durable.ts";
 import type { Durable } from "../src/adapter/Durable.ts";
-import type { Op, Outcome, RootExit } from "../src/adapter/Interface.ts";
+import type {
+  FiberId,
+  Op,
+  Outcome,
+  RootExit,
+  Task,
+} from "../src/adapter/Interface.ts";
 import { makeAdapter } from "../src/adapter/Runtime.ts";
 import { scriptedHost } from "./host.ts";
 import type { Journal } from "./deliveries.ts";
@@ -207,4 +213,38 @@ test("an operation started while closing is answered with a defect", () => {
     entry._tag === "Emitted" && entry.event._tag === "FiberExited" &&
     entry.event.fiber !== 0
   ));
+});
+
+test("runPaced logs what run logs, pausing after every step", async () => {
+  const program = Effect.andThen(Effect.yieldNow, durable(run));
+  const plain = runWith(script([value(1)]), () => program);
+  const paced = scriptedHost(script([value(1)]), { seed: 1 });
+  const pauses: number[] = [];
+  const pause = async (steps: number) => {
+    pauses.push(steps);
+  };
+  await paced.runPaced(makeAdapter(program, 0, paced), pause);
+  assert.deepEqual(paced.log, plain.log);
+  // StartRoot, RunQueued, Deliver, then the step that enters closing.
+  assert.deepEqual(pauses, [1, 2, 3, 4]);
+});
+
+test("extend sends one more task inside a slice, and logs it", () => {
+  const host = scriptedHost(script([value(0)]), { seed: 1 });
+  let inside = false;
+  const noteSlice = Effect.sync(() => {
+    inside = host.inSlice();
+  });
+  const adapter = makeAdapter(Effect.ensuring(Effect.never, noteSlice), 0,
+    host);
+  host.run(adapter);
+  const before = host.log.length;
+  const interrupt: Task = {
+    _tag: "RequestInterrupt",
+    fiber: Brand.nominal<FiberId>()(0),
+  };
+  host.extend(adapter, interrupt);
+  assert.deepEqual(host.log[before], { _tag: "Sent", task: interrupt });
+  assert.deepEqual(rootExit(host.log), exitOf({ _tag: "Interrupted" }));
+  assert.equal(inside, true);
 });
