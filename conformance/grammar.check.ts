@@ -4,6 +4,7 @@ import { Effect } from "effect";
 import fc from "fast-check";
 import { makeAdapter } from "../src/adapter/Runtime.ts";
 import { journal, program } from "./grammar.ts";
+import { inventoryGaps } from "./inventory.ts";
 import type { Program, Sequence, Statement } from "./grammar.ts";
 import { scriptedHost } from "./host.ts";
 import type { Journal } from "./deliveries.ts";
@@ -52,15 +53,6 @@ const countsIn = (statement: Statement): ReadonlyArray<unknown> =>
 
 const samples = fc.sample(program, { seed: 1, numRuns: sampleCount });
 const statements = samples.flatMap(allStatements);
-
-/** What is wrong with the inventory: empty, or a kind never generated. */
-const inventoryGaps = (
-  required: ReadonlyArray<string>,
-  seen: ReadonlySet<string>,
-): ReadonlyArray<string> =>
-  required.length === 0
-    ? ["the grammar inventory is empty"]
-    : required.filter((kind) => !seen.has(kind)).map((kind) => `no ${kind}`);
 
 test("an empty inventory, or a kind never generated, is a gap", () => {
   assert.deepEqual(inventoryGaps([], new Set(["Run"])),
