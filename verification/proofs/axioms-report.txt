@@ -680,11 +680,107 @@ Closed under the global context
 Closed under the global context
 == Durable.StepAwaitTurn.step_waiter_none
 Closed under the global context
+== Durable.StepGrow.step_grows_after_sample
+Closed under the global context
+== Durable.StepGrow.step_grows_apply_sample
+Closed under the global context
+== Durable.StepGrow.step_grows_boundary
+Closed under the global context
+== Durable.StepGrow.step_grows_boundary_sub
+Closed under the global context
+== Durable.StepGrow.step_grows_close
+Closed under the global context
+== Durable.StepGrow.step_grows_emit
+Closed under the global context
+== Durable.StepGrow.step_grows_head
+Closed under the global context
+== Durable.StepGrow.step_grows_interp
+Closed under the global context
+== Durable.StepGrow.step_grows_issue
+Closed under the global context
+== Durable.StepGrow.step_grows_issue_op
+Closed under the global context
+== Durable.StepGrow.step_grows_iterate
+Closed under the global context
+== Durable.StepGrow.step_grows_nce
+Closed under the global context
+== Durable.StepGrow.step_grows_on_cancel
+Closed under the global context
+== Durable.StepGrow.step_grows_on_event
+Closed under the global context
+== Durable.StepGrow.step_grows_on_notify
+Closed under the global context
+== Durable.StepGrow.step_grows_on_release
+Closed under the global context
+== Durable.StepGrow.step_grows_on_start
+Closed under the global context
+== Durable.StepGrow.step_grows_refl
+Closed under the global context
+== Durable.StepGrow.step_grows_same
+Closed under the global context
+== Durable.StepGrow.step_grows_step
+Closed under the global context
+== Durable.StepGrow.step_grows_trans
+Closed under the global context
+== Durable.StepGrow.step_grows_violate
+Closed under the global context
 == Durable.StepHeld.step_held_cancel_counterexample
 Closed under the global context
 == Durable.StepHeld.step_held_cancel_delivered_refuted
 Closed under the global context
 == Durable.StepHeld.step_held_start_issues_nothing
+Closed under the global context
+== Durable.StepHeldRun.step_apply_sample_sampled
+Closed under the global context
+== Durable.StepHeldRun.step_commands_no_kop
+Closed under the global context
+== Durable.StepHeldRun.step_elog_add
+Closed under the global context
+== Durable.StepHeldRun.step_hc_boundary
+Closed under the global context
+== Durable.StepHeldRun.step_hc_event
+Closed under the global context
+== Durable.StepHeldRun.step_hc_ext_by
+Closed under the global context
+== Durable.StepHeldRun.step_hc_ext_emit
+Closed under the global context
+== Durable.StepHeldRun.step_hc_ext_same
+Closed under the global context
+== Durable.StepHeldRun.step_hc_ext_trans
+Closed under the global context
+== Durable.StepHeldRun.step_hc_head
+Closed under the global context
+== Durable.StepHeldRun.step_hc_interp
+Closed under the global context
+== Durable.StepHeldRun.step_hc_release
+Closed under the global context
+== Durable.StepHeldRun.step_hc_run
+Closed under the global context
+== Durable.StepHeldRun.step_hc_same
+Closed under the global context
+== Durable.StepHeldRun.step_hc_start
+Closed under the global context
+== Durable.StepHeldRun.step_hc_step
+Closed under the global context
+== Durable.StepHeldRun.step_head_cancel_trace
+Closed under the global context
+== Durable.StepHeldRun.step_head_fields
+Closed under the global context
+== Durable.StepHeldRun.step_held_cancel_delivered
+Closed under the global context
+== Durable.StepHeldRun.step_iterate_add
+Closed under the global context
+== Durable.StepHeldRun.step_no_kop_app
+Closed under the global context
+== Durable.StepHeldRun.step_no_kop_nil
+Closed under the global context
+== Durable.StepHeldRun.step_no_kop_one
+Closed under the global context
+== Durable.StepHeldRun.step_release_rest_fields
+Closed under the global context
+== Durable.StepHeldRun.step_skipn_app
+Closed under the global context
+== Durable.StepHeldRun.step_task_cases
 Closed under the global context
 == Durable.StepInv.step_apply_sample_cases
 Closed under the global context
