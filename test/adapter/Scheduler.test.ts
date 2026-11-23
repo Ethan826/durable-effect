@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { Effect, Schema } from "effect";
+import { Effect, Fiber, Schema } from "effect";
 import { TaskId } from "../../src/adapter/Interface.ts";
 import type { Event } from "../../src/adapter/Interface.ts";
 import { makeState } from "../../src/adapter/State.ts";
@@ -7,6 +7,7 @@ import type { AdapterState } from "../../src/adapter/State.ts";
 import { deterministicScheduler } from "../../src/adapter/Scheduler.ts";
 import { registration } from "../../src/adapter/Fibers.ts";
 import type { Host } from "../../src/adapter/Interface.ts";
+import { makeAdapter } from "../../src/adapter/Runtime.ts";
 
 /** A host that keeps every emitted event and answers nothing else. */
 const recordingHost = (events: Event[]): Host => ({
@@ -205,4 +206,38 @@ test("registration comes before the slice check", () => {
     scheduler: deterministicScheduler(state, host),
   });
   expect(order.slice(0, 2)).toEqual(["register", "slice"]);
+});
+
+/** Where a test keeps the child fiber the root forked. */
+interface Forked {
+  child?: Fiber.Fiber<void>;
+}
+
+/** A root that forks a child it never awaits, and hands the child out. */
+const forkingRoot = (out: Forked) => {
+  const keep = (child: Fiber.Fiber<void>) => Effect.sync(() => {
+    out.child = child;
+  });
+  return Effect.andThen(
+    Effect.tap(Effect.forkChild(Effect.void), keep),
+    Effect.never,
+  );
+};
+
+// The child has never run, so it has no guarded interrupt yet: Effect's
+// own interruptUnsafe runs it at once, outside any task.
+test("a foreign interrupt of an unrun fiber is a foreign resume", () => {
+  const foreign: unknown[] = [];
+  const outside = { now: false };
+  const asked: boolean[] = [];
+  const host: Host = {
+    ...guardedHost([], foreign, outside),
+    register: () => asked.push(outside.now) < 0,
+  };
+  const out: Forked = {};
+  makeAdapter(forkingRoot(out), 0, host).runTask({ _tag: "StartRoot" });
+  outside.now = true;
+  out.child?.interruptUnsafe();
+  expect(foreign).toEqual([["resume", 1]]);
+  expect(asked).toEqual([false, true]);
 });
