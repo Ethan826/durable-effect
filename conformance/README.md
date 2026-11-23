@@ -12,6 +12,9 @@ it holds for these programs, seeds and journals, not for every program.
 ```
 bun run conformance         # everything
 bun run conformance:quick   # everything except determinism.check.ts
+bun run verify              # the type check, both gates, the unit tests
+                            # and the quick run, stopping at the first
+                            # failure
 ```
 
 Both run on Node (`node --test`), not bun. The suite tests how Effect and the
@@ -55,7 +58,7 @@ The rest is the harness:
 - Properties and checks: `properties`, `lifecheck`, `i3check`, `logprops`,
   `lifeplan`, `strays`.
 - Oracles that do not share code with the adapter: `census`, `opcount`,
-  `runloops`.
+  `runloops`, `finalized` (I6's marker).
 - Mutants: `mutants`, `lifemutants`, `guardmutants`, `renumber`,
   `liferegistry`.
 - Pinned cases: `pinned` (I9), `closing` (I8).
