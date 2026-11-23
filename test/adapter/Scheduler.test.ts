@@ -5,6 +5,7 @@ import type { Event } from "../../src/adapter/Interface.ts";
 import { makeState } from "../../src/adapter/State.ts";
 import type { AdapterState } from "../../src/adapter/State.ts";
 import { deterministicScheduler } from "../../src/adapter/Scheduler.ts";
+import { registration } from "../../src/adapter/Fibers.ts";
 import type { Host } from "../../src/adapter/Interface.ts";
 
 /** A host that keeps every emitted event and answers nothing else. */
@@ -129,4 +130,79 @@ test("two adapters number their tasks independently", () => {
   start(second, b, Effect.yieldNow);
   expect(a).toEqual([queue(0, 0), queue(0, 1)]);
   expect(b).toEqual([queue(0, 0)]);
+});
+
+/** A host outside any slice while `outside.now` is set; logs foreign. */
+const guardedHost = (
+  events: Event[],
+  foreign: unknown[],
+  outside: { now: boolean },
+): Host => ({
+  ...recordingHost(events),
+  register: () => false,
+  inSlice: () => !outside.now,
+  foreign: (kind, fiber) => {
+    foreign.push([kind, fiber]);
+  },
+});
+
+/**
+ * Starts a fiber that waits on a callback and then writes `cell`, inside
+ * a slice, and answers the callback's `resume`.
+ */
+const waiting = (host: Host, cell: { value: number }) => {
+  const state = makeState();
+  state.register = registration(state, host);
+  const out: { resume?: (effect: Effect.Effect<number>) => void } = {};
+  const waiter = Effect.callback<number>((resume) => {
+    out.resume = resume;
+  }).pipe(Effect.flatMap((value) => Effect.sync(() => {
+    cell.value = value;
+  })));
+  Effect.runFork(waiter, { scheduler: deterministicScheduler(state, host) });
+  return out;
+};
+
+// #37 I3: a resume the executor did not issue reaches the guard before
+// any step, and its continuation never runs.
+test("a resume outside a slice is foreign, yields and writes nothing", () => {
+  const events: Event[] = [];
+  const foreign: unknown[] = [];
+  const outside = { now: false };
+  const cell = { value: 0 };
+  const out = waiting(guardedHost(events, foreign, outside), cell);
+  outside.now = true;
+  out.resume?.(Effect.succeed(7));
+  expect(cell.value).toBe(0);
+  expect(foreign).toEqual([["resume", 0]]);
+  expect(events).toEqual([queue(0, 0)]);
+});
+
+test("a resume inside a slice runs its continuation", () => {
+  const foreign: unknown[] = [];
+  const cell = { value: 0 };
+  const out = waiting(guardedHost([], foreign, { now: false }), cell);
+  out.resume?.(Effect.succeed(7));
+  expect(cell.value).toBe(7);
+  expect(foreign).toEqual([]);
+});
+
+test("registration comes before the slice check", () => {
+  const order: string[] = [];
+  const state = makeState();
+  state.register = () => {
+    order.push("register");
+    return false;
+  };
+  const host: Host = {
+    ...recordingHost([]),
+    inSlice: () => {
+      order.push("slice");
+      return true;
+    },
+  };
+  Effect.runFork(Effect.void, {
+    scheduler: deterministicScheduler(state, host),
+  });
+  expect(order.slice(0, 2)).toEqual(["register", "slice"]);
 });
