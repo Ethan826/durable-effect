@@ -1,6 +1,6 @@
 import fc from "fast-check";
 import type { Outcome } from "../src/adapter/Interface.ts";
-import type { Journal } from "./host.ts";
+import type { Journal } from "./deliveries.ts";
 
 /** A pure loop's step count; 2,049 and 5,000 cross `MaxOpsBeforeYield`. */
 export type Count = 1 | 2 | 2049 | 5000;

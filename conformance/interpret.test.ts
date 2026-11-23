@@ -3,7 +3,8 @@ import { test } from "node:test";
 import { makeAdapter } from "../src/adapter/Runtime.ts";
 import type { Program, Sequence, Statement } from "./grammar.ts";
 import { scriptedHost } from "./host.ts";
-import type { Journal, LogEntry } from "./host.ts";
+import type { Journal } from "./deliveries.ts";
+import type { LogEntry } from "./host.ts";
 import { interpret } from "./interpret.ts";
 
 const valueJournal: Journal = {
