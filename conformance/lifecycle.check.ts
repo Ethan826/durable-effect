@@ -117,6 +117,8 @@ const expected: Partial<Record<LifecycleMutantName, RegExp>> = {
   recordsThenForwards:
     /interrupt-only run: foreign interrupts changed the trace/,
   maskAll: /unmasked await of token \d+ reported no release/,
+  exitBeforeCleanup: /root exit at entry \d+ before fiber \d+ exited/,
+  exitAtRequest: /root exit at entry \d+ before the root's finalizers/,
 };
 
 for (const mutant of mutantNames) {

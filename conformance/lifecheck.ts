@@ -159,7 +159,24 @@ const registrations = (log: ReadonlyArray<LogEntry>) =>
 const count = (log: ReadonlyArray<LogEntry>, tag: Event["_tag"]) =>
   eventsOf(log).filter((event) => event._tag === tag).length;
 
-/** I6: Runtime.v's log form, and exactly one exit once the root exits. */
+/**
+ * A root exit logged before the handler's outermost finalizer completed,
+ * by the harness's own marker (lifecycle.ts), not the adapter's reports.
+ */
+const exitBeforeFinalizers = (run: LifecycleRun) => {
+  const at = run.log.findIndex((entry) =>
+    entry._tag === "Emitted" && entry.event._tag === "RootExit"
+  );
+  const finalized = run.finalized ?? Infinity;
+  return at >= 0 && at < finalized
+    ? `root exit at entry ${at} before the root's finalizers completed`
+    : undefined;
+};
+
+/**
+ * I6: Runtime.v's log form, exactly one exit once the root exits, and the
+ * root exit after the handler's finalizers.
+ */
 const i6 = (run: LifecycleRun): string | undefined => {
   const [root] = registrations(run.log);
   const rootGone = eventsOf(run.log).some((event) =>
@@ -168,7 +185,7 @@ const i6 = (run: LifecycleRun): string | undefined => {
   const exits = count(run.log, "RootExit");
   return i6Breach(coqLog(run.log)) ?? (rootGone && exits !== 1
     ? `the root exited and ${exits} root exits were reported`
-    : undefined);
+    : undefined) ?? exitBeforeFinalizers(run);
 };
 
 /** I8: Runtime.v's log form, and the census's fibers, run and exited. */
