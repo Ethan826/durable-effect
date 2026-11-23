@@ -117,9 +117,19 @@ export const Event = Schema.Union([
 /** An event a task reports; mirrors Coq `Event` (`EvStart`, ...). */
 export type Event = typeof Event.Type;
 
+/** A global that reads time or randomness, or starts a timer. */
+export type GlobalSource =
+  | "Date.now"
+  | "Math.random"
+  | "setTimeout"
+  | "setImmediate";
+
 /**
  * The executor's side of the interface: what a task may ask of the host.
- * `register` stands for Coq's `Register` question of `Script`.
+ * `register` stands for Coq's `Register` question of `Script`. `clock`
+ * answers whole milliseconds and `draw` a 32-bit unsigned integer.
+ * `noteGlobal` reports that code in a task used one of the logged globals;
+ * it is report-only (#37, I2) and changes nothing in the trace.
  */
 export interface Host {
   readonly emit: (event: Event) => void;
@@ -128,6 +138,7 @@ export interface Host {
   readonly register: (fiber: FiberId) => boolean;
   readonly inSlice: () => boolean;
   readonly foreign: (kind: "resume" | "interrupt", fiber: FiberId) => void;
+  readonly noteGlobal: (source: GlobalSource) => void;
 }
 
 /** The runtime's side of the interface; mirrors Coq `run_task`. */

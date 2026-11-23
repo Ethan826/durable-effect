@@ -28,6 +28,7 @@ const loggingHost = (
   },
   inSlice: () => true,
   foreign: () => {},
+  noteGlobal: () => {},
 });
 
 const startRoot: Task = { _tag: "StartRoot" };
