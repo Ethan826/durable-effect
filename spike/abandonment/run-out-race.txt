@@ -1,0 +1,296 @@
+unsubscribed result "done"
+subscribedLonger result "done"
+subscribedShorter result "done"
+combined result "done"
+returnsWithPending result "done"
+returnsAtOnce result "done"
+ WARN: Accepting requests without validating request signatures; handler access must be restricted
+ATTEMPT unsubscribed 1
+ATTEMPT subscribedLonger 1
+[Abandon/subscribedLonger] WARN: Error when processing a Restate context operation.
+ Error: awaitNext already pending
+    at ExternalProgressChannel.awaitNext (file:///Users/ethan/Desktop/durable-effect/spike/node_modules/@restatedev/restate-sdk/dist/utils/external_progress_channel.js:25:69)
+[Abandon/subscribedLonger] INFO: Replaying invocation.
+ATTEMPT subscribedLonger 2
+[Abandon/subscribedLonger] WARN: Error when processing a Restate context operation.
+ Error: awaitNext already pending
+    at ExternalProgressChannel.awaitNext (file:///Users/ethan/Desktop/durable-effect/spike/node_modules/@restatedev/restate-sdk/dist/utils/external_progress_channel.js:25:69)
+[Abandon/subscribedLonger] INFO: Replaying invocation.
+ATTEMPT subscribedLonger 3
+ATTEMPT subscribedShorter 1
+[Abandon/subscribedShorter] WARN: Error when processing a Restate context operation.
+ Error: awaitNext already pending
+    at ExternalProgressChannel.awaitNext (file:///Users/ethan/Desktop/durable-effect/spike/node_modules/@restatedev/restate-sdk/dist/utils/external_progress_channel.js:25:69)
+[Abandon/subscribedShorter] INFO: Replaying invocation.
+ATTEMPT subscribedShorter 2
+old completed
+ATTEMPT combined 1
+[Abandon/combined] WARN: Error when processing a Restate context operation.
+ Error: awaitNext already pending
+    at ExternalProgressChannel.awaitNext (file:///Users/ethan/Desktop/durable-effect/spike/node_modules/@restatedev/restate-sdk/dist/utils/external_progress_channel.js:25:69)
+[Abandon/combined] INFO: Replaying invocation.
+ATTEMPT combined 2
+[Abandon/combined] WARN: Error when processing a Restate context operation.
+ Error: awaitNext already pending
+    at ExternalProgressChannel.awaitNext (file:///Users/ethan/Desktop/durable-effect/spike/node_modules/@restatedev/restate-sdk/dist/utils/external_progress_channel.js:25:69)
+[Abandon/combined] INFO: Replaying invocation.
+ATTEMPT combined 3
+ATTEMPT returnsWithPending 1
+[Abandon/returnsWithPending] WARN: Error when processing a Restate context operation.
+ Error: awaitNext already pending
+    at ExternalProgressChannel.awaitNext (file:///Users/ethan/Desktop/durable-effect/spike/node_modules/@restatedev/restate-sdk/dist/utils/external_progress_channel.js:25:69)
+[Abandon/returnsWithPending] INFO: Replaying invocation.
+ATTEMPT returnsWithPending 2
+ATTEMPT returnsAtOnce 1
+
+== F1: per-tick race ==
+Race/subscribeControl result "done"
+  {"id":"inv_15dZa4aVvxMe4lajxfAjfMEOEaYHDop2bf","target":"Race/subscribeControl","status":"completed","completion_result":"success"}
+  journal of inv_15dZa4aVvxMe4lajxfAjfMEOEaYHDop2bf:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795481452176,\"completion_id\":1}}}"}
+    {"index":2,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795481450176,\"completion_id\":2}}}"}
+    {"index":3,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":2},\"result\":\"Void\"}}"}
+    {"index":4,"entry_type":"Command: Output","name":"","entry_lite_json":"{\"Command\":{\"Output\":{\"result\":\"Success\"}}}"}
+Race/raceDropLoser result {"first":"fast","step":42}
+  {"id":"inv_1hi5m7sP0F8L0Zv0Unfb0VFp4SgQrb3GqM","target":"Race/raceDropLoser","status":"completed","completion_result":"success"}
+  journal of inv_1hi5m7sP0F8L0Zv0Unfb0VFp4SgQrb3GqM:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795481453824,\"completion_id\":1}}}"}
+    {"index":2,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795481451825,\"completion_id\":2}}}"}
+    {"index":3,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":2},\"result\":\"Void\"}}"}
+    {"index":4,"entry_type":"Command: Run","name":"step","entry_lite_json":"{\"Command\":{\"Run\":{\"completion_id\":3,\"name\":\"step\"}}}"}
+    {"index":5,"entry_type":"Notification: Run","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Run\"},\"id\":{\"CompletionId\":3},\"result\":\"Success\"}}"}
+    {"index":6,"entry_type":"Command: Output","name":"","entry_lite_json":"{\"Command\":{\"Output\":{\"result\":\"Success\"}}}"}
+Race/raceKeepLoser result {"first":"fast","second":"run:7","third":"slow"}
+  {"id":"inv_1cE2TneKKF554gx4k8LQK22I2MnDCuFQto","target":"Race/raceKeepLoser","status":"completed","completion_result":"success"}
+  journal of inv_1cE2TneKKF554gx4k8LQK22I2MnDCuFQto:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795481454878,\"completion_id\":1}}}"}
+    {"index":2,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795481452878,\"completion_id\":2}}}"}
+    {"index":3,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":2},\"result\":\"Void\"}}"}
+    {"index":4,"entry_type":"Command: Run","name":"step","entry_lite_json":"{\"Command\":{\"Run\":{\"completion_id\":3,\"name\":\"step\"}}}"}
+    {"index":5,"entry_type":"Notification: Run","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Run\"},\"id\":{\"CompletionId\":3},\"result\":\"Success\"}}"}
+    {"index":6,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":1},\"result\":\"Void\"}}"}
+    {"index":7,"entry_type":"Command: Output","name":"","entry_lite_json":"{\"Command\":{\"Output\":{\"result\":\"Success\"}}}"}
+RaceReplay/subscribeControl result "done"
+  {"id":"inv_15B1aqhlRfhC0rDU75ANwsdiUGg1JeCKrj","target":"RaceReplay/subscribeControl","status":"completed","completion_result":"success"}
+  journal of inv_15B1aqhlRfhC0rDU75ANwsdiUGg1JeCKrj:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795481457934,\"completion_id\":1}}}"}
+    {"index":2,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795481455934,\"completion_id\":2}}}"}
+    {"index":3,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":2},\"result\":\"Void\"}}"}
+    {"index":4,"entry_type":"Command: Output","name":"","entry_lite_json":"{\"Command\":{\"Output\":{\"result\":\"Success\"}}}"}
+RaceReplay/raceDropLoser result {"first":"fast","step":42}
+  {"id":"inv_1l7V2LjLN7Pm6yFSIGaQZSLfONHkAxZFAA","target":"RaceReplay/raceDropLoser","status":"completed","completion_result":"success"}
+  journal of inv_1l7V2LjLN7Pm6yFSIGaQZSLfONHkAxZFAA:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795481459672,\"completion_id\":1}}}"}
+    {"index":2,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795481457672,\"completion_id\":2}}}"}
+    {"index":3,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":2},\"result\":\"Void\"}}"}
+    {"index":4,"entry_type":"Command: Run","name":"step","entry_lite_json":"{\"Command\":{\"Run\":{\"completion_id\":3,\"name\":\"step\"}}}"}
+    {"index":5,"entry_type":"Notification: Run","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Run\"},\"id\":{\"CompletionId\":3},\"result\":\"Success\"}}"}
+    {"index":6,"entry_type":"Command: Output","name":"","entry_lite_json":"{\"Command\":{\"Output\":{\"result\":\"Success\"}}}"}
+RaceReplay/raceKeepLoser result {"first":"fast","second":"run:7","third":"slow"}
+  {"id":"inv_131z7INTs03e3JvsKYQjQz6Y37ztjpMG6u","target":"RaceReplay/raceKeepLoser","status":"completed","completion_result":"success"}
+  journal of inv_131z7INTs03e3JvsKYQjQz6Y37ztjpMG6u:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795481460736,\"completion_id\":1}}}"}
+    {"index":2,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795481458736,\"completion_id\":2}}}"}
+    {"index":3,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":2},\"result\":\"Void\"}}"}
+    {"index":4,"entry_type":"Command: Run","name":"step","entry_lite_json":"{\"Command\":{\"Run\":{\"completion_id\":3,\"name\":\"step\"}}}"}
+    {"index":5,"entry_type":"Notification: Run","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Run\"},\"id\":{\"CompletionId\":3},\"result\":\"Success\"}}"}
+    {"index":6,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":1},\"result\":\"Void\"}}"}
+    {"index":7,"entry_type":"Command: Output","name":"","entry_lite_json":"{\"Command\":{\"Output\":{\"result\":\"Success\"}}}"}
+
+== F3: cancelling a parent with a child call ==
+Parent/cancelSubscribedCall invocation inv_1gYjW7yGXL7L7tYQCo1ABvw74AG50x8KFl
+ before cancel:
+  {"id":"inv_1gYjW7yGXL7L7tYQCo1ABvw74AG50x8KFl","target":"Parent/cancelSubscribedCall","status":"running","retry_count":1}
+  journal of inv_1gYjW7yGXL7L7tYQCo1ABvw74AG50x8KFl:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Call","name":"","entry_lite_json":"{\"Command\":{\"Call\":{\"invocation_id\":\"inv_10lmAGDsP5Pi0e3vaI7kZCghbTUw7yZP3z\",\"invocation_target\":{\"Service\":{\"name\":\"Child\",\"handler\":\"slow\",\"scope\":null}},\"invocation_id_completion_id\":1,\"result_completion_id\":2}}}"}
+    {"index":2,"entry_type":"Notification: CallInvocationId","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"CallInvocationId\"},\"id\":{\"CompletionId\":1},\"result\":\"InvocationId\"}}"}
+ cancel request HTTP 202
+ after cancel:
+  {"id":"inv_1gYjW7yGXL7L7tYQCo1ABvw74AG50x8KFl","target":"Parent/cancelSubscribedCall","status":"completed","completion_result":"failure","completion_failure":"[409] Cancelled"}
+  journal of inv_1gYjW7yGXL7L7tYQCo1ABvw74AG50x8KFl:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Call","name":"","entry_lite_json":"{\"Command\":{\"Call\":{\"invocation_id\":\"inv_10lmAGDsP5Pi0e3vaI7kZCghbTUw7yZP3z\",\"invocation_target\":{\"Service\":{\"name\":\"Child\",\"handler\":\"slow\",\"scope\":null}},\"invocation_id_completion_id\":1,\"result_completion_id\":2}}}"}
+    {"index":2,"entry_type":"Notification: CallInvocationId","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"CallInvocationId\"},\"id\":{\"CompletionId\":1},\"result\":\"InvocationId\"}}"}
+    {"index":3,"entry_type":"Notification: Signal","entry_lite_json":"{\"Notification\":{\"ty\":\"Signal\",\"id\":{\"SignalIndex\":1},\"result\":\"Void\"}}"}
+    {"index":4,"entry_type":"Command: SendSignal","name":"","entry_lite_json":"{\"Command\":{\"SendSignal\":{\"target_invocation_id\":\"inv_10lmAGDsP5Pi0e3vaI7kZCghbTUw7yZP3z\",\"signal_id\":{\"Index\":1},\"result\":\"Void\"}}}"}
+    {"index":5,"entry_type":"Command: Output","name":"","entry_lite_json":"{\"Command\":{\"Output\":{\"result\":\"Failure\"}}}"}
+  child invocations:
+    {"id":"inv_10lmAGDsP5Pi0e3vaI7kZCghbTUw7yZP3z","status":"completed","completion_result":"failure","completion_failure":"[409] Cancelled"}
+Parent/cancelReleasedCall invocation inv_1l6WV1fyNlcK21QehOPbqCtVlXZYQu21sK
+ before cancel:
+  {"id":"inv_1l6WV1fyNlcK21QehOPbqCtVlXZYQu21sK","target":"Parent/cancelReleasedCall","status":"running","retry_count":1}
+  journal of inv_1l6WV1fyNlcK21QehOPbqCtVlXZYQu21sK:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Call","name":"","entry_lite_json":"{\"Command\":{\"Call\":{\"invocation_id\":\"inv_1doTPX92w4k37emr4WobsK9LCqApUAOJyx\",\"invocation_target\":{\"Service\":{\"name\":\"Child\",\"handler\":\"slow\",\"scope\":null}},\"invocation_id_completion_id\":1,\"result_completion_id\":2}}}"}
+    {"index":2,"entry_type":"Notification: CallInvocationId","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"CallInvocationId\"},\"id\":{\"CompletionId\":1},\"result\":\"InvocationId\"}}"}
+    {"index":3,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795481467890,\"completion_id\":3}}}"}
+    {"index":4,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":3},\"result\":\"Void\"}}"}
+    {"index":5,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795481527894,\"completion_id\":4}}}"}
+ cancel request HTTP 202
+ after cancel:
+  {"id":"inv_1l6WV1fyNlcK21QehOPbqCtVlXZYQu21sK","target":"Parent/cancelReleasedCall","status":"completed","completion_result":"failure","completion_failure":"[409] Cancelled"}
+  journal of inv_1l6WV1fyNlcK21QehOPbqCtVlXZYQu21sK:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Call","name":"","entry_lite_json":"{\"Command\":{\"Call\":{\"invocation_id\":\"inv_1doTPX92w4k37emr4WobsK9LCqApUAOJyx\",\"invocation_target\":{\"Service\":{\"name\":\"Child\",\"handler\":\"slow\",\"scope\":null}},\"invocation_id_completion_id\":1,\"result_completion_id\":2}}}"}
+    {"index":2,"entry_type":"Notification: CallInvocationId","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"CallInvocationId\"},\"id\":{\"CompletionId\":1},\"result\":\"InvocationId\"}}"}
+    {"index":3,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795481467890,\"completion_id\":3}}}"}
+    {"index":4,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":3},\"result\":\"Void\"}}"}
+    {"index":5,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795481527894,\"completion_id\":4}}}"}
+    {"index":6,"entry_type":"Notification: Signal","entry_lite_json":"{\"Notification\":{\"ty\":\"Signal\",\"id\":{\"SignalIndex\":1},\"result\":\"Void\"}}"}
+    {"index":7,"entry_type":"Command: SendSignal","name":"","entry_lite_json":"{\"Command\":{\"SendSignal\":{\"target_invocation_id\":\"inv_1doTPX92w4k37emr4WobsK9LCqApUAOJyx\",\"signal_id\":{\"Index\":1},\"result\":\"Void\"}}}"}
+    {"index":8,"entry_type":"Command: Output","name":"","entry_lite_json":"{\"Command\":{\"Output\":{\"result\":\"Failure\"}}}"}
+  child invocations:
+    {"id":"inv_1doTPX92w4k37emr4WobsK9LCqApUAOJyx","status":"completed","completion_result":"failure","completion_failure":"[409] Cancelled"}
+ParentReplay/cancelSubscribedCall invocation inv_14vtRZiPWwHN0uDotm8czy2oAoyMn5QCnO
+ before cancel:
+  {"id":"inv_14vtRZiPWwHN0uDotm8czy2oAoyMn5QCnO","target":"ParentReplay/cancelSubscribedCall","status":"suspended"}
+  journal of inv_14vtRZiPWwHN0uDotm8czy2oAoyMn5QCnO:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Call","name":"","entry_lite_json":"{\"Command\":{\"Call\":{\"invocation_id\":\"inv_1jLDSLelMN1V3sfdcDFAq7OHEzt6Fbdf2x\",\"invocation_target\":{\"Service\":{\"name\":\"Child\",\"handler\":\"slow\",\"scope\":null}},\"invocation_id_completion_id\":1,\"result_completion_id\":2}}}"}
+    {"index":2,"entry_type":"Notification: CallInvocationId","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"CallInvocationId\"},\"id\":{\"CompletionId\":1},\"result\":\"InvocationId\"}}"}
+ cancel request HTTP 202
+ after cancel:
+  {"id":"inv_14vtRZiPWwHN0uDotm8czy2oAoyMn5QCnO","target":"ParentReplay/cancelSubscribedCall","status":"completed","completion_result":"failure","completion_failure":"[409] Cancelled"}
+  journal of inv_14vtRZiPWwHN0uDotm8czy2oAoyMn5QCnO:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Call","name":"","entry_lite_json":"{\"Command\":{\"Call\":{\"invocation_id\":\"inv_1jLDSLelMN1V3sfdcDFAq7OHEzt6Fbdf2x\",\"invocation_target\":{\"Service\":{\"name\":\"Child\",\"handler\":\"slow\",\"scope\":null}},\"invocation_id_completion_id\":1,\"result_completion_id\":2}}}"}
+    {"index":2,"entry_type":"Notification: CallInvocationId","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"CallInvocationId\"},\"id\":{\"CompletionId\":1},\"result\":\"InvocationId\"}}"}
+    {"index":3,"entry_type":"Notification: Signal","entry_lite_json":"{\"Notification\":{\"ty\":\"Signal\",\"id\":{\"SignalIndex\":1},\"result\":\"Void\"}}"}
+    {"index":4,"entry_type":"Command: SendSignal","name":"","entry_lite_json":"{\"Command\":{\"SendSignal\":{\"target_invocation_id\":\"inv_1jLDSLelMN1V3sfdcDFAq7OHEzt6Fbdf2x\",\"signal_id\":{\"Index\":1},\"result\":\"Void\"}}}"}
+    {"index":5,"entry_type":"Command: Output","name":"","entry_lite_json":"{\"Command\":{\"Output\":{\"result\":\"Failure\"}}}"}
+  child invocations:
+    {"id":"inv_1jLDSLelMN1V3sfdcDFAq7OHEzt6Fbdf2x","status":"completed","completion_result":"failure","completion_failure":"[409] Cancelled"}
+ParentReplay/cancelReleasedCall invocation inv_1dlgW8He3t6z4kcMeT7TtFFxEVCj0pZuG4
+ before cancel:
+  {"id":"inv_1dlgW8He3t6z4kcMeT7TtFFxEVCj0pZuG4","target":"ParentReplay/cancelReleasedCall","status":"suspended"}
+  journal of inv_1dlgW8He3t6z4kcMeT7TtFFxEVCj0pZuG4:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Call","name":"","entry_lite_json":"{\"Command\":{\"Call\":{\"invocation_id\":\"inv_11lcSbq0rK6x3MtGryN4iXNTPXAenBkvtL\",\"invocation_target\":{\"Service\":{\"name\":\"Child\",\"handler\":\"slow\",\"scope\":null}},\"invocation_id_completion_id\":1,\"result_completion_id\":2}}}"}
+    {"index":2,"entry_type":"Notification: CallInvocationId","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"CallInvocationId\"},\"id\":{\"CompletionId\":1},\"result\":\"InvocationId\"}}"}
+    {"index":3,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795481480080,\"completion_id\":3}}}"}
+    {"index":4,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":3},\"result\":\"Void\"}}"}
+    {"index":5,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795481540090,\"completion_id\":4}}}"}
+ cancel request HTTP 202
+ after cancel:
+  {"id":"inv_1dlgW8He3t6z4kcMeT7TtFFxEVCj0pZuG4","target":"ParentReplay/cancelReleasedCall","status":"completed","completion_result":"failure","completion_failure":"[409] Cancelled"}
+  journal of inv_1dlgW8He3t6z4kcMeT7TtFFxEVCj0pZuG4:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Call","name":"","entry_lite_json":"{\"Command\":{\"Call\":{\"invocation_id\":\"inv_11lcSbq0rK6x3MtGryN4iXNTPXAenBkvtL\",\"invocation_target\":{\"Service\":{\"name\":\"Child\",\"handler\":\"slow\",\"scope\":null}},\"invocation_id_completion_id\":1,\"result_completion_id\":2}}}"}
+    {"index":2,"entry_type":"Notification: CallInvocationId","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"CallInvocationId\"},\"id\":{\"CompletionId\":1},\"result\":\"InvocationId\"}}"}
+    {"index":3,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795481480080,\"completion_id\":3}}}"}
+    {"index":4,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":3},\"result\":\"Void\"}}"}
+    {"index":5,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795481540090,\"completion_id\":4}}}"}
+    {"index":6,"entry_type":"Notification: Signal","entry_lite_json":"{\"Notification\":{\"ty\":\"Signal\",\"id\":{\"SignalIndex\":1},\"result\":\"Void\"}}"}
+    {"index":7,"entry_type":"Command: SendSignal","name":"","entry_lite_json":"{\"Command\":{\"SendSignal\":{\"target_invocation_id\":\"inv_11lcSbq0rK6x3MtGryN4iXNTPXAenBkvtL\",\"signal_id\":{\"Index\":1},\"result\":\"Void\"}}}"}
+    {"index":8,"entry_type":"Command: Output","name":"","entry_lite_json":"{\"Command\":{\"Output\":{\"result\":\"Failure\"}}}"}
+  child invocations:
+    {"id":"inv_11lcSbq0rK6x3MtGryN4iXNTPXAenBkvtL","status":"completed","completion_result":"failure","completion_failure":"[409] Cancelled"}
+
+== SDK log for F1 and F3 ==
+ATTEMPT Race/subscribeControl 1
+[Race/subscribeControl] WARN: Error when processing a Restate context operation.
+ Error: awaitNext already pending
+[Race/subscribeControl] INFO: Replaying invocation.
+ATTEMPT Race/subscribeControl 2
+[Race/subscribeControl] WARN: Error when processing a Restate context operation.
+ Error: awaitNext already pending
+[Race/subscribeControl] INFO: Replaying invocation.
+ATTEMPT Race/subscribeControl 3
+ATTEMPT Race/raceDropLoser 1
+TICK raceDropLoser first fast
+TICK raceDropLoser step 42
+ATTEMPT Race/raceKeepLoser 1
+TICK raceKeepLoser first fast
+TICK raceKeepLoser second run:7
+TICK raceKeepLoser third slow
+ATTEMPT RaceReplay/subscribeControl 1
+[RaceReplay/subscribeControl] WARN: Error when processing a Restate context operation.
+ Error: awaitNext already pending
+[RaceReplay/subscribeControl] INFO: Replaying invocation.
+ATTEMPT RaceReplay/subscribeControl 2
+[RaceReplay/subscribeControl] WARN: Error when processing a Restate context operation.
+ Error: awaitNext already pending
+[RaceReplay/subscribeControl] INFO: Replaying invocation.
+ATTEMPT RaceReplay/subscribeControl 3
+ATTEMPT RaceReplay/raceDropLoser 1
+[RaceReplay/raceDropLoser] INFO: Invocation suspended
+[RaceReplay/raceDropLoser] INFO: Replaying invocation.
+ATTEMPT RaceReplay/raceDropLoser 2
+TICK raceDropLoser first fast
+TICK raceDropLoser step 42
+ATTEMPT RaceReplay/raceKeepLoser 1
+[RaceReplay/raceKeepLoser] INFO: Invocation suspended
+[RaceReplay/raceKeepLoser] INFO: Replaying invocation.
+ATTEMPT RaceReplay/raceKeepLoser 2
+TICK raceKeepLoser first fast
+TICK raceKeepLoser second run:7
+[RaceReplay/raceKeepLoser] INFO: Invocation suspended
+[RaceReplay/raceKeepLoser] INFO: Replaying invocation.
+ATTEMPT RaceReplay/raceKeepLoser 3
+TICK raceKeepLoser first fast
+TICK raceKeepLoser second run:7
+TICK raceKeepLoser third slow
+[Parent/cancelSubscribedCall] INFO: Starting invocation.
+ATTEMPT Parent/cancelSubscribedCall 1
+ATTEMPT Child/slow 1
+TICK Parent/cancelSubscribedCall caught CancelledError
+[Parent/cancelSubscribedCall] WARN: Error when processing a Restate context operation.
+ CancelledError: Cancelled
+    at RestateCombinatorPromise.tryCancel (file:///Users/ethan/Desktop/durable-effect/spike/node_modules/@restatedev/restate-sdk/dist/promises.js:64:29)
+TICK Child/slow caught CancelledError
+[Child/slow] WARN: Error when processing a Restate context operation.
+ CancelledError: Cancelled
+    at RestateSinglePromise.tryCancel (file:///Users/ethan/Desktop/durable-effect/spike/node_modules/@restatedev/restate-sdk/dist/promises.js:64:29)
+[Parent/cancelReleasedCall] INFO: Starting invocation.
+ATTEMPT Parent/cancelReleasedCall 1
+ATTEMPT Child/slow 2
+TICK cancelReleasedCall first sleep
+TICK Parent/cancelReleasedCall caught CancelledError
+[Parent/cancelReleasedCall] WARN: Error when processing a Restate context operation.
+ CancelledError: Cancelled
+    at RestateCombinatorPromise.tryCancel (file:///Users/ethan/Desktop/durable-effect/spike/node_modules/@restatedev/restate-sdk/dist/promises.js:64:29)
+TICK Child/slow caught CancelledError
+[Child/slow] WARN: Error when processing a Restate context operation.
+ CancelledError: Cancelled
+    at RestateSinglePromise.tryCancel (file:///Users/ethan/Desktop/durable-effect/spike/node_modules/@restatedev/restate-sdk/dist/promises.js:64:29)
+[ParentReplay/cancelSubscribedCall] INFO: Starting invocation.
+ATTEMPT ParentReplay/cancelSubscribedCall 1
+ATTEMPT Child/slow 3
+[ParentReplay/cancelSubscribedCall] INFO: Invocation suspended
+[ParentReplay/cancelSubscribedCall] INFO: Replaying invocation.
+ATTEMPT ParentReplay/cancelSubscribedCall 2
+TICK ParentReplay/cancelSubscribedCall caught CancelledError
+[ParentReplay/cancelSubscribedCall] WARN: Error when processing a Restate context operation.
+ CancelledError: Cancelled
+    at RestateCombinatorPromise.tryCancel (file:///Users/ethan/Desktop/durable-effect/spike/node_modules/@restatedev/restate-sdk/dist/promises.js:64:29)
+TICK Child/slow caught CancelledError
+[Child/slow] WARN: Error when processing a Restate context operation.
+ CancelledError: Cancelled
+    at RestateSinglePromise.tryCancel (file:///Users/ethan/Desktop/durable-effect/spike/node_modules/@restatedev/restate-sdk/dist/promises.js:64:29)
+[ParentReplay/cancelReleasedCall] INFO: Starting invocation.
+ATTEMPT ParentReplay/cancelReleasedCall 1
+ATTEMPT Child/slow 4
+[ParentReplay/cancelReleasedCall] INFO: Invocation suspended
+[ParentReplay/cancelReleasedCall] INFO: Replaying invocation.
+ATTEMPT ParentReplay/cancelReleasedCall 2
+TICK cancelReleasedCall first sleep
+[ParentReplay/cancelReleasedCall] INFO: Invocation suspended
+[ParentReplay/cancelReleasedCall] INFO: Replaying invocation.
+ATTEMPT ParentReplay/cancelReleasedCall 3
+TICK cancelReleasedCall first sleep
+TICK ParentReplay/cancelReleasedCall caught CancelledError
+[ParentReplay/cancelReleasedCall] WARN: Error when processing a Restate context operation.
+ CancelledError: Cancelled
+    at RestateCombinatorPromise.tryCancel (file:///Users/ethan/Desktop/durable-effect/spike/node_modules/@restatedev/restate-sdk/dist/promises.js:64:29)
+TICK Child/slow caught CancelledError
+[Child/slow] WARN: Error when processing a Restate context operation.
+ CancelledError: Cancelled
+    at RestateSinglePromise.tryCancel (file:///Users/ethan/Desktop/durable-effect/spike/node_modules/@restatedev/restate-sdk/dist/promises.js:64:29)
+./run.sh: line 7: 17841 Terminated: 15          ( cd "$here/.." && exec node abandonment/handler.mjs ) > "$state/sdk.log" 2>&1
