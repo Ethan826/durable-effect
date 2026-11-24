@@ -1,0 +1,361 @@
+
+== Gaps on #46: per-tick race with calls, awakeables, cancellation and all ==
+
+-- Gap/dropCall
+Gap/dropCall result {"first":"sleep1s","second":"run:1"}
+  {"id":"inv_1c9kOYzCutOR6dUxpWLxqz9Dfma8diLGvR","target":"Gap/dropCall","status":"completed","completion_result":"success"}
+  journal of inv_1c9kOYzCutOR6dUxpWLxqz9Dfma8diLGvR:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Call","name":"","entry_lite_json":"{\"Command\":{\"Call\":{\"invocation_id\":\"inv_14CuP6uD2tdT65HHPud8vaK8kf3NiD5cRP\",\"invocation_target\":{\"Service\":{\"name\":\"GapChild\",\"handler\":\"slow3\",\"scope\":null}},\"invocation_id_completion_id\":1,\"result_completion_id\":2}}}"}
+    {"index":2,"entry_type":"Notification: CallInvocationId","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"CallInvocationId\"},\"id\":{\"CompletionId\":1},\"result\":\"InvocationId\"}}"}
+    {"index":3,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482058313,\"completion_id\":3}}}"}
+    {"index":4,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":3},\"result\":\"Void\"}}"}
+    {"index":5,"entry_type":"Command: Run","name":"step","entry_lite_json":"{\"Command\":{\"Run\":{\"completion_id\":4,\"name\":\"step\"}}}"}
+    {"index":6,"entry_type":"Notification: Run","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Run\"},\"id\":{\"CompletionId\":4},\"result\":\"Success\"}}"}
+    {"index":7,"entry_type":"Command: Output","name":"","entry_lite_json":"{\"Command\":{\"Output\":{\"result\":\"Success\"}}}"}
+  child invocations:
+    {"id":"inv_14CuP6uD2tdT65HHPud8vaK8kf3NiD5cRP","target":"GapChild/slow3","status":"running","retry_count":1}
+ 4 s later, after the child's 3 s sleep:
+  {"id":"inv_1c9kOYzCutOR6dUxpWLxqz9Dfma8diLGvR","target":"Gap/dropCall","status":"completed","completion_result":"success"}
+  journal of inv_1c9kOYzCutOR6dUxpWLxqz9Dfma8diLGvR:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Call","name":"","entry_lite_json":"{\"Command\":{\"Call\":{\"invocation_id\":\"inv_14CuP6uD2tdT65HHPud8vaK8kf3NiD5cRP\",\"invocation_target\":{\"Service\":{\"name\":\"GapChild\",\"handler\":\"slow3\",\"scope\":null}},\"invocation_id_completion_id\":1,\"result_completion_id\":2}}}"}
+    {"index":2,"entry_type":"Notification: CallInvocationId","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"CallInvocationId\"},\"id\":{\"CompletionId\":1},\"result\":\"InvocationId\"}}"}
+    {"index":3,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482058313,\"completion_id\":3}}}"}
+    {"index":4,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":3},\"result\":\"Void\"}}"}
+    {"index":5,"entry_type":"Command: Run","name":"step","entry_lite_json":"{\"Command\":{\"Run\":{\"completion_id\":4,\"name\":\"step\"}}}"}
+    {"index":6,"entry_type":"Notification: Run","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Run\"},\"id\":{\"CompletionId\":4},\"result\":\"Success\"}}"}
+    {"index":7,"entry_type":"Command: Output","name":"","entry_lite_json":"{\"Command\":{\"Output\":{\"result\":\"Success\"}}}"}
+  child invocations:
+    {"id":"inv_14CuP6uD2tdT65HHPud8vaK8kf3NiD5cRP","target":"GapChild/slow3","status":"completed","completion_result":"success"}
+
+-- Gap/dropAwakeable
+Gap/dropAwakeable result {"first":"sleep1s","second":"run:2"}
+  {"id":"inv_11GoEb8REN3J1Ro64mvYnAL55KpIhKYebp","target":"Gap/dropAwakeable","status":"completed","completion_result":"success"}
+  journal of inv_11GoEb8REN3J1Ro64mvYnAL55KpIhKYebp:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482063486,\"completion_id\":1}}}"}
+    {"index":2,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":1},\"result\":\"Void\"}}"}
+    {"index":3,"entry_type":"Command: Run","name":"step","entry_lite_json":"{\"Command\":{\"Run\":{\"completion_id\":2,\"name\":\"step\"}}}"}
+    {"index":4,"entry_type":"Notification: Run","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Run\"},\"id\":{\"CompletionId\":2},\"result\":\"Success\"}}"}
+    {"index":5,"entry_type":"Command: Output","name":"","entry_lite_json":"{\"Command\":{\"Output\":{\"result\":\"Success\"}}}"}
+
+-- Gap/dropAwakeableResolvedLater
+ resolving sign_1d5SbM-qCZBZZ5GW0I8nXGAN-oogIV7iZAAAAEQ from outside during race2
+ resolve request HTTP 202
+Gap/dropAwakeableResolvedLater result {"first":"sleep1s","second":"sleep5s","third":"run:3"}
+  {"id":"inv_11Vc78p1IKDZ4G44jFnu5t5uZrT6WICE1H","target":"Gap/dropAwakeableResolvedLater","status":"completed","completion_result":"success"}
+  journal of inv_11Vc78p1IKDZ4G44jFnu5t5uZrT6WICE1H:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482064542,\"completion_id\":1}}}"}
+    {"index":2,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":1},\"result\":\"Void\"}}"}
+    {"index":3,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482069547,\"completion_id\":2}}}"}
+    {"index":4,"entry_type":"Notification: Signal","entry_lite_json":"{\"Notification\":{\"ty\":\"Signal\",\"id\":{\"SignalIndex\":17},\"result\":\"Success\"}}"}
+    {"index":5,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":2},\"result\":\"Void\"}}"}
+    {"index":6,"entry_type":"Command: Run","name":"step","entry_lite_json":"{\"Command\":{\"Run\":{\"completion_id\":3,\"name\":\"step\"}}}"}
+    {"index":7,"entry_type":"Notification: Run","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Run\"},\"id\":{\"CompletionId\":3},\"result\":\"Success\"}}"}
+    {"index":8,"entry_type":"Command: Output","name":"","entry_lite_json":"{\"Command\":{\"Output\":{\"result\":\"Success\"}}}"}
+
+-- Gap/dropCompletesMeanwhile
+Gap/dropCompletesMeanwhile result {"first":"sleep1s","second":"sleep5s"}
+  {"id":"inv_1g0xD4rMqW7I2LmgjnR2ipIvNCxffhia0w","target":"Gap/dropCompletesMeanwhile","status":"completed","completion_result":"success"}
+  journal of inv_1g0xD4rMqW7I2LmgjnR2ipIvNCxffhia0w:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482071612,\"completion_id\":1}}}"}
+    {"index":2,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482070612,\"completion_id\":2}}}"}
+    {"index":3,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":2},\"result\":\"Void\"}}"}
+    {"index":4,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482075617,\"completion_id\":3}}}"}
+    {"index":5,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":1},\"result\":\"Void\"}}"}
+    {"index":6,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":3},\"result\":\"Void\"}}"}
+    {"index":7,"entry_type":"Command: Output","name":"","entry_lite_json":"{\"Command\":{\"Output\":{\"result\":\"Success\"}}}"}
+
+-- Gap/dropCallCompletesMeanwhile
+Gap/dropCallCompletesMeanwhile result {"first":"sleep1s","second":"sleep5s"}
+  {"id":"inv_1feAX6wNJoSc4UZW0YT12IbOeriDf0Z17X","target":"Gap/dropCallCompletesMeanwhile","status":"completed","completion_result":"success"}
+  journal of inv_1feAX6wNJoSc4UZW0YT12IbOeriDf0Z17X:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Call","name":"","entry_lite_json":"{\"Command\":{\"Call\":{\"invocation_id\":\"inv_18hByDQuIneL0QgkROcCtcs4mJshL62HzH\",\"invocation_target\":{\"Service\":{\"name\":\"GapChild\",\"handler\":\"slow3\",\"scope\":null}},\"invocation_id_completion_id\":1,\"result_completion_id\":2}}}"}
+    {"index":2,"entry_type":"Notification: CallInvocationId","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"CallInvocationId\"},\"id\":{\"CompletionId\":1},\"result\":\"InvocationId\"}}"}
+    {"index":3,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482076698,\"completion_id\":3}}}"}
+    {"index":4,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":3},\"result\":\"Void\"}}"}
+    {"index":5,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482081705,\"completion_id\":4}}}"}
+    {"index":6,"entry_type":"Notification: Call","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Call\"},\"id\":{\"CompletionId\":2},\"result\":\"Success\"}}"}
+    {"index":7,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":4},\"result\":\"Void\"}}"}
+    {"index":8,"entry_type":"Command: Output","name":"","entry_lite_json":"{\"Command\":{\"Output\":{\"result\":\"Success\"}}}"}
+  child invocations:
+    {"id":"inv_18hByDQuIneL0QgkROcCtcs4mJshL62HzH","target":"GapChild/slow3","status":"completed","completion_result":"success"}
+
+-- Gap/cancelWithDropped
+Gap/cancelWithDropped invocation inv_11Vc78p1IKDZ2hQWStJWkCQapNmBBPQ3FW
+ before cancel:
+  {"id":"inv_11Vc78p1IKDZ2hQWStJWkCQapNmBBPQ3FW","target":"Gap/cancelWithDropped","status":"running","retry_count":1}
+  journal of inv_11Vc78p1IKDZ2hQWStJWkCQapNmBBPQ3FW:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482111782,\"completion_id\":1}}}"}
+    {"index":2,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482082782,\"completion_id\":2}}}"}
+    {"index":3,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":2},\"result\":\"Void\"}}"}
+    {"index":4,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482142792,\"completion_id\":3}}}"}
+ cancel request HTTP 202
+ after cancel:
+  {"id":"inv_11Vc78p1IKDZ2hQWStJWkCQapNmBBPQ3FW","target":"Gap/cancelWithDropped","status":"completed","completion_result":"failure","completion_failure":"[409] Cancelled"}
+  journal of inv_11Vc78p1IKDZ2hQWStJWkCQapNmBBPQ3FW:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482111782,\"completion_id\":1}}}"}
+    {"index":2,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482082782,\"completion_id\":2}}}"}
+    {"index":3,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":2},\"result\":\"Void\"}}"}
+    {"index":4,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482142792,\"completion_id\":3}}}"}
+    {"index":5,"entry_type":"Notification: Signal","entry_lite_json":"{\"Notification\":{\"ty\":\"Signal\",\"id\":{\"SignalIndex\":1},\"result\":\"Void\"}}"}
+    {"index":6,"entry_type":"Command: Output","name":"","entry_lite_json":"{\"Command\":{\"Output\":{\"result\":\"Failure\"}}}"}
+
+-- Gap/allOfTwo
+Gap/allOfTwo result {"both":["run:a","run:b","sleep1s"],"first":"run:d","second":"run:c"}
+  {"id":"inv_18WMLi2xba9Y1PlAmSvLlNaGWBZWSi5XdA","target":"Gap/allOfTwo","status":"completed","completion_result":"success"}
+  journal of inv_18WMLi2xba9Y1PlAmSvLlNaGWBZWSi5XdA:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Run","name":"a","entry_lite_json":"{\"Command\":{\"Run\":{\"completion_id\":1,\"name\":\"a\"}}}"}
+    {"index":2,"entry_type":"Command: Run","name":"b","entry_lite_json":"{\"Command\":{\"Run\":{\"completion_id\":2,\"name\":\"b\"}}}"}
+    {"index":3,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482089042,\"completion_id\":3}}}"}
+    {"index":4,"entry_type":"Notification: Run","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Run\"},\"id\":{\"CompletionId\":2},\"result\":\"Success\"}}"}
+    {"index":5,"entry_type":"Notification: Run","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Run\"},\"id\":{\"CompletionId\":1},\"result\":\"Success\"}}"}
+    {"index":6,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":3},\"result\":\"Void\"}}"}
+    {"index":7,"entry_type":"Command: Run","name":"c","entry_lite_json":"{\"Command\":{\"Run\":{\"completion_id\":4,\"name\":\"c\"}}}"}
+    {"index":8,"entry_type":"Command: Run","name":"d","entry_lite_json":"{\"Command\":{\"Run\":{\"completion_id\":5,\"name\":\"d\"}}}"}
+    {"index":9,"entry_type":"Notification: Run","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Run\"},\"id\":{\"CompletionId\":5},\"result\":\"Success\"}}"}
+    {"index":10,"entry_type":"Notification: Run","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Run\"},\"id\":{\"CompletionId\":4},\"result\":\"Success\"}}"}
+    {"index":11,"entry_type":"Command: Output","name":"","entry_lite_json":"{\"Command\":{\"Output\":{\"result\":\"Success\"}}}"}
+
+-- GapReplay/dropCall
+GapReplay/dropCall result {"first":"sleep1s","second":"run:1"}
+  {"id":"inv_1idjPTgB2qrI7cVnhwllg7JvFhvLYAe7qS","target":"GapReplay/dropCall","status":"completed","completion_result":"success"}
+  journal of inv_1idjPTgB2qrI7cVnhwllg7JvFhvLYAe7qS:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Call","name":"","entry_lite_json":"{\"Command\":{\"Call\":{\"invocation_id\":\"inv_17WLshYf83pF2H9uciWZejF5Cl5rsCjZTP\",\"invocation_target\":{\"Service\":{\"name\":\"GapChild\",\"handler\":\"slow3\",\"scope\":null}},\"invocation_id_completion_id\":1,\"result_completion_id\":2}}}"}
+    {"index":2,"entry_type":"Notification: CallInvocationId","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"CallInvocationId\"},\"id\":{\"CompletionId\":1},\"result\":\"InvocationId\"}}"}
+    {"index":3,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482090302,\"completion_id\":3}}}"}
+    {"index":4,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":3},\"result\":\"Void\"}}"}
+    {"index":5,"entry_type":"Command: Run","name":"step","entry_lite_json":"{\"Command\":{\"Run\":{\"completion_id\":4,\"name\":\"step\"}}}"}
+    {"index":6,"entry_type":"Notification: Run","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Run\"},\"id\":{\"CompletionId\":4},\"result\":\"Success\"}}"}
+    {"index":7,"entry_type":"Command: Output","name":"","entry_lite_json":"{\"Command\":{\"Output\":{\"result\":\"Success\"}}}"}
+  child invocations:
+    {"id":"inv_17WLshYf83pF2H9uciWZejF5Cl5rsCjZTP","target":"GapChild/slow3","status":"running","retry_count":1}
+ 4 s later, after the child's 3 s sleep:
+  {"id":"inv_1idjPTgB2qrI7cVnhwllg7JvFhvLYAe7qS","target":"GapReplay/dropCall","status":"completed","completion_result":"success"}
+  journal of inv_1idjPTgB2qrI7cVnhwllg7JvFhvLYAe7qS:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Call","name":"","entry_lite_json":"{\"Command\":{\"Call\":{\"invocation_id\":\"inv_17WLshYf83pF2H9uciWZejF5Cl5rsCjZTP\",\"invocation_target\":{\"Service\":{\"name\":\"GapChild\",\"handler\":\"slow3\",\"scope\":null}},\"invocation_id_completion_id\":1,\"result_completion_id\":2}}}"}
+    {"index":2,"entry_type":"Notification: CallInvocationId","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"CallInvocationId\"},\"id\":{\"CompletionId\":1},\"result\":\"InvocationId\"}}"}
+    {"index":3,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482090302,\"completion_id\":3}}}"}
+    {"index":4,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":3},\"result\":\"Void\"}}"}
+    {"index":5,"entry_type":"Command: Run","name":"step","entry_lite_json":"{\"Command\":{\"Run\":{\"completion_id\":4,\"name\":\"step\"}}}"}
+    {"index":6,"entry_type":"Notification: Run","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Run\"},\"id\":{\"CompletionId\":4},\"result\":\"Success\"}}"}
+    {"index":7,"entry_type":"Command: Output","name":"","entry_lite_json":"{\"Command\":{\"Output\":{\"result\":\"Success\"}}}"}
+  child invocations:
+    {"id":"inv_17WLshYf83pF2H9uciWZejF5Cl5rsCjZTP","target":"GapChild/slow3","status":"completed","completion_result":"success"}
+
+-- GapReplay/dropAwakeable
+GapReplay/dropAwakeable result {"first":"sleep1s","second":"run:2"}
+  {"id":"inv_17WDyWpnvAHa76D7Xr7DV7dCQTb6nOg54Z","target":"GapReplay/dropAwakeable","status":"completed","completion_result":"success"}
+  journal of inv_17WDyWpnvAHa76D7Xr7DV7dCQTb6nOg54Z:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482095738,\"completion_id\":1}}}"}
+    {"index":2,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":1},\"result\":\"Void\"}}"}
+    {"index":3,"entry_type":"Command: Run","name":"step","entry_lite_json":"{\"Command\":{\"Run\":{\"completion_id\":2,\"name\":\"step\"}}}"}
+    {"index":4,"entry_type":"Notification: Run","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Run\"},\"id\":{\"CompletionId\":2},\"result\":\"Success\"}}"}
+    {"index":5,"entry_type":"Command: Output","name":"","entry_lite_json":"{\"Command\":{\"Output\":{\"result\":\"Success\"}}}"}
+
+-- GapReplay/dropAwakeableResolvedLater
+ resolving sign_1nnsLb7KV_gnOc3oqun8_8qBpU6STCn6kAAAAEQ from outside during race2
+ resolve request HTTP 202
+GapReplay/dropAwakeableResolvedLater result {"first":"sleep1s","second":"sleep5s","third":"run:3"}
+  {"id":"inv_10Rcq6edvpaS50olfdmeJlkWkmeJ9faTpA","target":"GapReplay/dropAwakeableResolvedLater","status":"completed","completion_result":"success"}
+  journal of inv_10Rcq6edvpaS50olfdmeJlkWkmeJ9faTpA:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482096861,\"completion_id\":1}}}"}
+    {"index":2,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":1},\"result\":\"Void\"}}"}
+    {"index":3,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482101872,\"completion_id\":2}}}"}
+    {"index":4,"entry_type":"Notification: Signal","entry_lite_json":"{\"Notification\":{\"ty\":\"Signal\",\"id\":{\"SignalIndex\":17},\"result\":\"Success\"}}"}
+    {"index":5,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":2},\"result\":\"Void\"}}"}
+    {"index":6,"entry_type":"Command: Run","name":"step","entry_lite_json":"{\"Command\":{\"Run\":{\"completion_id\":3,\"name\":\"step\"}}}"}
+    {"index":7,"entry_type":"Notification: Run","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Run\"},\"id\":{\"CompletionId\":3},\"result\":\"Success\"}}"}
+    {"index":8,"entry_type":"Command: Output","name":"","entry_lite_json":"{\"Command\":{\"Output\":{\"result\":\"Success\"}}}"}
+
+-- GapReplay/dropCompletesMeanwhile
+GapReplay/dropCompletesMeanwhile result {"first":"sleep1s","second":"sleep5s"}
+  {"id":"inv_15Hk6JjyuPv97wIYhPliOo6tX2wtzn6ovU","target":"GapReplay/dropCompletesMeanwhile","status":"completed","completion_result":"success"}
+  journal of inv_15Hk6JjyuPv97wIYhPliOo6tX2wtzn6ovU:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482104062,\"completion_id\":1}}}"}
+    {"index":2,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482103062,\"completion_id\":2}}}"}
+    {"index":3,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":2},\"result\":\"Void\"}}"}
+    {"index":4,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482108084,\"completion_id\":3}}}"}
+    {"index":5,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":1},\"result\":\"Void\"}}"}
+    {"index":6,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":3},\"result\":\"Void\"}}"}
+    {"index":7,"entry_type":"Command: Output","name":"","entry_lite_json":"{\"Command\":{\"Output\":{\"result\":\"Success\"}}}"}
+
+-- GapReplay/dropCallCompletesMeanwhile
+GapReplay/dropCallCompletesMeanwhile result {"first":"sleep1s","second":"sleep5s"}
+  {"id":"inv_18GTaO0Dhizp7BGqv7njhVwixSMT8FBXct","target":"GapReplay/dropCallCompletesMeanwhile","status":"completed","completion_result":"success"}
+  journal of inv_18GTaO0Dhizp7BGqv7njhVwixSMT8FBXct:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Call","name":"","entry_lite_json":"{\"Command\":{\"Call\":{\"invocation_id\":\"inv_1ch4N1Qw8Ag135w2h1srTsq6aVE8zLSPq9\",\"invocation_target\":{\"Service\":{\"name\":\"GapChild\",\"handler\":\"slow3\",\"scope\":null}},\"invocation_id_completion_id\":1,\"result_completion_id\":2}}}"}
+    {"index":2,"entry_type":"Notification: CallInvocationId","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"CallInvocationId\"},\"id\":{\"CompletionId\":1},\"result\":\"InvocationId\"}}"}
+    {"index":3,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482109269,\"completion_id\":3}}}"}
+    {"index":4,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":3},\"result\":\"Void\"}}"}
+    {"index":5,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482114283,\"completion_id\":4}}}"}
+    {"index":6,"entry_type":"Notification: Call","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Call\"},\"id\":{\"CompletionId\":2},\"result\":\"Success\"}}"}
+    {"index":7,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":4},\"result\":\"Void\"}}"}
+    {"index":8,"entry_type":"Command: Output","name":"","entry_lite_json":"{\"Command\":{\"Output\":{\"result\":\"Success\"}}}"}
+  child invocations:
+    {"id":"inv_1ch4N1Qw8Ag135w2h1srTsq6aVE8zLSPq9","target":"GapChild/slow3","status":"completed","completion_result":"success"}
+
+-- GapReplay/cancelWithDropped
+GapReplay/cancelWithDropped invocation inv_1bAFwNUwY0TB3novv391XfJ0uCuXA3tVzW
+ before cancel:
+  {"id":"inv_1bAFwNUwY0TB3novv391XfJ0uCuXA3tVzW","target":"GapReplay/cancelWithDropped","status":"suspended"}
+  journal of inv_1bAFwNUwY0TB3novv391XfJ0uCuXA3tVzW:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482144558,\"completion_id\":1}}}"}
+    {"index":2,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482115558,\"completion_id\":2}}}"}
+    {"index":3,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":2},\"result\":\"Void\"}}"}
+    {"index":4,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482175571,\"completion_id\":3}}}"}
+ cancel request HTTP 202
+ after cancel:
+  {"id":"inv_1bAFwNUwY0TB3novv391XfJ0uCuXA3tVzW","target":"GapReplay/cancelWithDropped","status":"completed","completion_result":"failure","completion_failure":"[409] Cancelled"}
+  journal of inv_1bAFwNUwY0TB3novv391XfJ0uCuXA3tVzW:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482144558,\"completion_id\":1}}}"}
+    {"index":2,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482115558,\"completion_id\":2}}}"}
+    {"index":3,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":2},\"result\":\"Void\"}}"}
+    {"index":4,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482175571,\"completion_id\":3}}}"}
+    {"index":5,"entry_type":"Notification: Signal","entry_lite_json":"{\"Notification\":{\"ty\":\"Signal\",\"id\":{\"SignalIndex\":1},\"result\":\"Void\"}}"}
+    {"index":6,"entry_type":"Command: Output","name":"","entry_lite_json":"{\"Command\":{\"Output\":{\"result\":\"Failure\"}}}"}
+
+-- GapReplay/allOfTwo
+GapReplay/allOfTwo result {"both":["run:a","run:b","sleep1s"],"first":"run:d","second":"run:c"}
+  {"id":"inv_1iGKx7KzKOi126HgjoHd7RLNSuMcLPfev6","target":"GapReplay/allOfTwo","status":"completed","completion_result":"success"}
+  journal of inv_1iGKx7KzKOi126HgjoHd7RLNSuMcLPfev6:
+    {"index":0,"entry_type":"Command: Input","name":"","entry_lite_json":"{\"Command\":{\"Input\":{}}}"}
+    {"index":1,"entry_type":"Command: Run","name":"a","entry_lite_json":"{\"Command\":{\"Run\":{\"completion_id\":1,\"name\":\"a\"}}}"}
+    {"index":2,"entry_type":"Command: Run","name":"b","entry_lite_json":"{\"Command\":{\"Run\":{\"completion_id\":2,\"name\":\"b\"}}}"}
+    {"index":3,"entry_type":"Command: Sleep","name":"","entry_lite_json":"{\"Command\":{\"Sleep\":{\"wake_up_time\":1795482121637,\"completion_id\":3}}}"}
+    {"index":4,"entry_type":"Notification: Run","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Run\"},\"id\":{\"CompletionId\":2},\"result\":\"Success\"}}"}
+    {"index":5,"entry_type":"Notification: Run","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Run\"},\"id\":{\"CompletionId\":1},\"result\":\"Success\"}}"}
+    {"index":6,"entry_type":"Notification: Sleep","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Sleep\"},\"id\":{\"CompletionId\":3},\"result\":\"Void\"}}"}
+    {"index":7,"entry_type":"Command: Run","name":"c","entry_lite_json":"{\"Command\":{\"Run\":{\"completion_id\":4,\"name\":\"c\"}}}"}
+    {"index":8,"entry_type":"Command: Run","name":"d","entry_lite_json":"{\"Command\":{\"Run\":{\"completion_id\":5,\"name\":\"d\"}}}"}
+    {"index":9,"entry_type":"Notification: Run","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Run\"},\"id\":{\"CompletionId\":5},\"result\":\"Success\"}}"}
+    {"index":10,"entry_type":"Notification: Run","entry_lite_json":"{\"Notification\":{\"ty\":{\"Completion\":\"Run\"},\"id\":{\"CompletionId\":4},\"result\":\"Success\"}}"}
+    {"index":11,"entry_type":"Command: Output","name":"","entry_lite_json":"{\"Command\":{\"Output\":{\"result\":\"Success\"}}}"}
+
+== SDK log for the gaps ==
+ATTEMPT Gap/dropCall 1
+ATTEMPT GapChild/slow3 1
+TICK Gap/dropCall race1 "sleep1s"
+TICK Gap/dropCall race2 "run:1"
+TICK GapChild/slow3 done
+ATTEMPT Gap/dropAwakeable 1
+AWAKEABLE Gap/dropAwakeable sign_1e3gQCxPVnBNbetBglaUKjt1EEqD8byY9AAAAEQ
+TICK Gap/dropAwakeable race1 "sleep1s"
+TICK Gap/dropAwakeable race2 "run:2"
+ATTEMPT Gap/dropAwakeableResolvedLater 1
+AWAKEABLE Gap/dropAwakeableResolvedLater sign_1d5SbM-qCZBZZ5GW0I8nXGAN-oogIV7iZAAAAEQ
+TICK Gap/dropAwakeableResolvedLater race1 "sleep1s"
+TICK Gap/dropAwakeableResolvedLater race2 "sleep5s"
+TICK Gap/dropAwakeableResolvedLater race3 "run:3"
+ATTEMPT Gap/dropCompletesMeanwhile 1
+TICK Gap/dropCompletesMeanwhile race1 "sleep1s"
+TICK Gap/dropCompletesMeanwhile race2 "sleep5s"
+ATTEMPT Gap/dropCallCompletesMeanwhile 1
+ATTEMPT GapChild/slow3 2
+TICK Gap/dropCallCompletesMeanwhile race1 "sleep1s"
+TICK GapChild/slow3 done
+TICK Gap/dropCallCompletesMeanwhile race2 "sleep5s"
+[Gap/cancelWithDropped] INFO: Starting invocation.
+ATTEMPT Gap/cancelWithDropped 1
+TICK Gap/cancelWithDropped race1 "sleep1s"
+TICK Gap/cancelWithDropped race2 caught CancelledError Cancelled
+[Gap/cancelWithDropped] WARN: Error when processing a Restate context operation.
+ CancelledError: Cancelled
+    at RestateCombinatorPromise.tryCancel (file:///Users/ethan/Desktop/durable-effect/spike/node_modules/@restatedev/restate-sdk/dist/promises.js:64:29)
+ATTEMPT Gap/allOfTwo 1
+TICK Gap/allOfTwo all ["run:a","run:b","sleep1s"]
+TICK Gap/allOfTwo race1 "run:d"
+TICK Gap/allOfTwo race2 "run:c"
+ATTEMPT GapReplay/dropCall 1
+ATTEMPT GapChild/slow3 3
+[GapReplay/dropCall] INFO: Invocation suspended
+[GapReplay/dropCall] INFO: Replaying invocation.
+ATTEMPT GapReplay/dropCall 2
+TICK GapReplay/dropCall race1 "sleep1s"
+TICK GapReplay/dropCall race2 "run:1"
+TICK GapChild/slow3 done
+ATTEMPT GapReplay/dropAwakeable 1
+AWAKEABLE GapReplay/dropAwakeable sign_13OnnH3ujjFwJ89Wb135GYU1DD090G4PpAAAAEQ
+[GapReplay/dropAwakeable] INFO: Invocation suspended
+[GapReplay/dropAwakeable] INFO: Replaying invocation.
+ATTEMPT GapReplay/dropAwakeable 2
+AWAKEABLE GapReplay/dropAwakeable sign_13OnnH3ujjFwJ89Wb135GYU1DD090G4PpAAAAEQ
+TICK GapReplay/dropAwakeable race1 "sleep1s"
+TICK GapReplay/dropAwakeable race2 "run:2"
+ATTEMPT GapReplay/dropAwakeableResolvedLater 1
+AWAKEABLE GapReplay/dropAwakeableResolvedLater sign_1nnsLb7KV_gnOc3oqun8_8qBpU6STCn6kAAAAEQ
+[GapReplay/dropAwakeableResolvedLater] INFO: Invocation suspended
+[GapReplay/dropAwakeableResolvedLater] INFO: Replaying invocation.
+ATTEMPT GapReplay/dropAwakeableResolvedLater 2
+AWAKEABLE GapReplay/dropAwakeableResolvedLater sign_1nnsLb7KV_gnOc3oqun8_8qBpU6STCn6kAAAAEQ
+TICK GapReplay/dropAwakeableResolvedLater race1 "sleep1s"
+[GapReplay/dropAwakeableResolvedLater] INFO: Invocation suspended
+[GapReplay/dropAwakeableResolvedLater] INFO: Replaying invocation.
+ATTEMPT GapReplay/dropAwakeableResolvedLater 3
+AWAKEABLE GapReplay/dropAwakeableResolvedLater sign_1nnsLb7KV_gnOc3oqun8_8qBpU6STCn6kAAAAEQ
+TICK GapReplay/dropAwakeableResolvedLater race1 "sleep1s"
+TICK GapReplay/dropAwakeableResolvedLater race2 "sleep5s"
+TICK GapReplay/dropAwakeableResolvedLater race3 "run:3"
+ATTEMPT GapReplay/dropCompletesMeanwhile 1
+[GapReplay/dropCompletesMeanwhile] INFO: Invocation suspended
+[GapReplay/dropCompletesMeanwhile] INFO: Replaying invocation.
+ATTEMPT GapReplay/dropCompletesMeanwhile 2
+TICK GapReplay/dropCompletesMeanwhile race1 "sleep1s"
+[GapReplay/dropCompletesMeanwhile] INFO: Invocation suspended
+[GapReplay/dropCompletesMeanwhile] INFO: Replaying invocation.
+ATTEMPT GapReplay/dropCompletesMeanwhile 3
+TICK GapReplay/dropCompletesMeanwhile race1 "sleep1s"
+TICK GapReplay/dropCompletesMeanwhile race2 "sleep5s"
+ATTEMPT GapReplay/dropCallCompletesMeanwhile 1
+ATTEMPT GapChild/slow3 4
+[GapReplay/dropCallCompletesMeanwhile] INFO: Invocation suspended
+[GapReplay/dropCallCompletesMeanwhile] INFO: Replaying invocation.
+ATTEMPT GapReplay/dropCallCompletesMeanwhile 2
+TICK GapReplay/dropCallCompletesMeanwhile race1 "sleep1s"
+[GapReplay/dropCallCompletesMeanwhile] INFO: Invocation suspended
+TICK GapChild/slow3 done
+[GapReplay/dropCallCompletesMeanwhile] INFO: Replaying invocation.
+ATTEMPT GapReplay/dropCallCompletesMeanwhile 3
+TICK GapReplay/dropCallCompletesMeanwhile race1 "sleep1s"
+TICK GapReplay/dropCallCompletesMeanwhile race2 "sleep5s"
+[GapReplay/cancelWithDropped] INFO: Starting invocation.
+ATTEMPT GapReplay/cancelWithDropped 1
+[GapReplay/cancelWithDropped] INFO: Invocation suspended
+[GapReplay/cancelWithDropped] INFO: Replaying invocation.
+ATTEMPT GapReplay/cancelWithDropped 2
+TICK GapReplay/cancelWithDropped race1 "sleep1s"
+[GapReplay/cancelWithDropped] INFO: Invocation suspended
+[GapReplay/cancelWithDropped] INFO: Replaying invocation.
+ATTEMPT GapReplay/cancelWithDropped 3
+TICK GapReplay/cancelWithDropped race1 "sleep1s"
+TICK GapReplay/cancelWithDropped race2 caught CancelledError Cancelled
+[GapReplay/cancelWithDropped] WARN: Error when processing a Restate context operation.
+ CancelledError: Cancelled
+    at RestateCombinatorPromise.tryCancel (file:///Users/ethan/Desktop/durable-effect/spike/node_modules/@restatedev/restate-sdk/dist/promises.js:64:29)
+ATTEMPT GapReplay/allOfTwo 1
+[GapReplay/allOfTwo] INFO: Invocation suspended
+[GapReplay/allOfTwo] INFO: Replaying invocation.
+ATTEMPT GapReplay/allOfTwo 2
+TICK GapReplay/allOfTwo all ["run:a","run:b","sleep1s"]
+TICK GapReplay/allOfTwo race1 "run:d"
+TICK GapReplay/allOfTwo race2 "run:c"
+
+== SDK log WARN count for the gaps: 2
+== Server log WARN and ERROR lines for the gaps ==
+  (none)
+./run.sh: line 7: 18113 Terminated: 15          ( cd "$here/.." && exec node abandonment/handler.mjs ) > "$state/sdk.log" 2>&1

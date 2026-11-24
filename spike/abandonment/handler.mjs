@@ -1,5 +1,6 @@
 // Spike for #31: what an abandoned SDK operation does to the attempt, with no cancellation.
 import * as restate from "@restatedev/restate-sdk";
+import { gapServices } from "./gaps.mjs";
 
 let attempts = {};
 const note = (name) => { attempts[name] = (attempts[name] ?? 0) + 1; console.log("ATTEMPT", name, attempts[name]); };
@@ -138,4 +139,4 @@ const parentHandlers = {
 const parentLive = restate.service({ name: "Parent", handlers: parentHandlers, options: retention });
 const parentReplay = restate.service({ name: "ParentReplay", handlers: parentHandlers, options: replayOptions });
 
-restate.serve({ services: [handler, raceLive, raceReplay, child, parentLive, parentReplay], port: 19892 });
+restate.serve({ services: [handler, raceLive, raceReplay, child, parentLive, parentReplay, ...gapServices], port: 19892 });
