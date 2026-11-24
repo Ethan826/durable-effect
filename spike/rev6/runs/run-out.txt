@@ -1,0 +1,105 @@
+== rev6-runs fixtures R1 to R4, issue #48 step 3
+requested SDK 1.18.4, server 1.8.1
+loaded SDK_VERSION 1.18.4 /Users/ethan/Desktop/durable-effect/spike/node_modules/@restatedev/restate-sdk/dist/index.cjs
+server binary: restate-server 1.8.1
+node v26.6.0
+
+== Driver
+R1 keep-live 1 inv_15oybr5F0grf4QllmoRkLQJEmo6dhJNXMK completed success 
+R1 keep-live 2 inv_1cdJOpcsBzbH3mCIUi7p2eVGSvOLThHxct completed success 
+R1 keep-replay 1 inv_18hSiveibfw44m12EQpgbZGXR15OBu9Mmw completed success 
+R1 keep-replay 2 inv_1cSwbCrnsQSf6DIDVnJEBzpwBcgi1rZzcU completed success 
+R1 drop-live 1 inv_1kL0QvcqdVPw0sg9GvYDQNnrcjTk4PqlAi completed success 
+R1 drop-replay 1 inv_1esjViHaOfEh2t9ilv26kcYfhsYXDfNBnU completed success 
+R2 wait-live 1 inv_1jIBUlI3P70V4vZWfOJIHN4so1FfbY78lN completed success 
+R2 wait-live 2 inv_165TFl3HWLjV6u7ZOkVkJVWHHgHRRlf3gU completed success 
+R2 wait-replay 1 inv_16C2JpQlfMhm34yUfGiGl6F2iHxZvDzC2a completed success 
+R2 wait-replay 2 inv_1ap1WI0yojoD3uDABjFUKpSigpz3ulmBQ2 completed success 
+R2 return-live 1 inv_1jWg1LyITszC1rppg1GSpnGoxJIzevRvV1 completed success 
+R2 return-replay 1 inv_1kQxdfHECBM00zzW8Ta3zmiZbnEcJOWcDy completed success 
+R3 hold-live 1 inv_1b2eitdCqJOk1S7Ab29UcMyAtmKx6DxCpF completed success 
+R3 hold-live 2 inv_10iCCIBs6iBr4iubgI9y9aZs28oNiwwk8e completed success 
+R3 hold-replay 1 inv_12BuK12dV3e91uknk4nkMdiuMNbMNytIE5 running  1
+R3 hold-replay 2 inv_15hQepvpDtSR32db0ovDKVWdTR4TNv5WYd running  1
+R3 settled-live 1 inv_11RUoIMeLJlQ05QusFrqV9IomB5Yl3wSG1 completed success 
+R3 settled-live 2 inv_12FFy40hyLTx24qgLHnWJgz3rzXf10nicn completed success 
+R3 settled-replay 1 inv_144obcKAqd0O0gZf0BzRZnopYo6vdhGzCe completed success 
+R3 settled-replay 2 inv_18M4owGSftQ34viSPUgl8DgY9bHSqk0K19 completed success 
+R3 nohold-live 1 inv_19DkNwm0zoOI6asezHIdMTH2goqEHieklb completed success 
+R3 nohold-replay 1 inv_1dxhdt9WkWeK6rZgTMYnAn0yEN2RSJdLh5 completed success 
+R4 main 1 inv_1d1GLWqSITKX0e2JKXSUe2GalgbDwKBtm3 completed success 
+R4 main 2 inv_1laFPKJLk4Hz5paUfc9uXSW9pvtVWgPT3B completed success 
+R4 noabort 1 inv_1cTlbWYpgRYK7y7QeeyPFNyZ2tcCAwrHGZ completed success 
+R4 noconvert 1 inv_1jgMdN8hfSDn6RTo779QfqVDLiwmQiHF1T ready  
+R4 noconvert kill HTTP 200
+
+== Checks
+VERSIONS PASS: SDK requested 1.18.4 loaded 1.18.4; server requested 1.8.1 reports "restate-server 1.8.1"
+R1 executingRunNeverDropped (rule 1, A9): FAIL on 4 invocations (keep-live, keep-replay)
+  control: FAILED as required on 2 invocations (drop-live, drop-replay)
+    keep-live inv_15oybr5F0grf4QllmoRkLQJEmo6dhJNXMK attempts=1 suspended=0 status=completed/success rEffects=1 rResults=[{"index":10,"result":"Success"}] output=11
+      ticks (ms relative to r-settle): 1:first=s1@-1397 1:s2=s2@-1191 1:q=q@-1174 1:s3=s3@-867 1:close=r@6
+      latency ms (issue to delivery): a1: first=108 s2=206 q=17 s3=307
+    keep-live inv_1cdJOpcsBzbH3mCIUi7p2eVGSvOLThHxct attempts=1 suspended=0 status=completed/success rEffects=1 rResults=[{"index":10,"result":"Success"}] output=11
+      ticks (ms relative to r-settle): 1:first=s1@-1396 1:s2=s2@-1190 1:q=q@-1176 1:s3=s3@-869 1:close=r@5
+      latency ms (issue to delivery): a1: first=106 s2=206 q=14 s3=307
+    keep-replay inv_18hSiveibfw44m12EQpgbZGXR15OBu9Mmw attempts=3 suspended=2 status=completed/success rEffects=1 rResults=[{"index":6,"result":"Success"}] output=11
+      ticks (ms relative to r-settle): 1:first=s1@-1400 2:first=s1@10 2:s2=s2@10 2:q=r@10 2:q=q@26 3:first=s1@333 3:s2=s2@333 3:q=r@333 3:q=q@333 3:s3=s3@334
+      latency ms (issue to delivery): a1: first=102 s2=- q=- s3=- | a2: first=0 s2=0 q=0 s3=- | a3: first=0 s2=0 q=0 s3=0
+    keep-replay inv_1cSwbCrnsQSf6DIDVnJEBzpwBcgi1rZzcU attempts=3 suspended=2 status=completed/success rEffects=1 rResults=[{"index":6,"result":"Success"}] output=11
+      ticks (ms relative to r-settle): 1:first=s1@-1396 2:first=s1@11 2:s2=s2@11 2:q=r@11 2:q=q@29 3:first=s1@338 3:s2=s2@338 3:q=r@338 3:q=q@338 3:s3=s3@338
+      latency ms (issue to delivery): a1: first=106 s2=- q=- s3=- | a2: first=0 s2=0 q=0 s3=- | a3: first=1 s2=0 q=0 s3=0
+    drop-live inv_1kL0QvcqdVPw0sg9GvYDQNnrcjTk4PqlAi attempts=1 suspended=0 status=completed/success rEffects=1 rResults=[] output=10
+      ticks (ms relative to r-settle): 1:first=s1@-1397 1:s2=s2@-1194 1:q=q@-1179 1:s3=s3@-875
+      latency ms (issue to delivery): a1: first=106 s2=203 q=15 s3=304
+    drop-replay inv_1esjViHaOfEh2t9ilv26kcYfhsYXDfNBnU attempts=3 suspended=2 status=completed/success rEffects=1 rResults=[] output=10
+      ticks (ms relative to r-settle): 1:first=s1@-1399 2:first=s1@-1186 2:s2=s2@-1185 2:q=q@-1170 3:first=s1@-861 3:s2=s2@-861 3:q=q@-861 3:s3=s3@-861
+      latency ms (issue to delivery): a1: first=104 s2=- q=- s3=- | a2: first=0 s2=1 q=15 s3=- | a3: first=1 s2=0 q=0 s3=0
+R2 closingWaitsForRuns (rule 2, A21): PASS on 4 invocations (wait-live, wait-replay)
+  control: FAILED as required on 2 invocations (return-live, return-replay)
+    wait-live inv_1jIBUlI3P70V4vZWfOJIHN4so1FfbY78lN attempts=1 suspended=0 status=completed/success rEffects=1 rResults=[{"index":4,"result":"Success"}] output=5
+    wait-live inv_165TFl3HWLjV6u7ZOkVkJVWHHgHRRlf3gU attempts=1 suspended=0 status=completed/success rEffects=1 rResults=[{"index":4,"result":"Success"}] output=5
+    wait-replay inv_16C2JpQlfMhm34yUfGiGl6F2iHxZvDzC2a attempts=2 suspended=1 status=completed/success rEffects=1 rResults=[{"index":4,"result":"Success"}] output=5
+    wait-replay inv_1ap1WI0yojoD3uDABjFUKpSigpz3ulmBQ2 attempts=2 suspended=1 status=completed/success rEffects=1 rResults=[{"index":4,"result":"Success"}] output=5
+    return-live inv_1jWg1LyITszC1rppg1GSpnGoxJIzevRvV1 attempts=1 suspended=0 status=completed/success rEffects=1 rResults=[] output=4
+    return-replay inv_1kQxdfHECBM00zzW8Ta3zmiZbnEcJOWcDy attempts=1 suspended=0 status=completed/success rEffects=1 rResults=[] output=4
+R3 failureHeldUntilDelivered (rule 3, A11): FAIL on 4 invocations (hold-live, hold-replay)
+  control: FAILED as required on 2 invocations (nohold-live, nohold-replay)
+    hold-live inv_1b2eitdCqJOk1S7Ab29UcMyAtmKx6DxCpF attempts=2 suspended=0 status=completed/success aEffects=1 bEffects=2 aResults=[{"index":3,"result":"Success"}] bResults=[{"index":4,"result":"Success"}] aJournaledBeforeReject=true aJournaledByFailedAttempt=true failedAttempts=1
+      appended before attempt 2: 0:Command: Input, 1:Command: Run(a), 2:Command: Run(b), 3:Notification: Run=Success
+    hold-live inv_10iCCIBs6iBr4iubgI9y9aZs28oNiwwk8e attempts=2 suspended=0 status=completed/success aEffects=1 bEffects=2 aResults=[{"index":3,"result":"Success"}] bResults=[{"index":4,"result":"Success"}] aJournaledBeforeReject=true aJournaledByFailedAttempt=true failedAttempts=1
+      appended before attempt 2: 0:Command: Input, 1:Command: Run(a), 2:Command: Run(b), 3:Notification: Run=Success
+    hold-replay inv_12BuK12dV3e91uknk4nkMdiuMNbMNytIE5 attempts=1 suspended=0 status=running/undefined aEffects=1 bEffects=1 aResults=[{"index":3,"result":"Success"}] bResults=[] aJournaledBeforeReject=false aJournaledByFailedAttempt=false failedAttempts=0
+      appended before attempt 2: 
+    hold-replay inv_15hQepvpDtSR32db0ovDKVWdTR4TNv5WYd attempts=1 suspended=0 status=running/undefined aEffects=1 bEffects=1 aResults=[{"index":3,"result":"Success"}] bResults=[] aJournaledBeforeReject=false aJournaledByFailedAttempt=false failedAttempts=0
+      appended before attempt 2: 
+    nohold-live inv_19DkNwm0zoOI6asezHIdMTH2goqEHieklb attempts=2 suspended=0 status=completed/success aEffects=2 bEffects=2 aResults=[{"index":4,"result":"Success"}] bResults=[{"index":3,"result":"Success"}] aJournaledBeforeReject=false aJournaledByFailedAttempt=false failedAttempts=1
+      appended before attempt 2: 0:Command: Input, 1:Command: Run(a), 2:Command: Run(b)
+    nohold-replay inv_1dxhdt9WkWeK6rZgTMYnAn0yEN2RSJdLh5 attempts=3 suspended=1 status=completed/success aEffects=2 bEffects=2 aResults=[{"index":4,"result":"Success"}] bResults=[{"index":3,"result":"Success"}] aJournaledBeforeReject=false aJournaledByFailedAttempt=false failedAttempts=1
+      appended before attempt 2: 0:Command: Input, 1:Command: Run(a), 2:Command: Run(b)
+R3s failureHeldUntilSettled (added after run 1) (rule 3, A11): PASS on 4 invocations (settled-live, settled-replay)
+  control: FAILED as required on 2 invocations (nohold-live, nohold-replay)
+    settled-live inv_11RUoIMeLJlQ05QusFrqV9IomB5Yl3wSG1 attempts=2 suspended=0 status=completed/success aEffects=1 bEffects=2 aResults=[{"index":3,"result":"Success"}] bResults=[{"index":4,"result":"Success"}] aJournaledBeforeReject=false aJournaledByFailedAttempt=true failedAttempts=1
+      appended before attempt 2: 0:Command: Input, 1:Command: Run(a), 2:Command: Run(b), 3:Notification: Run=Success
+    settled-live inv_12FFy40hyLTx24qgLHnWJgz3rzXf10nicn attempts=2 suspended=0 status=completed/success aEffects=1 bEffects=2 aResults=[{"index":3,"result":"Success"}] bResults=[{"index":4,"result":"Success"}] aJournaledBeforeReject=true aJournaledByFailedAttempt=true failedAttempts=1
+      appended before attempt 2: 0:Command: Input, 1:Command: Run(a), 2:Command: Run(b), 3:Notification: Run=Success
+    settled-replay inv_144obcKAqd0O0gZf0BzRZnopYo6vdhGzCe attempts=2 suspended=0 status=completed/success aEffects=1 bEffects=2 aResults=[{"index":3,"result":"Success"}] bResults=[{"index":4,"result":"Success"}] aJournaledBeforeReject=true aJournaledByFailedAttempt=true failedAttempts=1
+      appended before attempt 2: 0:Command: Input, 1:Command: Run(a), 2:Command: Run(b), 3:Notification: Run=Success
+    settled-replay inv_18M4owGSftQ34viSPUgl8DgY9bHSqk0K19 attempts=2 suspended=0 status=completed/success aEffects=1 bEffects=2 aResults=[{"index":3,"result":"Success"}] bResults=[{"index":4,"result":"Success"}] aJournaledBeforeReject=false aJournaledByFailedAttempt=true failedAttempts=1
+      appended before attempt 2: 0:Command: Input, 1:Command: Run(a), 2:Command: Run(b), 3:Notification: Run=Success
+    nohold-live inv_19DkNwm0zoOI6asezHIdMTH2goqEHieklb attempts=2 suspended=0 status=completed/success aEffects=2 bEffects=2 aResults=[{"index":4,"result":"Success"}] bResults=[{"index":3,"result":"Success"}] aJournaledBeforeReject=false aJournaledByFailedAttempt=false failedAttempts=1
+      appended before attempt 2: 0:Command: Input, 1:Command: Run(a), 2:Command: Run(b)
+    nohold-replay inv_1dxhdt9WkWeK6rZgTMYnAn0yEN2RSJdLh5 attempts=3 suspended=1 status=completed/success aEffects=2 bEffects=2 aResults=[{"index":4,"result":"Success"}] bResults=[{"index":3,"result":"Success"}] aJournaledBeforeReject=false aJournaledByFailedAttempt=false failedAttempts=1
+      appended before attempt 2: 0:Command: Input, 1:Command: Run(a), 2:Command: Run(b)
+R4 abortLoser (abort signal): PASS on 2 invocations (main)
+  control: FAILED as required on 2 invocations (noconvert, noabort)
+    main inv_1d1GLWqSITKX0e2JKXSUe2GalgbDwKBtm3 attempts=1 status=completed/success wResults=[{"index":5,"result":"Failure"}] iResults=[{"index":6,"result":"Success"}]
+      ms after abort-point: w-settle=2 (AbortError) i-settle=9930 (ok) warn-i=2003 warn-w=-
+    main inv_1laFPKJLk4Hz5paUfc9uXSW9pvtVWgPT3B attempts=1 status=completed/success wResults=[{"index":5,"result":"Failure"}] iResults=[{"index":6,"result":"Success"}]
+      ms after abort-point: w-settle=0 (AbortError) i-settle=9896 (ok) warn-i=2000 warn-w=-
+    noconvert inv_1jgMdN8hfSDn6RTo779QfqVDLiwmQiHF1T attempts=4 status=ready/undefined wResults=[] iResults=[]
+      ms after abort-point: w-settle=0 (AbortError) i-settle=9899 (ok) warn-i=2002 warn-w=2002
+    noabort inv_1cTlbWYpgRYK7y7QeeyPFNyZ2tcCAwrHGZ attempts=1 status=completed/success wResults=[{"index":5,"result":"Success"}] iResults=[{"index":6,"result":"Success"}]
+      ms after abort-point: w-settle=9901 (ok) i-settle=9902 (ok) warn-i=- warn-w=-
+SUMMARY 2 FAIL
+exit 1
