@@ -1,0 +1,215 @@
+== rev6-order and rev6-effects fixtures, register on #48
+requested SDK 1.18.4, server 1.8.1
+loaded SDK_VERSION 1.18.4 /Users/ethan/Desktop/durable-effect/spike/node_modules/@restatedev/restate-sdk/dist/index.cjs
+server binary: restate-server 1.8.1
+node v26.6.0
+
+== Driver
+F3 main 1 inv_17ybeMFoOEvd3nVpnyw6prW70dqJJ0sBFP completed success 
+F3 main kill HTTP 409
+F7 main 1 inv_1hzThF0KHhrU0WrKNl1ApVEDD6iXYQ7Esh completed success 
+F1 main 1 inv_1doPEt3ckYKr1sOHhZ4ICJrIsREO9V4csv completed success 
+F1 main 2 inv_1dP4Y5lTnbzZ5prAmtsWttFnHv1edlMgmU completed success 
+F1 main 3 inv_19fP53U3oHxv1umekfglxiRI9nB60GLdjD completed success 
+F1 main 4 inv_19hrRNSvX42h6Vrg2ZSWoax5l5YDYpUsEI completed success 
+F1 main 5 inv_11dtjL9SmYil4rflOTXQffBySiX8zychmf completed success 
+F1 main 6 inv_1ja76hq51r2e46GvO5FpaTHAqKcXk14kGt completed success 
+F1 main 7 inv_1bjrVmlDiQRC3018OEZOht5ZZ6z9oegKj7 completed success 
+F1 main 8 inv_17ihUXszig1i4ePhaMBY8rsHmhg0Bep9Ag completed success 
+F1 main 9 inv_19FlPJFBsawM3f1w5ljN6yHbS3SROn7mrq completed success 
+F1 main 10 inv_13lkkSHYVQWH4qhriQ8MQG3zHEQtCkZ20J completed success 
+F1 changed 1 inv_1cAuaEYFrytC7MJWkTvTTtlKqKbzBcMxlR completed success 
+F1 changed 2 inv_1giWrHBr3TRk2RhAaXRELoY9mZSlyTQERG completed success 
+F1 changed 3 inv_1kfY2OPmx6ad1MmZrYAni9ng5qt2pPCndz completed success 
+F2 main 1 inv_11VF0Po0ZAsa1g0R4vLTmSabU2TshHeTEB completed success 
+F2 main 2 inv_1br7kUYPCHpK3tUBCahTxok9akBYU7QFFR completed success 
+F2 main 3 inv_12vZaWdYIMok2CMNHs3lX0nhhlIIKnrtqE completed success 
+F2 reversed 1 inv_18OM67vKi0jh1FS9ZC2JlR8b7mycH1P6cb completed success 
+F2 reversed 2 inv_1i0DELlj4yXo0oEHjyo67KVAqvUkUAopBY completed success 
+F2 reversed 3 inv_1a04puph7YfC63Y2mr4LB28ZF72Bqkst3O completed success 
+F2 main-live 1 inv_1gf6MB8kJWfH1FLYPkUHCHrzwEdjFm7YZJ completed success 
+F2 main-live 2 inv_1fZ0t2wTGVaw7KVKZOXGz5uWvM3T1zWm3B completed success 
+F2 main-live 3 inv_1iuRSW41MwFJ2SmnIwe1FK6zJym7TlAwUd completed success 
+F2 reversed-live 1 inv_1bIBWWMyogfw1PDQ1aRcshNbfgys2YErYQ completed success 
+F2 reversed-live 2 inv_1aFNwY3XxIDy2GyFWKBwZWTCreneXrj5aN completed success 
+F2 reversed-live 3 inv_18bxMSY4ySJJ3FqllUFdedpByLbPu1GThG completed success 
+F3 dropped 1 inv_1h9QzjiEgZmk0PiLH8eXuinTTGLN2x4xDt completed success 
+F4 main 1 inv_14mmHjGtslgh1Mjen1rBt96VuCPVtFI4Gt completed success 
+F4 main 2 inv_1ftM44HEPkyd67LbIouyEYQTXgKlmmYrYX completed success 
+F4 subscribed 1 inv_18nW0qXeqd041pYdpaR8zAq8B2xDUgjdpt completed success 
+F4 subscribed 2 inv_1eTOYLqv4dTL5OXEiF4L09qjN6qDLFD1js completed success 
+F5 live 1 inv_1cvEnbKCUC220BpgMrh2Lg4Bwx37R77qO4 completed success 
+F5 live 2 inv_18I1kaDUmNi05lpjc9sDK1ICkguJjiM39Z completed success 
+F5 replay 1 inv_15h88wUMFPjk3rlSUeSLiKb5Vt8zaRvUHy completed success 
+F5 replay 2 inv_1l2tnbhJ9WTd6kFqi8ru7Sa7Zuj0ncuG4F completed success 
+F5 subscribedLonger 1 inv_18Qex0noSCKQ4fEpcGpabGrXgIEr9Do2Ll completed success 
+F6 call-live 1 inv_14hhdwCYZHmt4kn6AZJVJ8jksm1SfYYtUR completed success 
+F6 run-live 1 inv_146kx77F8fk42YSYNItlA7U7Lc5bwGj5Yz completed success 
+F6 awk-live 1 inv_10Aa9hFDUSFx6dsyUE3rLeO5O2BKbn3oF1 completed success 
+F6 retry-live 1 inv_1aBCXeF8rx5E20qJC0qDTdRdWCke9C7myR completed success 
+F6 call-replay 1 inv_1cXRO2Z6DiHM5VmIiSGxyQ3E9hADJImat6 completed success 
+F6 run-replay 1 inv_15ZncYgmUsae4uoLsQYqlw9OaYcvyXKq59 completed success 
+F6 awk-replay 1 inv_15VdYn39REeG5zFTuXXaSaxLNm3fNYKlrU completed success 
+F6 retry-replay 1 inv_1jHWWgBZPD2668GylOw452vJgeOOLIZZV2 completed success 
+F7 returnsWithPending 1 inv_1aIO7LC2GIKY24WjVxxVNZ4l5QWQdena0k completed success 
+F8 main 1 inv_1d9P5wiv4VVF5JocXI1EyCFMke3WPWuQgY completed success 
+F8 main 2 inv_1lV80oyjTmuv1FaW1SxZNwurpCJxfm8IXZ completed success 
+F8 atOnce 1 inv_1aegpxpf3kmi5lRzIUJ0aJJMR0pCS3QHk3 completed success 
+F8 atOnce 2 inv_14Ic1S5yVBbD3eFP8T94QT2UXkIYTM5YFN completed success 
+F9 replay 1 inv_1dTxemZYZR1F1pI8sLNH3lC2gfMZcrWMsi completed success 
+F9 replay 2 inv_12qsbkmcpPcF1TmaJHef81FcAeYCVVOY3c completed success 
+F9 replay 3 inv_1gK16kfjezBo6dD7GGMJESY6HoBbMO9Lf7 completed success 
+F9 live 1 inv_16QGvVFCA1sm0LvHgy7CXWgP0MW9qFfnK7 completed success 
+F9 live 2 inv_1bIBWWMyogfw5aMIXeEmyz5Hf7gC7XsPZD completed success 
+F9 live 3 inv_1dKByTp0JvH74FaitFnU9rGUCO0pk8Ys0A completed success 
+F10 main 1 inv_15G8xywJzYZJ4kDdt1DQ34Pph0IdLWDvQR completed success 
+F10 main 2 inv_1h9QzjiEgZmk4FayKIC355KikG7Qc9CBLG completed success 
+F10 main 3 inv_1hJAiD2qGTDZ62WqYiwOJOdBSryyRzdqYQ completed success 
+F10 main 4 inv_14Ehh9eUXHSY4Y4frJgL7W7EK2yjsCuoh5 completed success 
+F10 main 5 inv_11jcllyRAACH39rDHar3EVFqFX937jR5pR completed success 
+F10 main 6 inv_12KGhl1gRXIk7KrqjnwEZ6VLoOS8UYF8RM completed success 
+F10 main 7 inv_1jzgYnzV7Sa61j9MztD4YCWEgRY4lgtxTZ completed success 
+F10 main 8 inv_120MixgZqJaW23OTwSZJZ5GjNqSZQcnXfn completed success 
+F10 main 9 inv_1jKWY1h2StMS6oJNmNwTDKvQ2dLfDvIImp completed success 
+F10 main 10 inv_1iuRSW41MwFJ4JGrewHsRiW0gTztz4YjhB completed success 
+F10 main 11 inv_15vh4edOuejJ63Z9m3bYfDxIIP0KYxRF1x completed success 
+F10 main 12 inv_1hYeAljoyfyh0cvOpGPVN0OM3C7fov9P6A completed success 
+F10 main 13 inv_1e87UtYPM5ms7pa6HfVEFzeuNoGzwKdNYB completed success 
+F10 main 14 inv_1heVSMy8sWGL2B8L4MU0wLdK17aZPFiF2b completed success 
+F10 main 15 inv_1f5YmfopUdiD0EKqAnd8ymOlRuslqRU67z completed success 
+F10 main 16 inv_11W1XoieYSbd4dsNQWfdE6QQ9pGhvSz3he completed success 
+F10 main 17 inv_1jDs8Scy0G4K6tAk3CgqjyXI0yUUHnpSYX completed success 
+F10 main 18 inv_1jqkGteR4ZHe1cAPSIYOUYZyQP4mMekw1D completed success 
+F10 main 19 inv_18ETcfbcc7Ub2b4X70ydMVUE2hyWfuCbMp completed success 
+F10 main 20 inv_1jx93x1gQAgq7skSsgHhtxf0ZVkrWJEcLI completed success 
+F17 main 1 inv_1lQj6xbuzvFM7qtbm1ot8LZ1QtcSGtjGy9 completed success 
+F17 main 2 inv_139ShEYafkM90HjqfCj884goryp4YqLVUq completed success 
+F17 keep 1 inv_13L8zEP5quR40yzjrdFAOGx3JYCSsHK3uD completed success 
+F17 keep 2 inv_1d0Hx7PjFzOb4rTR81A3UHVyt5u9x7UJb5 completed success 
+F18 unraced-replay 1 inv_15tiNYSgOPvr5pD3imKm2CzMJqEiSctTgd completed success 
+F18 beside-replay 1 inv_19Cq7BYRDV2I2z8zwmJe90ZAX7m0DxG2TI completed success 
+F18 besideTaken-replay 1 inv_16Vumg4oWHJf1oTfLGYPys3qimbcoUBB1B completed success 
+F18 alone-replay 1 inv_1d7EmvAQQ7zP5I2ahkLW261AbQdnhHsSc0 completed success 
+F18 unraced-live 1 inv_19763drIgWNk3H2Rw6CF5VxCwk4Civc8rs completed success 
+F18 beside-live 1 inv_166Eu1iJtksO58cef7gS7OcbxFfIFYSFRN completed success 
+F18 besideTaken-live 1 inv_1cdTpdvsQWQn2YFlsi4BApqC3IUOBAeJB3 completed success 
+F18 alone-live 1 inv_1eTf8wLx9Zw24UafUfpTSK2O214pa6clYD completed success 
+F19 main 1 inv_1kLNXqXqmVYN0zBo4tofopl8XPdyXsv4C6 completed success 
+F19 terminal 1 inv_1jmp2u82POL01IoMBtGi3Je3ryUkGCoVFx completed success 
+
+== Checks
+VERSIONS PASS: SDK requested 1.18.4 loaded 1.18.4; server requested 1.8.1 reports "restate-server 1.8.1"
+F1 adjacentReplay (A1): PASS - 10 invocations; lower journal index won in every attempt; adjacent results in 10/10
+  control: FAILED as required - race changed on replay to the live loser; checker verdicts: fail,fail,fail
+    inv_1doPEt3ckYKr1sOHhZ4ICJrIsREO9V4csv 1:"b" 2:"b"
+    inv_1dP4Y5lTnbzZ5prAmtsWttFnHv1edlMgmU 1:"b" 2:"b"
+    inv_19fP53U3oHxv1umekfglxiRI9nB60GLdjD 1:"a" 2:"a"
+    inv_19hrRNSvX42h6Vrg2ZSWoax5l5YDYpUsEI 1:"b" 2:"b"
+    inv_11dtjL9SmYil4rflOTXQffBySiX8zychmf 1:"b" 2:"b"
+    inv_1ja76hq51r2e46GvO5FpaTHAqKcXk14kGt 1:"a" 2:"a"
+    inv_1bjrVmlDiQRC3018OEZOht5ZZ6z9oegKj7 1:"a" 2:"a"
+    inv_17ihUXszig1i4ePhaMBY8rsHmhg0Bep9Ag 1:"b" 2:"b"
+    inv_19FlPJFBsawM3f1w5ljN6yHbS3SROn7mrq 1:"b" 2:"b"
+    inv_13lkkSHYVQWH4qhriQ8MQG3zHEQtCkZ20J 1:"b" 2:"b"
+F2 subsetThenRace (A2): PASS - both sleeps ready before the race: true; [a,b] gives a and [b,a] gives b in every attempt: true
+  control: FAILED as required - journal-earliest-wins checker on the [a,b] invocations (live and replay)
+    main inv_11VF0Po0ZAsa1g0R4vLTmSabU2TshHeTEB 2:"a" 3:"a"
+    main inv_1br7kUYPCHpK3tUBCahTxok9akBYU7QFFR 2:"a" 3:"a"
+    main inv_12vZaWdYIMok2CMNHs3lX0nhhlIIKnrtqE 2:"a" 3:"a"
+    main-live inv_1gf6MB8kJWfH1FLYPkUHCHrzwEdjFm7YZJ 1:"a"
+    main-live inv_1fZ0t2wTGVaw7KVKZOXGz5uWvM3T1zWm3B 1:"a"
+    main-live inv_1iuRSW41MwFJ2SmnIwe1FK6zJym7TlAwUd 1:"a"
+    reversed inv_18OM67vKi0jh1FS9ZC2JlR8b7mycH1P6cb 2:"b" 3:"b"
+    reversed inv_1i0DELlj4yXo0oEHjyo67KVAqvUkUAopBY 2:"b" 3:"b"
+    reversed inv_1a04puph7YfC63Y2mr4LB28ZF72Bqkst3O 2:"b" 3:"b"
+    reversed-live inv_1bIBWWMyogfw1PDQ1aRcshNbfgys2YErYQ 1:"b"
+    reversed-live inv_1aFNwY3XxIDy2GyFWKBwZWTCreneXrj5aN 1:"b"
+    reversed-live inv_18bxMSY4ySJJ3FqllUFdedpByLbPu1GThG 1:"b"
+F3 replacedRace (must-fail gate) (A12): PASS - 2 attempts failed, 2 with awaitNext already pending
+  control: FAILED as required - the same gate on the dropped (unsubscribed) first race
+    inv_17ybeMFoOEvd3nVpnyw6prW70dqJJ0sBFP attempts=3 suspended=0 status=completed/success
+    last tick {"attempt":3,"label":"second","value":"\"s1\""}
+    inv_1h9QzjiEgZmk0PiLH8eXuinTTGLN2x4xDt attempts=1 suspended=0 status=completed/success
+F4 turnWithoutRace (A14): PASS - no suspension or new attempt inside any 2 s turn; the invocation still suspended later (attempts > 1)
+  control: FAILED as required - same check with the pending sleep subscribed by then()
+    main inv_14mmHjGtslgh1Mjen1rBt96VuCPVtFI4Gt attempts=2 suspended=1 status=completed/success log: ATTEMPT  f4 1 | TURN start  1 | TURN end  1 | INFO: Invocation suspended | ATTEMPT  f4 2 | TURN start  2 | TURN end  2
+    main inv_1ftM44HEPkyd67LbIouyEYQTXgKlmmYrYX attempts=2 suspended=1 status=completed/success log: ATTEMPT  f4 1 | TURN start  1 | TURN end  1 | INFO: Invocation suspended | ATTEMPT  f4 2 | TURN start  2 | TURN end  2
+    subscribed inv_18nW0qXeqd041pYdpaR8zAq8B2xDUgjdpt attempts=2 suspended=1 status=completed/success log: ATTEMPT  f4Subscribed 1 | TURN start  1 | INFO: Invocation suspended | ATTEMPT  f4Subscribed 2 | TURN start  2 | TURN end  1 | TURN end  2
+    subscribed inv_1eTOYLqv4dTL5OXEiF4L09qjN6qDLFD1js attempts=2 suspended=1 status=completed/success log: ATTEMPT  f4Subscribed 1 | TURN start  1 | INFO: Invocation suspended | ATTEMPT  f4Subscribed 2 | TURN start  2 | TURN end  1 | TURN end  2
+F5 manyInFlight (A19): PASS - 8 members (2 calls, 2 runs, 2 sleeps, awakeable, resolver call) over 8 ticks; live in one attempt, replay with no attempt beyond its suspensions
+  control: FAILED as required - same check on #31's subscribedLonger pattern
+    inv_1cvEnbKCUC220BpgMrh2Lg4Bwx37R77qO4 attempts=1 suspended=0 status=completed/success
+    inv_18I1kaDUmNi05lpjc9sDK1ICkguJjiM39Z attempts=1 suspended=0 status=completed/success
+    inv_15h88wUMFPjk3rlSUeSLiKb5Vt8zaRvUHy attempts=5 suspended=4 status=completed/success
+    inv_1l2tnbhJ9WTd6kFqi8ru7Sa7Zuj0ncuG4F attempts=4 suspended=3 status=completed/success
+    inv_18Qex0noSCKQ4fEpcGpabGrXgIEr9Do2Ll attempts=3 suspended=0 status=completed/success
+F6 droppedFailures (A20): PASS - call, run and awakeable failures journaled with no failed attempt (live and replay); retryable run as pinned: 1 failed attempt, 1 execution, no Run result
+  control: FAILED as required - the no-failed-attempt check on the retryable dropped run
+    call-live inv_14hhdwCYZHmt4kn6AZJVJ8jksm1SfYYtUR attempts=1 suspended=0 status=completed/success executions=0
+    call-replay inv_1cXRO2Z6DiHM5VmIiSGxyQ3E9hADJImat6 attempts=2 suspended=1 status=completed/success executions=0
+    run-live inv_146kx77F8fk42YSYNItlA7U7Lc5bwGj5Yz attempts=1 suspended=0 status=completed/success executions=1
+    run-replay inv_15ZncYgmUsae4uoLsQYqlw9OaYcvyXKq59 attempts=2 suspended=1 status=completed/success executions=1
+    awk-live inv_10Aa9hFDUSFx6dsyUE3rLeO5O2BKbn3oF1 attempts=1 suspended=0 status=completed/success executions=0
+    awk-replay inv_15VdYn39REeG5zFTuXXaSaxLNm3fNYKlrU attempts=2 suspended=1 status=completed/success executions=0
+    retry-live inv_1aBCXeF8rx5E20qJC0qDTdRdWCke9C7myR attempts=2 suspended=0 status=completed/success executions=1
+    retry-replay inv_1jHWWgBZPD2668GylOw452vJgeOOLIZZV2 attempts=3 suspended=1 status=completed/success executions=1
+F7 returnsMidRace (A21): PASS - one attempt; 3 s after completion the journal holds no Run or Call result and nothing after Output; the run ran to its end (pinned); the child call completed
+  control: FAILED as required - the one-attempt check on #31's returnsWithPending
+    inv_1hzThF0KHhrU0WrKNl1ApVEDD6iXYQ7Esh attempts=1 suspended=0 status=completed/success
+    late journal notifications: CallInvocationId
+    child [{"id":"inv_1hNf3pRR0buh1Mc0s52iU8rpY54lDY3aMN","target":"OrdChild/sleepFor","status":"completed","completion_result":"success","pinned_service_protocol_version":7,"pinned_deployment_id":"dp_12970dLIppaR1AIasqjLs8F","invoked_by_id":"inv_1hzThF0KHhrU0WrKNl1ApVEDD6iXYQ7Esh"}]
+    inv_1aIO7LC2GIKY24WjVxxVNZ4l5QWQdena0k attempts=2 suspended=0 status=completed/success
+F8 commandsAtAwait (A22): PASS - child started at or after the end of the 2 s turn
+  control: FAILED as required - the same check when the call is raced at once
+    main inv_1d9P5wiv4VVF5JocXI1EyCFMke3WPWuQgY {"childAfterIssue":2042,"childAfterTurn":13}
+    main inv_1lV80oyjTmuv1FaW1SxZNwurpCJxfm8IXZ {"childAfterIssue":2042,"childAfterTurn":14}
+    atOnce inv_1aegpxpf3kmi5lRzIUJ0aJJMR0pCS3QHk3 {"childAfterIssue":8,"childAfterTurn":null}
+    atOnce inv_14Ic1S5yVBbD3eFP8T94QT2UXkIYTM5YFN {"childAfterIssue":10,"childAfterTurn":null}
+F9 tenRuns (A18): PASS - 6 invocations; every attempt's winners follow the journal's run-result order; 3 were replayed
+  control: FAILED as required - same checker on the first invocation's log with ticks 0 and 1 swapped
+    replay inv_1dTxemZYZR1F1pI8sLNH3lC2gfMZcrWMsi journal r4,r8,r0,r7,r9,r6,r1,r5,r3,r2 attempts r4,r8,r0,r7,r9,r6,r1,r5,r3,r2 / r4,r8,r0,r7,r9,r6,r1,r5,r3,r2
+    replay inv_12qsbkmcpPcF1TmaJHef81FcAeYCVVOY3c journal r2,r8,r1,r5,r7,r9,r6,r3,r0,r4 attempts r2,r8,r1,r5,r7,r9,r6,r3,r0,r4 / r2,r8,r1,r5,r7,r9,r6,r3,r0,r4
+    replay inv_1gK16kfjezBo6dD7GGMJESY6HoBbMO9Lf7 journal r1,r8,r7,r6,r3,r0,r5,r9,r4,r2 attempts r1,r8,r7,r6,r3,r0,r5,r9,r4,r2 / r1,r8,r7,r6,r3,r0,r5,r9,r4,r2
+    live inv_16QGvVFCA1sm0LvHgy7CXWgP0MW9qFfnK7 journal r2,r0,r1,r4,r8,r9,r3,r6,r7,r5 attempts r2,r0,r1,r4,r8,r9,r3,r6,r7,r5
+    live inv_1bIBWWMyogfw5aMIXeEmyz5Hf7gC7XsPZD journal r7,r2,r5,r3,r9,r1,r0,r6,r8,r4 attempts r7,r2,r5,r3,r9,r1,r0,r6,r8,r4
+    live inv_1dKByTp0JvH74FaitFnU9rGUCO0pk8Ys0A journal r9,r3,r4,r7,r8,r5,r2,r6,r1,r0 attempts r9,r3,r4,r7,r8,r5,r2,r6,r1,r0
+F10 startOrder (A23): PASS - Run commands r1..r4 in every journal: true; 14 distinct start orders in 20 (pinned: varies=true)
+  control: FAILED as required - pin checker on a synthetic log with one start order
+    3x r2,r4,r1,r3
+    1x r1,r2,r4,r3
+    2x r3,r1,r4,r2
+    1x r1,r4,r2,r3
+    2x r1,r4,r3,r2
+    2x r1,r2,r3,r4
+    1x r3,r4,r2,r1
+    1x r1,r3,r4,r2
+    2x r2,r3,r4,r1
+    1x r4,r3,r1,r2
+    1x r2,r1,r3,r4
+    1x r2,r1,r4,r3
+    1x r4,r1,r3,r2
+    1x r4,r2,r1,r3
+F11 protocolVersion (A17): PASS - pinned_service_protocol_version 7 on 90 invocations; 166 invoke requests with application/vnd.restate.invocation.v7; deployment range 5-8
+  control: FAILED as required - same check pinned to v8
+    expected application/vnd.restate.invocation.v7
+F17 droppedRunAtSuspension (A9): PASS - suspended while the dropped run executed; executions 1; no Run result journaled (pinned)
+  control: FAILED as required - same check with the run kept in later races
+    main inv_1lQj6xbuzvFM7qtbm1ot8LZ1QtcSGtjGy9 attempts=2 suspended=1 status=completed/success executions=1 runResults=
+    main inv_139ShEYafkM90HjqfCj884goryp4YqLVUq attempts=2 suspended=1 status=completed/success executions=1 runResults=
+    keep inv_13L8zEP5quR40yzjrdFAOGx3JYCSsHK3uD attempts=2 suspended=1 status=completed/success executions=1 runResults=Success
+    keep inv_1d0Hx7PjFzOb4rTR81A3UHVyt5u9x7UJb5 attempts=2 suspended=1 status=completed/success executions=1 runResults=Success
+F18 runExecutesWhen (A10): PASS - unraced run, run raced beside a queued sleep result, and run raced beside an already-taken sleep: executions 0 (live and replay)
+  control: FAILED as required - same check on the run raced alone
+    unraced-replay inv_15tiNYSgOPvr5pD3imKm2CzMJqEiSctTgd attempts=2 suspended=1 status=completed/success executions=0
+    unraced-live inv_19763drIgWNk3H2Rw6CF5VxCwk4Civc8rs attempts=1 suspended=0 status=completed/success executions=0
+    beside-replay inv_19Cq7BYRDV2I2z8zwmJe90ZAX7m0DxG2TI attempts=2 suspended=1 status=completed/success executions=0
+    beside-live inv_166Eu1iJtksO58cef7gS7OcbxFfIFYSFRN attempts=1 suspended=0 status=completed/success executions=0
+    besideTaken-replay inv_16Vumg4oWHJf1oTfLGYPys3qimbcoUBB1B attempts=1 suspended=0 status=completed/success executions=0
+    besideTaken-live inv_1cdTpdvsQWQn2YFlsi4BApqC3IUOBAeJB3 attempts=1 suspended=0 status=completed/success executions=0
+    alone-replay inv_1d7EmvAQQ7zP5I2ahkLW261AbQdnhHsSc0 attempts=1 suspended=0 status=completed/success executions=1
+    alone-live inv_1eTf8wLx9Zw24UafUfpTSK2O214pa6clYD attempts=1 suspended=0 status=completed/success executions=1
+F19 concurrentRetryableFailure (A11): PASS - plain Error: attempts 2, slow run executed 2 (pinned); TerminalError: one attempt, slow run executed 1
+  control: FAILED as required - the pinned plain-Error outcome checked on the TerminalError case
+    main inv_1kLNXqXqmVYN0zBo4tofopl8XPdyXsv4C6 attempts=2 suspended=0 status=completed/success slow=2 bad=2
+    terminal inv_1jmp2u82POL01IoMBtGi3Je3ryUkGCoVFx attempts=1 suspended=0 status=completed/success slow=1 bad=1
+SUMMARY all PASS
