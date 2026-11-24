@@ -81,6 +81,8 @@ Definitional choices, for the review and the dossier approval:
 17. In the concrete runtime, interrupting a fiber waits for its exit, as Effect's `Fiber.interrupt` does (#34), and a cancellation or defect delivered to a fiber whose finalizer is already running ends the fiber. An earlier draft unwound the fiber into the same finalizer again, which the witness for a refused start in closing showed looping.
 18. Revision 3's executor credits a whole sleep of up to 2⁵³ − 1 ms as one floor, where this executor credits each link; they differ for a sleep longer than one link (`rev3_differs_on_long_sleep`). It records a terminal sample failure as the same violation, since both designs make it a defect.
 19. `StartRoot` after the root exists does nothing in the concrete runtime (step 2 review, F3).
+20. The executor and the statements have no fuel: a task's script is a finite tree (choice 1), and every statement quantifies over all runtimes that meet `Meets`. Only the concrete runtime has fuel. Its `task_fuel` (4000, `Concrete.v:271`) bounds a whole task and is separate from `max_ops` (2048, `Concrete.v:161`), and when it runs out the fiber is queued again (`go`, `Concrete.v:172-176`). #33 asked for a distinct model-limit action instead; the owner accepted this resolution on 2026-11-23.
+21. `cut_due` places a cut by `progress` alone and does not consult the subscription (`Exec.v:570-575`), so the model allows a `Suspended` cut when nothing is subscribed, which X3 rules out. This adds schedules and cannot falsify a safety statement; a statement that relied on such a cut would hold vacuously there.
 
 ## Restrictions table
 
