@@ -1,0 +1,41 @@
+== rev6-open fixtures O1 to O3, issue #48 step 7
+requested SDK 1.18.4, server 1.8.1
+loaded SDK_VERSION 1.18.4 /Users/ethan/Desktop/durable-effect/spike/node_modules/@restatedev/restate-sdk/dist/index.cjs
+server binary: restate-server 1.8.1
+node v26.6.0
+
+== Driver
+cancel inv_1atB84zWlAUm7HOOGeQ1W8S4d92WCp5bUv 202
+O1 main 1 inv_1atB84zWlAUm7HOOGeQ1W8S4d92WCp5bUv completed success 
+cancel inv_13eqmyGBemJj22U28WGO2nY3HXHoewc9G5 409
+O1 main 2 inv_13eqmyGBemJj22U28WGO2nY3HXHoewc9G5 completed success 
+cancel inv_192WPfZKnDHR5W9xkcIybM17XjRvoQRy2i 202
+O2 gate 1 inv_192WPfZKnDHR5W9xkcIybM17XjRvoQRy2i completed success 
+cancel inv_1j6ZNlnBR2Ht2ME2hUlecoOlPkaW41gY7L 202
+O2 gate 2 inv_1j6ZNlnBR2Ht2ME2hUlecoOlPkaW41gY7L completed success 
+cancel inv_11tk9unpO2Ph6JrViwnZOQ6mu6UaRdT0H4 202
+O2 nogate 1 inv_11tk9unpO2Ph6JrViwnZOQ6mu6UaRdT0H4 completed success 
+cancel inv_1e6mD91oDx5s6QMHeAGxpxazeiZ6KqKyzD 202
+O2 nogate 2 inv_1e6mD91oDx5s6QMHeAGxpxazeiZ6KqKyzD completed success 
+O3 okFreeze 1 inv_1cgVg2U6KEQw3bpiTIzdYxtiAyReWtwRAH completed success 
+O3 okFreeze 2 inv_19OvzaZvVai85XhxaBFi5srnA8U5R2BnZH completed success 
+O3 okNoFreeze 1 inv_19csixkZ4N0A40FjxmYfA4lD6J8XEO6suz completed success 
+O3 okNoFreeze 2 inv_17FNTU72RfQ63BrPTjTwIzZAWdkrkHwyWl completed success 
+O3 termFreeze 1 inv_1iWmNFFRHaq97Amhfqh7mmrYLqDwwLTYQQ completed success 
+O3 termFreeze 2 inv_1lQ9zE0RF4Pa0oIoBvMP60Q11D85AtJKaE completed success 
+O3 termRetryableFirst 1 inv_10mKRZ8TbqKn1ega5ZQkCQSGnByRbjKAZ8 running  2
+O3 termRetryableFirst 1 kill HTTP 200
+O3 termRetryableFirst 2 inv_1kIDphhhQW6y0roxt3YjN0jVfAXZBKVF0Q running  2
+O3 termRetryableFirst 2 kill HTTP 200
+
+== Checks
+versions: SDK 1.18.4 server 1.8.1 restate-server 1.8.1
+FAIL O1 cancel handled in journal order on every replay s1>cancel>s2 attempts=4; s1>s2 attempts=2
+CONTROL-FAILS (as required) O1 checker mutant (expects s1, s2, cancel) 
+PASS O2 entry gate: r's work runs once, and replay enters it aborted inv_192WPfZKnDHR5W9xkcIybM17XjRvoQRy2i attempts=2 rEffects=1 live=1 rResult="Failure"; inv_1j6ZNlnBR2Ht2ME2hUlecoOlPkaW41gY7L attempts=2 rEffects=1 live=1 rResult="Failure"
+CONTROL-FAILS (as required) O2 without the gate (r's work runs again on replay) inv_11tk9unpO2Ph6JrViwnZOQ6mu6UaRdT0H4 attempts=2 rEffects=2 live=1,2 rResult="Failure"; inv_1e6mD91oDx5s6QMHeAGxpxazeiZ6KqKyzD attempts=2 rEffects=2 live=1,2 rResult="Failure"
+PASS O3 okFreeze: a's outcome proposed before b's failure ends attempt 1 inv_1cgVg2U6KEQw3bpiTIzdYxtiAyReWtwRAH attempts=2 a=1 b=2 aResult="Success"; inv_19OvzaZvVai85XhxaBFi5srnA8U5R2BnZH attempts=2 a=1 b=2 aResult="Success"
+PASS O3 termFreeze: a's outcome proposed before b's failure ends attempt 1 inv_1iWmNFFRHaq97Amhfqh7mmrYLqDwwLTYQQ attempts=2 a=1 b=2 aResult="Failure"; inv_1lQ9zE0RF4Pa0oIoBvMP60Q11D85AtJKaE attempts=2 a=1 b=2 aResult="Failure"
+CONTROL-FAILS (as required) O3 okNoFreeze: a runs again inv_19csixkZ4N0A40FjxmYfA4lD6J8XEO6suz attempts=2 a=2 b=2 aResult="Success"; inv_17FNTU72RfQ63BrPTjTwIzZAWdkrkHwyWl attempts=2 a=2 b=2 aResult="Success"
+CONTROL-FAILS (as required) O3 termRetryableFirst: a runs again inv_10mKRZ8TbqKn1ega5ZQkCQSGnByRbjKAZ8 attempts=2 a=2 b=2 aResult=; inv_1kIDphhhQW6y0roxt3YjN0jVfAXZBKVF0Q attempts=2 a=2 b=2 aResult=
+1 NOT AS REQUIRED
