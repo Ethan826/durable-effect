@@ -1,0 +1,696 @@
+== versions: restate-server 1.8.1, restate-sdk 1.18.4, node v26.6.0
+== started 2026-11-24T02:07:30Z
+
+== A5: scripted test against the SDK's wasm VM
+A5 v5 main    {"ids":{"callId":1,"callResult":2,"sleep":3},"first":"member:sleep","trace1":["WaitExternalProgress","deliver CallInvocationId"],"signalsAfterFirst":[],"second":"cancelled","trace2":["CancelSignalReceived"],"signalsAfterSecond":["inv_1childAAAAAAAAAAAAAAAAAAAAAAAAAAA"],"commands":["call","sleep","sleep","sendSignal"]}
+A5 v5 control {"ids":{"callId":1,"callResult":2,"sleep":3},"first":"cancelled","trace1":["CancelSignalReceived"],"signalsAfterFirst":["inv_1childAAAAAAAAAAAAAAAAAAAAAAAAAAA"],"second":"waiting","trace2":["WaitExternalProgress"],"signalsAfterSecond":["inv_1childAAAAAAAAAAAAAAAAAAAAAAAAAAA"],"commands":["call","sleep","sendSignal","sleep"]}
+RESULT A5 v5 PASS: main first await member:sleep, SendSignal after first 0, second await cancelled, SendSignal after second ["inv_1childAAAAAAAAAAAAAAAAAAAAAAAAAAA"]
+RESULT A5-control v5 FAILS AS REQUIRED: control first await cancelled, SendSignal after first ["inv_1childAAAAAAAAAAAAAAAAAAAAAAAAAAA"]
+A5 v6 main    {"ids":{"callId":1,"callResult":2,"sleep":3},"first":"member:sleep","trace1":["WaitExternalProgress","deliver CallInvocationId"],"signalsAfterFirst":[],"second":"cancelled","trace2":["CancelSignalReceived"],"signalsAfterSecond":["inv_1childAAAAAAAAAAAAAAAAAAAAAAAAAAA"],"commands":["call","sleep","sleep","sendSignal"]}
+A5 v6 control {"ids":{"callId":1,"callResult":2,"sleep":3},"first":"cancelled","trace1":["CancelSignalReceived"],"signalsAfterFirst":["inv_1childAAAAAAAAAAAAAAAAAAAAAAAAAAA"],"second":"waiting","trace2":["WaitExternalProgress"],"signalsAfterSecond":["inv_1childAAAAAAAAAAAAAAAAAAAAAAAAAAA"],"commands":["call","sleep","sendSignal","sleep"]}
+RESULT A5 v6 PASS: main first await member:sleep, SendSignal after first 0, second await cancelled, SendSignal after second ["inv_1childAAAAAAAAAAAAAAAAAAAAAAAAAAA"]
+RESULT A5-control v6 FAILS AS REQUIRED: control first await cancelled, SendSignal after first ["inv_1childAAAAAAAAAAAAAAAAAAAAAAAAAAA"]
+A5 v7 main    {"ids":{"callId":1,"callResult":2,"sleep":3},"first":"member:sleep","trace1":["WaitExternalProgress","deliver CallInvocationId"],"signalsAfterFirst":[],"second":"cancelled","trace2":["CancelSignalReceived"],"signalsAfterSecond":["inv_1childAAAAAAAAAAAAAAAAAAAAAAAAAAA"],"commands":["call","sleep","awaitingOn","sleep","sendSignal"]}
+A5 v7 control {"ids":{"callId":1,"callResult":2,"sleep":3},"first":"cancelled","trace1":["CancelSignalReceived"],"signalsAfterFirst":["inv_1childAAAAAAAAAAAAAAAAAAAAAAAAAAA"],"second":"waiting","trace2":["WaitExternalProgress"],"signalsAfterSecond":["inv_1childAAAAAAAAAAAAAAAAAAAAAAAAAAA"],"commands":["call","sleep","sendSignal","sleep","awaitingOn"]}
+RESULT A5 v7 PASS: main first await member:sleep, SendSignal after first 0, second await cancelled, SendSignal after second ["inv_1childAAAAAAAAAAAAAAAAAAAAAAAAAAA"]
+RESULT A5-control v7 FAILS AS REQUIRED: control first await cancelled, SendSignal after first ["inv_1childAAAAAAAAAAAAAAAAAAAAAAAAAAA"]
+A5 v8 main    {"ids":{"callId":1,"callResult":2,"sleep":3},"first":"member:sleep","trace1":["WaitExternalProgress","deliver CallInvocationId"],"signalsAfterFirst":[],"second":"cancelled","trace2":["CancelSignalReceived"],"signalsAfterSecond":["inv_1childAAAAAAAAAAAAAAAAAAAAAAAAAAA"],"commands":["call","sleep","awaitingOn","sleep","sendSignal"]}
+A5 v8 control {"ids":{"callId":1,"callResult":2,"sleep":3},"first":"cancelled","trace1":["CancelSignalReceived"],"signalsAfterFirst":["inv_1childAAAAAAAAAAAAAAAAAAAAAAAAAAA"],"second":"waiting","trace2":["WaitExternalProgress"],"signalsAfterSecond":["inv_1childAAAAAAAAAAAAAAAAAAAAAAAAAAA"],"commands":["call","sleep","sendSignal","sleep","awaitingOn"]}
+RESULT A5 v8 PASS: main first await member:sleep, SendSignal after first 0, second await cancelled, SendSignal after second ["inv_1childAAAAAAAAAAAAAAAAAAAAAAAAAAA"]
+RESULT A5-control v8 FAILS AS REQUIRED: control first await cancelled, SendSignal after first ["inv_1childAAAAAAAAAAAAAAAAAAAAAAAAAAA"]
+
+== live fixtures
+deployment http://127.0.0.1:19912: HTTP 201 protocol versions 5..8 services CxExplicit,CxMatrix,CxChild,CxReplay,CxLive
+deployment http://127.0.0.1:19912/codec: HTTP 201 protocol versions 5..8 services CxCodec
+
+-- F12 cancelSet live (CxLive)
+  journal F12-live-precancel (inv_1f9SrYSraYVj2lBaj3sw5TjvvBgGQ13Pi9), queried at 2026-11-24T02:07:33.208Z in 1798 ms:
+    0 Command: Input {"Command":{"Input":{}}}
+    1 Command: Call {"Command":{"Call":{"invocation_id":"inv_1lS7xl3qbWl94VGAetCNbIyLOQut2Hou6B","invocation_target":{"Service":{"name":"CxChild","handler":"fast","scope":null}},"invocation_id_completion_id":1,"result_completion_id":2}}}
+    2 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":1},"result":"InvocationId"}}
+    3 Notification: Call {"Notification":{"ty":{"Completion":"Call"},"id":{"CompletionId":2},"result":"Success"}}
+    4 Command: Call {"Command":{"Call":{"invocation_id":"inv_1kuu0ZSrXyVG5IftFmIuk9ucO8guMySlrP","invocation_target":{"Service":{"name":"CxChild","handler":"slow","scope":null}},"invocation_id_completion_id":3,"result_completion_id":4}}}
+    5 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":3},"result":"InvocationId"}}
+    6 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486052141,"completion_id":5}}}
+    7 Notification: Sleep {"Notification":{"ty":{"Completion":"Sleep"},"id":{"CompletionId":5},"result":"Void"}}
+    8 Command: Call {"Command":{"Call":{"invocation_id":"inv_1iXBpBnzCUZd3MgpN6Wn5nh0XGswBnZonD","invocation_target":{"Service":{"name":"CxChild","handler":"slow","scope":null}},"invocation_id_completion_id":6,"result_completion_id":7}}}
+    9 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":6},"result":"InvocationId"}}
+    10 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486112148,"completion_id":8}}}
+  cancel HTTP 202, sent at 1795486055007
+  journal F12-live-final (inv_1f9SrYSraYVj2lBaj3sw5TjvvBgGQ13Pi9), queried at 2026-11-24T02:07:39.521Z in 1 ms:
+    0 Command: Input {"Command":{"Input":{}}}
+    1 Command: Call {"Command":{"Call":{"invocation_id":"inv_1lS7xl3qbWl94VGAetCNbIyLOQut2Hou6B","invocation_target":{"Service":{"name":"CxChild","handler":"fast","scope":null}},"invocation_id_completion_id":1,"result_completion_id":2}}}
+    2 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":1},"result":"InvocationId"}}
+    3 Notification: Call {"Notification":{"ty":{"Completion":"Call"},"id":{"CompletionId":2},"result":"Success"}}
+    4 Command: Call {"Command":{"Call":{"invocation_id":"inv_1kuu0ZSrXyVG5IftFmIuk9ucO8guMySlrP","invocation_target":{"Service":{"name":"CxChild","handler":"slow","scope":null}},"invocation_id_completion_id":3,"result_completion_id":4}}}
+    5 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":3},"result":"InvocationId"}}
+    6 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486052141,"completion_id":5}}}
+    7 Notification: Sleep {"Notification":{"ty":{"Completion":"Sleep"},"id":{"CompletionId":5},"result":"Void"}}
+    8 Command: Call {"Command":{"Call":{"invocation_id":"inv_1iXBpBnzCUZd3MgpN6Wn5nh0XGswBnZonD","invocation_target":{"Service":{"name":"CxChild","handler":"slow","scope":null}},"invocation_id_completion_id":6,"result_completion_id":7}}}
+    9 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":6},"result":"InvocationId"}}
+    10 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486112148,"completion_id":8}}}
+    11 Notification: Signal {"Notification":{"ty":"Signal","id":{"SignalIndex":1},"result":"Void"}}
+    12 Command: SendSignal {"Command":{"SendSignal":{"target_invocation_id":"inv_1lS7xl3qbWl94VGAetCNbIyLOQut2Hou6B","signal_id":{"Index":1},"result":"Void"}}}
+    13 Command: SendSignal {"Command":{"SendSignal":{"target_invocation_id":"inv_1kuu0ZSrXyVG5IftFmIuk9ucO8guMySlrP","signal_id":{"Index":1},"result":"Void"}}}
+    14 Command: SendSignal {"Command":{"SendSignal":{"target_invocation_id":"inv_1iXBpBnzCUZd3MgpN6Wn5nh0XGswBnZonD","signal_id":{"Index":1},"result":"Void"}}}
+    15 Command: Run "comp" {"Command":{"Run":{"completion_id":9,"name":"comp"}}}
+    16 Notification: Call {"Notification":{"ty":{"Completion":"Call"},"id":{"CompletionId":4},"result":"Failure"}}
+    17 Notification: Call {"Notification":{"ty":{"Completion":"Call"},"id":{"CompletionId":7},"result":"Failure"}}
+    18 Notification: Run {"Notification":{"ty":{"Completion":"Run"},"id":{"CompletionId":9},"result":"Success"}}
+    19 Command: Output {"Command":{"Output":{"result":"Failure"}}}
+  cancel request to journaled cancel notification: 0 ms
+  status {"id":"inv_1f9SrYSraYVj2lBaj3sw5TjvvBgGQ13Pi9","target":"CxLive/cancelSet","status":"completed","pinned_service_protocol_version":7,"completion_result":"failure","completion_failure":"[409] Cancelled"}
+  child {"id":"inv_1lS7xl3qbWl94VGAetCNbIyLOQut2Hou6B","target":"CxChild/fast","status":"completed","completion_result":"success"}
+  child {"id":"inv_1kuu0ZSrXyVG5IftFmIuk9ucO8guMySlrP","target":"CxChild/slow","status":"completed","completion_result":"failure","completion_failure":"[409] Cancelled"}
+  child {"id":"inv_1iXBpBnzCUZd3MgpN6Wn5nh0XGswBnZonD","target":"CxChild/slow","status":"completed","completion_result":"failure","completion_failure":"[409] Cancelled"}
+  event {"attempt":1,"step":"a:start","at":1795486051610}
+  event {"attempt":1,"step":"a","settled":"resolved","value":"fast:A","ms":27,"at":1795486051638}
+  event {"attempt":1,"step":"b:start","at":1795486051641}
+  event {"attempt":1,"step":"b","settled":"resolved","value":"sleep500","ms":507,"at":1795486052148}
+  event {"attempt":1,"step":"c:start","at":1795486052148}
+  event {"attempt":1,"step":"c","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":2864,"at":1795486055012}
+  event {"attempt":1,"step":"comp-start","at":1795486055012}
+  event {"attempt":1,"step":"comp:start","at":1795486055013}
+  event {"attempt":1,"step":"comp","settled":"resolved","value":"comp","ms":4007,"at":1795486059020}
+  attempts in SDK log 1; comp action runs 1; mismatch lines 0
+RESULT F12-live PASS: SendSignal targets ["inv_1lS7xl3qbWl94VGAetCNbIyLOQut2Hou6B","inv_1kuu0ZSrXyVG5IftFmIuk9ucO8guMySlrP","inv_1iXBpBnzCUZd3MgpN6Wn5nh0XGswBnZonD"] vs expected ["inv_1lS7xl3qbWl94VGAetCNbIyLOQut2Hou6B","inv_1kuu0ZSrXyVG5IftFmIuk9ucO8guMySlrP","inv_1iXBpBnzCUZd3MgpN6Wn5nh0XGswBnZonD"]; signal ids [{"Index":1},{"Index":1},{"Index":1}]; SendSignals are the first 3 commands after the cancel notification at 11; mismatch lines 0; three calls
+CONTROL F12-live-pendingOnly FAILS AS REQUIRED: failed: SendSignal targets ["inv_1lS7xl3qbWl94VGAetCNbIyLOQut2Hou6B","inv_1kuu0ZSrXyVG5IftFmIuk9ucO8guMySlrP","inv_1iXBpBnzCUZd3MgpN6Wn5nh0XGswBnZonD"] vs expected ["inv_1kuu0ZSrXyVG5IftFmIuk9ucO8guMySlrP","inv_1iXBpBnzCUZd3MgpN6Wn5nh0XGswBnZonD"]
+
+-- F12 cancelSet replay (CxReplay)
+  journal F12-replay-precancel (inv_1fEphUaFru9y4zn34FA7Gsujsu1Zs1PkoH), queried at 2026-11-24T02:07:41.143Z in 1880 ms:
+    0 Command: Input {"Command":{"Input":{}}}
+    1 Command: Call {"Command":{"Call":{"invocation_id":"inv_1lTVQHWFUAyI19YDKp2r84RmTPkhMmCJbP","invocation_target":{"Service":{"name":"CxChild","handler":"fast","scope":null}},"invocation_id_completion_id":1,"result_completion_id":2}}}
+    2 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":1},"result":"InvocationId"}}
+    3 Notification: Call {"Notification":{"ty":{"Completion":"Call"},"id":{"CompletionId":2},"result":"Success"}}
+    4 Command: Call {"Command":{"Call":{"invocation_id":"inv_11HwpXWsvtdg7r6Hn8W2w1iLZFkgAVdWyR","invocation_target":{"Service":{"name":"CxChild","handler":"slow","scope":null}},"invocation_id_completion_id":3,"result_completion_id":4}}}
+    5 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":3},"result":"InvocationId"}}
+    6 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486060059,"completion_id":5}}}
+    7 Notification: Sleep {"Notification":{"ty":{"Completion":"Sleep"},"id":{"CompletionId":5},"result":"Void"}}
+    8 Command: Call {"Command":{"Call":{"invocation_id":"inv_128JXyoCJHj75zFogRNJEpB3GNriWI6t57","invocation_target":{"Service":{"name":"CxChild","handler":"slow","scope":null}},"invocation_id_completion_id":6,"result_completion_id":7}}}
+    9 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":6},"result":"InvocationId"}}
+    10 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486120068,"completion_id":8}}}
+  cancel HTTP 202, sent at 1795486063024
+  journal F12-replay-final (inv_1fEphUaFru9y4zn34FA7Gsujsu1Zs1PkoH), queried at 2026-11-24T02:07:47.533Z in 2 ms:
+    0 Command: Input {"Command":{"Input":{}}}
+    1 Command: Call {"Command":{"Call":{"invocation_id":"inv_1lTVQHWFUAyI19YDKp2r84RmTPkhMmCJbP","invocation_target":{"Service":{"name":"CxChild","handler":"fast","scope":null}},"invocation_id_completion_id":1,"result_completion_id":2}}}
+    2 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":1},"result":"InvocationId"}}
+    3 Notification: Call {"Notification":{"ty":{"Completion":"Call"},"id":{"CompletionId":2},"result":"Success"}}
+    4 Command: Call {"Command":{"Call":{"invocation_id":"inv_11HwpXWsvtdg7r6Hn8W2w1iLZFkgAVdWyR","invocation_target":{"Service":{"name":"CxChild","handler":"slow","scope":null}},"invocation_id_completion_id":3,"result_completion_id":4}}}
+    5 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":3},"result":"InvocationId"}}
+    6 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486060059,"completion_id":5}}}
+    7 Notification: Sleep {"Notification":{"ty":{"Completion":"Sleep"},"id":{"CompletionId":5},"result":"Void"}}
+    8 Command: Call {"Command":{"Call":{"invocation_id":"inv_128JXyoCJHj75zFogRNJEpB3GNriWI6t57","invocation_target":{"Service":{"name":"CxChild","handler":"slow","scope":null}},"invocation_id_completion_id":6,"result_completion_id":7}}}
+    9 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":6},"result":"InvocationId"}}
+    10 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486120068,"completion_id":8}}}
+    11 Notification: Signal {"Notification":{"ty":"Signal","id":{"SignalIndex":1},"result":"Void"}}
+    12 Command: SendSignal {"Command":{"SendSignal":{"target_invocation_id":"inv_1lTVQHWFUAyI19YDKp2r84RmTPkhMmCJbP","signal_id":{"Index":1},"result":"Void"}}}
+    13 Command: SendSignal {"Command":{"SendSignal":{"target_invocation_id":"inv_11HwpXWsvtdg7r6Hn8W2w1iLZFkgAVdWyR","signal_id":{"Index":1},"result":"Void"}}}
+    14 Command: SendSignal {"Command":{"SendSignal":{"target_invocation_id":"inv_128JXyoCJHj75zFogRNJEpB3GNriWI6t57","signal_id":{"Index":1},"result":"Void"}}}
+    15 Command: Run "comp" {"Command":{"Run":{"completion_id":9,"name":"comp"}}}
+    16 Notification: Call {"Notification":{"ty":{"Completion":"Call"},"id":{"CompletionId":4},"result":"Failure"}}
+    17 Notification: Call {"Notification":{"ty":{"Completion":"Call"},"id":{"CompletionId":7},"result":"Failure"}}
+    18 Notification: Run {"Notification":{"ty":{"Completion":"Run"},"id":{"CompletionId":9},"result":"Success"}}
+    19 Command: Output {"Command":{"Output":{"result":"Failure"}}}
+  cancel request to journaled cancel notification: -1 ms
+  status {"id":"inv_1fEphUaFru9y4zn34FA7Gsujsu1Zs1PkoH","target":"CxReplay/cancelSet","status":"completed","pinned_service_protocol_version":7,"completion_result":"failure","completion_failure":"[409] Cancelled"}
+  child {"id":"inv_1lTVQHWFUAyI19YDKp2r84RmTPkhMmCJbP","target":"CxChild/fast","status":"completed","completion_result":"success"}
+  child {"id":"inv_11HwpXWsvtdg7r6Hn8W2w1iLZFkgAVdWyR","target":"CxChild/slow","status":"completed","completion_result":"failure","completion_failure":"[409] Cancelled"}
+  child {"id":"inv_128JXyoCJHj75zFogRNJEpB3GNriWI6t57","target":"CxChild/slow","status":"completed","completion_result":"failure","completion_failure":"[409] Cancelled"}
+  event {"attempt":1,"step":"a:start","at":1795486059536}
+  event {"attempt":1,"step":"a","settled":"resolved","value":"fast:A","ms":23,"at":1795486059559}
+  event {"attempt":1,"step":"b:start","at":1795486059559}
+  event {"attempt":2,"step":"a:start","at":1795486060068}
+  event {"attempt":2,"step":"a","settled":"resolved","value":"fast:A","ms":0,"at":1795486060068}
+  event {"attempt":2,"step":"b:start","at":1795486060068}
+  event {"attempt":2,"step":"b","settled":"resolved","value":"sleep500","ms":0,"at":1795486060068}
+  event {"attempt":2,"step":"c:start","at":1795486060068}
+  event {"attempt":3,"step":"a:start","at":1795486063030}
+  event {"attempt":3,"step":"a","settled":"resolved","value":"fast:A","ms":0,"at":1795486063030}
+  event {"attempt":3,"step":"b:start","at":1795486063030}
+  event {"attempt":3,"step":"b","settled":"resolved","value":"sleep500","ms":0,"at":1795486063030}
+  event {"attempt":3,"step":"c:start","at":1795486063030}
+  event {"attempt":3,"step":"c","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":0,"at":1795486063030}
+  event {"attempt":3,"step":"comp-start","at":1795486063030}
+  event {"attempt":3,"step":"comp:start","at":1795486063030}
+  event {"attempt":4,"step":"a:start","at":1795486067042}
+  event {"attempt":4,"step":"a","settled":"resolved","value":"fast:A","ms":0,"at":1795486067042}
+  event {"attempt":4,"step":"b:start","at":1795486067042}
+  event {"attempt":4,"step":"b","settled":"resolved","value":"sleep500","ms":0,"at":1795486067042}
+  event {"attempt":4,"step":"c:start","at":1795486067042}
+  event {"attempt":4,"step":"c","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":0,"at":1795486067042}
+  event {"attempt":4,"step":"comp-start","at":1795486067042}
+  event {"attempt":4,"step":"comp:start","at":1795486067042}
+  event {"attempt":4,"step":"comp","settled":"resolved","value":"comp","ms":0,"at":1795486067042}
+  attempts in SDK log 4; comp action runs 1; mismatch lines 0
+RESULT F12-replay PASS: SendSignal targets ["inv_1lTVQHWFUAyI19YDKp2r84RmTPkhMmCJbP","inv_11HwpXWsvtdg7r6Hn8W2w1iLZFkgAVdWyR","inv_128JXyoCJHj75zFogRNJEpB3GNriWI6t57"] vs expected ["inv_1lTVQHWFUAyI19YDKp2r84RmTPkhMmCJbP","inv_11HwpXWsvtdg7r6Hn8W2w1iLZFkgAVdWyR","inv_128JXyoCJHj75zFogRNJEpB3GNriWI6t57"]; signal ids [{"Index":1},{"Index":1},{"Index":1}]; SendSignals are the first 3 commands after the cancel notification at 11; mismatch lines 0; three calls
+CONTROL F12-replay-pendingOnly FAILS AS REQUIRED: failed: SendSignal targets ["inv_1lTVQHWFUAyI19YDKp2r84RmTPkhMmCJbP","inv_11HwpXWsvtdg7r6Hn8W2w1iLZFkgAVdWyR","inv_128JXyoCJHj75zFogRNJEpB3GNriWI6t57"] vs expected ["inv_11HwpXWsvtdg7r6Hn8W2w1iLZFkgAVdWyR","inv_128JXyoCJHj75zFogRNJEpB3GNriWI6t57"]
+
+-- F12 cancelSet kill (CxLive)
+  journal F12-kill-precancel (inv_1gQiQGgCDkde1yRzyguNa0UFcsvhpAVMqc), queried at 2026-11-24T02:07:49.152Z in 1882 ms:
+    0 Command: Input {"Command":{"Input":{}}}
+    1 Command: Call {"Command":{"Call":{"invocation_id":"inv_1hNjkHtCwFOV4aRSSAljVhpLOp8umm4v6h","invocation_target":{"Service":{"name":"CxChild","handler":"fast","scope":null}},"invocation_id_completion_id":1,"result_completion_id":2}}}
+    2 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":1},"result":"InvocationId"}}
+    3 Notification: Call {"Notification":{"ty":{"Completion":"Call"},"id":{"CompletionId":2},"result":"Success"}}
+    4 Command: Call {"Command":{"Call":{"invocation_id":"inv_1gPDyLNg3xZD1SXo96H8rhpDSdNHp8ye9b","invocation_target":{"Service":{"name":"CxChild","handler":"slow","scope":null}},"invocation_id_completion_id":3,"result_completion_id":4}}}
+    5 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":3},"result":"InvocationId"}}
+    6 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486068071,"completion_id":5}}}
+    7 Notification: Sleep {"Notification":{"ty":{"Completion":"Sleep"},"id":{"CompletionId":5},"result":"Void"}}
+    8 Command: Call {"Command":{"Call":{"invocation_id":"inv_11gJJWk15PQ96SxZ9vGI5HrQbFQ42gicUh","invocation_target":{"Service":{"name":"CxChild","handler":"slow","scope":null}},"invocation_id_completion_id":6,"result_completion_id":7}}}
+    9 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":6},"result":"InvocationId"}}
+    10 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486128075,"completion_id":8}}}
+  cancel HTTP 202, sent at 1795486071036
+  killing the SDK process at 2026-11-24T02:07:52.143Z, during the 4 s compensation run
+  SDK process 55225 exited at 2026-11-24T02:07:52.147Z
+  SDK process restarted
+  journal F12-kill-afterkill (inv_1gQiQGgCDkde1yRzyguNa0UFcsvhpAVMqc), queried at 2026-11-24T02:07:53.249Z in 1793 ms:
+    0 Command: Input {"Command":{"Input":{}}}
+    1 Command: Call {"Command":{"Call":{"invocation_id":"inv_1hNjkHtCwFOV4aRSSAljVhpLOp8umm4v6h","invocation_target":{"Service":{"name":"CxChild","handler":"fast","scope":null}},"invocation_id_completion_id":1,"result_completion_id":2}}}
+    2 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":1},"result":"InvocationId"}}
+    3 Notification: Call {"Notification":{"ty":{"Completion":"Call"},"id":{"CompletionId":2},"result":"Success"}}
+    4 Command: Call {"Command":{"Call":{"invocation_id":"inv_1gPDyLNg3xZD1SXo96H8rhpDSdNHp8ye9b","invocation_target":{"Service":{"name":"CxChild","handler":"slow","scope":null}},"invocation_id_completion_id":3,"result_completion_id":4}}}
+    5 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":3},"result":"InvocationId"}}
+    6 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486068071,"completion_id":5}}}
+    7 Notification: Sleep {"Notification":{"ty":{"Completion":"Sleep"},"id":{"CompletionId":5},"result":"Void"}}
+    8 Command: Call {"Command":{"Call":{"invocation_id":"inv_11gJJWk15PQ96SxZ9vGI5HrQbFQ42gicUh","invocation_target":{"Service":{"name":"CxChild","handler":"slow","scope":null}},"invocation_id_completion_id":6,"result_completion_id":7}}}
+    9 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":6},"result":"InvocationId"}}
+    10 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486128075,"completion_id":8}}}
+    11 Notification: Signal {"Notification":{"ty":"Signal","id":{"SignalIndex":1},"result":"Void"}}
+    12 Command: SendSignal {"Command":{"SendSignal":{"target_invocation_id":"inv_1hNjkHtCwFOV4aRSSAljVhpLOp8umm4v6h","signal_id":{"Index":1},"result":"Void"}}}
+    13 Command: SendSignal {"Command":{"SendSignal":{"target_invocation_id":"inv_1gPDyLNg3xZD1SXo96H8rhpDSdNHp8ye9b","signal_id":{"Index":1},"result":"Void"}}}
+    14 Command: SendSignal {"Command":{"SendSignal":{"target_invocation_id":"inv_11gJJWk15PQ96SxZ9vGI5HrQbFQ42gicUh","signal_id":{"Index":1},"result":"Void"}}}
+    15 Command: Run "comp" {"Command":{"Run":{"completion_id":9,"name":"comp"}}}
+    16 Notification: Call {"Notification":{"ty":{"Completion":"Call"},"id":{"CompletionId":7},"result":"Failure"}}
+    17 Notification: Call {"Notification":{"ty":{"Completion":"Call"},"id":{"CompletionId":4},"result":"Failure"}}
+  journal F12-kill-final (inv_1gQiQGgCDkde1yRzyguNa0UFcsvhpAVMqc), queried at 2026-11-24T02:07:58.048Z in 2 ms:
+    0 Command: Input {"Command":{"Input":{}}}
+    1 Command: Call {"Command":{"Call":{"invocation_id":"inv_1hNjkHtCwFOV4aRSSAljVhpLOp8umm4v6h","invocation_target":{"Service":{"name":"CxChild","handler":"fast","scope":null}},"invocation_id_completion_id":1,"result_completion_id":2}}}
+    2 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":1},"result":"InvocationId"}}
+    3 Notification: Call {"Notification":{"ty":{"Completion":"Call"},"id":{"CompletionId":2},"result":"Success"}}
+    4 Command: Call {"Command":{"Call":{"invocation_id":"inv_1gPDyLNg3xZD1SXo96H8rhpDSdNHp8ye9b","invocation_target":{"Service":{"name":"CxChild","handler":"slow","scope":null}},"invocation_id_completion_id":3,"result_completion_id":4}}}
+    5 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":3},"result":"InvocationId"}}
+    6 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486068071,"completion_id":5}}}
+    7 Notification: Sleep {"Notification":{"ty":{"Completion":"Sleep"},"id":{"CompletionId":5},"result":"Void"}}
+    8 Command: Call {"Command":{"Call":{"invocation_id":"inv_11gJJWk15PQ96SxZ9vGI5HrQbFQ42gicUh","invocation_target":{"Service":{"name":"CxChild","handler":"slow","scope":null}},"invocation_id_completion_id":6,"result_completion_id":7}}}
+    9 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":6},"result":"InvocationId"}}
+    10 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486128075,"completion_id":8}}}
+    11 Notification: Signal {"Notification":{"ty":"Signal","id":{"SignalIndex":1},"result":"Void"}}
+    12 Command: SendSignal {"Command":{"SendSignal":{"target_invocation_id":"inv_1hNjkHtCwFOV4aRSSAljVhpLOp8umm4v6h","signal_id":{"Index":1},"result":"Void"}}}
+    13 Command: SendSignal {"Command":{"SendSignal":{"target_invocation_id":"inv_1gPDyLNg3xZD1SXo96H8rhpDSdNHp8ye9b","signal_id":{"Index":1},"result":"Void"}}}
+    14 Command: SendSignal {"Command":{"SendSignal":{"target_invocation_id":"inv_11gJJWk15PQ96SxZ9vGI5HrQbFQ42gicUh","signal_id":{"Index":1},"result":"Void"}}}
+    15 Command: Run "comp" {"Command":{"Run":{"completion_id":9,"name":"comp"}}}
+    16 Notification: Call {"Notification":{"ty":{"Completion":"Call"},"id":{"CompletionId":7},"result":"Failure"}}
+    17 Notification: Call {"Notification":{"ty":{"Completion":"Call"},"id":{"CompletionId":4},"result":"Failure"}}
+    18 Notification: Run {"Notification":{"ty":{"Completion":"Run"},"id":{"CompletionId":9},"result":"Success"}}
+    19 Command: Output {"Command":{"Output":{"result":"Failure"}}}
+  cancel request to journaled cancel notification: -1 ms
+  status {"id":"inv_1gQiQGgCDkde1yRzyguNa0UFcsvhpAVMqc","target":"CxLive/cancelSet","status":"completed","pinned_service_protocol_version":7,"completion_result":"failure","completion_failure":"[409] Cancelled"}
+  child {"id":"inv_1hNjkHtCwFOV4aRSSAljVhpLOp8umm4v6h","target":"CxChild/fast","status":"completed","completion_result":"success"}
+  child {"id":"inv_1gPDyLNg3xZD1SXo96H8rhpDSdNHp8ye9b","target":"CxChild/slow","status":"completed","completion_result":"failure","completion_failure":"[409] Cancelled"}
+  child {"id":"inv_11gJJWk15PQ96SxZ9vGI5HrQbFQ42gicUh","target":"CxChild/slow","status":"completed","completion_result":"failure","completion_failure":"[409] Cancelled"}
+  event {"attempt":1,"step":"a:start","at":1795486067548}
+  event {"attempt":1,"step":"a","settled":"resolved","value":"fast:A","ms":23,"at":1795486067571}
+  event {"attempt":1,"step":"b:start","at":1795486067571}
+  event {"attempt":1,"step":"b","settled":"resolved","value":"sleep500","ms":504,"at":1795486068075}
+  event {"attempt":1,"step":"c:start","at":1795486068075}
+  event {"attempt":1,"step":"c","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":2965,"at":1795486071040}
+  event {"attempt":1,"step":"comp-start","at":1795486071040}
+  event {"attempt":1,"step":"comp:start","at":1795486071040}
+  event {"attempt":1,"step":"a:start","at":1795486073862}
+  event {"attempt":1,"step":"a","settled":"resolved","value":"fast:A","ms":2,"at":1795486073864}
+  event {"attempt":1,"step":"b:start","at":1795486073864}
+  event {"attempt":1,"step":"b","settled":"resolved","value":"sleep500","ms":1,"at":1795486073865}
+  event {"attempt":1,"step":"c:start","at":1795486073865}
+  event {"attempt":1,"step":"c","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":0,"at":1795486073865}
+  event {"attempt":1,"step":"comp-start","at":1795486073865}
+  event {"attempt":1,"step":"comp:start","at":1795486073866}
+  event {"attempt":1,"step":"comp","settled":"resolved","value":"comp","ms":4005,"at":1795486077871}
+  attempts in SDK log 2; comp action runs 2; mismatch lines 0
+RESULT F12-kill PASS: SendSignal targets ["inv_1hNjkHtCwFOV4aRSSAljVhpLOp8umm4v6h","inv_1gPDyLNg3xZD1SXo96H8rhpDSdNHp8ye9b","inv_11gJJWk15PQ96SxZ9vGI5HrQbFQ42gicUh"] vs expected ["inv_1hNjkHtCwFOV4aRSSAljVhpLOp8umm4v6h","inv_1gPDyLNg3xZD1SXo96H8rhpDSdNHp8ye9b","inv_11gJJWk15PQ96SxZ9vGI5HrQbFQ42gicUh"]; signal ids [{"Index":1},{"Index":1},{"Index":1}]; SendSignals are the first 3 commands after the cancel notification at 11; mismatch lines 0; three calls
+CONTROL F12-kill-pendingOnly FAILS AS REQUIRED: failed: SendSignal targets ["inv_1hNjkHtCwFOV4aRSSAljVhpLOp8umm4v6h","inv_1gPDyLNg3xZD1SXo96H8rhpDSdNHp8ye9b","inv_11gJJWk15PQ96SxZ9vGI5HrQbFQ42gicUh"] vs expected ["inv_1gPDyLNg3xZD1SXo96H8rhpDSdNHp8ye9b","inv_11gJJWk15PQ96SxZ9vGI5HrQbFQ42gicUh"]
+
+-- F12 cancelSet explicitCancellation (CxExplicit)
+  journal F12-explicitCancellation-precancel (inv_1dVnGxvoy1uf4tsdSNcQNjqa9AsNDMWjX9), queried at 2026-11-24T02:07:59.671Z in 683 ms:
+    0 Command: Input {"Command":{"Input":{}}}
+    1 Command: Call {"Command":{"Call":{"invocation_id":"inv_12fPgUW4YzUT0IHRIGRM0UizeXrIKqMjEB","invocation_target":{"Service":{"name":"CxChild","handler":"fast","scope":null}},"invocation_id_completion_id":1,"result_completion_id":2}}}
+    2 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":1},"result":"InvocationId"}}
+    3 Notification: Call {"Notification":{"ty":{"Completion":"Call"},"id":{"CompletionId":2},"result":"Success"}}
+    4 Command: Call {"Command":{"Call":{"invocation_id":"inv_159l0AEAoL2L6tgWLU1wiKgjPquvYCW9JD","invocation_target":{"Service":{"name":"CxChild","handler":"slow","scope":null}},"invocation_id_completion_id":3,"result_completion_id":4}}}
+    5 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":3},"result":"InvocationId"}}
+    6 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486078581,"completion_id":5}}}
+    7 Notification: Sleep {"Notification":{"ty":{"Completion":"Sleep"},"id":{"CompletionId":5},"result":"Void"}}
+    8 Command: Call {"Command":{"Call":{"invocation_id":"inv_15QERBr5AwB93mgbUkibNAPy5Ulw36Hdvz","invocation_target":{"Service":{"name":"CxChild","handler":"slow","scope":null}},"invocation_id_completion_id":6,"result_completion_id":7}}}
+    9 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":6},"result":"InvocationId"}}
+    10 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486138585,"completion_id":8}}}
+  cancel HTTP 202, sent at 1795486080355
+  journal F12-explicitCancellation-final (inv_1dVnGxvoy1uf4tsdSNcQNjqa9AsNDMWjX9), queried at 2026-11-24T02:08:04.868Z in 2 ms:
+    0 Command: Input {"Command":{"Input":{}}}
+    1 Command: Call {"Command":{"Call":{"invocation_id":"inv_12fPgUW4YzUT0IHRIGRM0UizeXrIKqMjEB","invocation_target":{"Service":{"name":"CxChild","handler":"fast","scope":null}},"invocation_id_completion_id":1,"result_completion_id":2}}}
+    2 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":1},"result":"InvocationId"}}
+    3 Notification: Call {"Notification":{"ty":{"Completion":"Call"},"id":{"CompletionId":2},"result":"Success"}}
+    4 Command: Call {"Command":{"Call":{"invocation_id":"inv_159l0AEAoL2L6tgWLU1wiKgjPquvYCW9JD","invocation_target":{"Service":{"name":"CxChild","handler":"slow","scope":null}},"invocation_id_completion_id":3,"result_completion_id":4}}}
+    5 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":3},"result":"InvocationId"}}
+    6 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486078581,"completion_id":5}}}
+    7 Notification: Sleep {"Notification":{"ty":{"Completion":"Sleep"},"id":{"CompletionId":5},"result":"Void"}}
+    8 Command: Call {"Command":{"Call":{"invocation_id":"inv_15QERBr5AwB93mgbUkibNAPy5Ulw36Hdvz","invocation_target":{"Service":{"name":"CxChild","handler":"slow","scope":null}},"invocation_id_completion_id":6,"result_completion_id":7}}}
+    9 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":6},"result":"InvocationId"}}
+    10 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486138585,"completion_id":8}}}
+    11 Notification: Signal {"Notification":{"ty":"Signal","id":{"SignalIndex":1},"result":"Void"}}
+    12 Command: Run "comp" {"Command":{"Run":{"completion_id":9,"name":"comp"}}}
+    13 Notification: Run {"Notification":{"ty":{"Completion":"Run"},"id":{"CompletionId":9},"result":"Success"}}
+    14 Command: Output {"Command":{"Output":{"result":"Failure"}}}
+  cancel request to journaled cancel notification: 0 ms
+  status {"id":"inv_1dVnGxvoy1uf4tsdSNcQNjqa9AsNDMWjX9","target":"CxExplicit/cancelSet","status":"completed","pinned_service_protocol_version":7,"completion_result":"failure","completion_failure":"[409] Cancelled"}
+  child {"id":"inv_12fPgUW4YzUT0IHRIGRM0UizeXrIKqMjEB","target":"CxChild/fast","status":"completed","completion_result":"success"}
+  child {"id":"inv_159l0AEAoL2L6tgWLU1wiKgjPquvYCW9JD","target":"CxChild/slow","status":"running"}
+  child {"id":"inv_15QERBr5AwB93mgbUkibNAPy5Ulw36Hdvz","target":"CxChild/slow","status":"running"}
+  event {"attempt":1,"step":"a:start","at":1795486078065}
+  event {"attempt":1,"step":"a","settled":"resolved","value":"fast:A","ms":16,"at":1795486078081}
+  event {"attempt":1,"step":"b:start","at":1795486078081}
+  event {"attempt":1,"step":"b","settled":"resolved","value":"sleep500","ms":504,"at":1795486078585}
+  event {"attempt":1,"step":"c:start","at":1795486078585}
+  event {"attempt":1,"step":"c","settled":"rejected","error":"TerminalError","code":409,"message":"Cancelled","ms":1774,"at":1795486080359}
+  event {"attempt":1,"step":"comp-start","at":1795486080359}
+  event {"attempt":1,"step":"comp:start","at":1795486080360}
+  event {"attempt":1,"step":"comp","settled":"resolved","value":"comp","ms":4007,"at":1795486084367}
+  attempts in SDK log 1; comp action runs 1; mismatch lines 0
+CONTROL F12-explicitCancellation FAILS AS REQUIRED: failed: SendSignal targets [] vs expected ["inv_12fPgUW4YzUT0IHRIGRM0UizeXrIKqMjEB","inv_159l0AEAoL2L6tgWLU1wiKgjPquvYCW9JD","inv_15QERBr5AwB93mgbUkibNAPy5Ulw36Hdvz"]; SendSignals are the first 0 commands after the cancel notification at 11
+
+-- F13 main (CxLive/childrenSurvive)
+  cancel HTTP 202, sent at 1795486085982
+  journal F13-main-final (inv_13ObPuO0rp393lj9gcTp64CsXu8KNyV18e), queried at 2026-11-24T02:08:20.394Z in 2 ms:
+    0 Command: Input {"Command":{"Input":{}}}
+    1 Command: Run "r" {"Command":{"Run":{"completion_id":1,"name":"r"}}}
+    2 Command: Call {"Command":{"Call":{"invocation_id":"inv_10cWjOdilfXa2p745UQSJdQotkpbgWmdLX","invocation_target":{"Service":{"name":"CxChild","handler":"slow","scope":null}},"invocation_id_completion_id":2,"result_completion_id":3}}}
+    3 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":2},"result":"InvocationId"}}
+    4 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486099885,"completion_id":4}}}
+    5 Notification: Signal {"Notification":{"ty":"Signal","id":{"SignalIndex":1},"result":"Void"}}
+    6 Command: SendSignal {"Command":{"SendSignal":{"target_invocation_id":"inv_10cWjOdilfXa2p745UQSJdQotkpbgWmdLX","signal_id":{"Index":1},"result":"Void"}}}
+    7 Notification: Call {"Notification":{"ty":{"Completion":"Call"},"id":{"CompletionId":3},"result":"Failure"}}
+    8 Notification: Run {"Notification":{"ty":{"Completion":"Run"},"id":{"CompletionId":1},"result":"Success"}}
+    9 Notification: Sleep {"Notification":{"ty":{"Completion":"Sleep"},"id":{"CompletionId":4},"result":"Void"}}
+    10 Command: Output {"Command":{"Output":{"result":"Success"}}}
+  cancel request to journaled cancel notification: 2386 ms
+  status {"id":"inv_13ObPuO0rp393lj9gcTp64CsXu8KNyV18e","target":"CxLive/childrenSurvive","status":"completed","pinned_service_protocol_version":7,"completion_result":"success"}
+  child {"id":"inv_10cWjOdilfXa2p745UQSJdQotkpbgWmdLX","target":"CxChild/slow","status":"completed","completion_result":"failure","completion_failure":"[409] Cancelled"}
+  event {"attempt":1,"step":"k:start","at":1795486084885}
+  event {"attempt":1,"step":"k","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":3488,"at":1795486088373}
+  event {"attempt":1,"step":"reRun:start","at":1795486088373}
+  event {"attempt":1,"step":"reRun","settled":"resolved","value":"r-value","ms":6518,"at":1795486094891}
+  event {"attempt":1,"step":"reCall:start","at":1795486094891}
+  event {"attempt":1,"step":"reCall","settled":"rejected","error":"TerminalError","code":409,"message":"Cancelled","ms":0,"at":1795486094891}
+  event {"attempt":1,"step":"reSleep:start","at":1795486094891}
+  event {"attempt":1,"step":"reSleep","settled":"resolved","value":"slept","ms":5008,"at":1795486099899}
+RESULT F13 PASS: race rejected {"attempt":1,"step":"k","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":3488,"at":1795486088373}; re-raced run {"attempt":1,"step":"reRun","settled":"resolved","value":"r-value","ms":6518,"at":1795486094891}; Run "r" commands 1, action runs 1; re-raced call {"attempt":1,"step":"reCall","settled":"rejected","error":"TerminalError","code":409,"message":"Cancelled","ms":0,"at":1795486094891} (A24: TerminalError 409, not CancelledError); re-raced sleep {"attempt":1,"step":"reSleep","settled":"resolved","value":"slept","ms":5008,"at":1795486099899}; attempts 1; outcome success
+
+-- F13 deadCombinator (CxLive/deadCombinator)
+  cancel HTTP 202, sent at 1795486102013
+  journal F13-deadCombinator-final (inv_1cyOVf2Z6NH42fbprNy77j6ueBSqYzDwk8), queried at 2026-11-24T02:08:24.671Z in 2 ms:
+    0 Command: Input {"Command":{"Input":{}}}
+    1 Command: Run "r" {"Command":{"Run":{"completion_id":1,"name":"r"}}}
+    2 Command: Call {"Command":{"Call":{"invocation_id":"inv_1iRQ4jwjMq2y2JfNT17imGGpEMES9AVa01","invocation_target":{"Service":{"name":"CxChild","handler":"slow","scope":null}},"invocation_id_completion_id":2,"result_completion_id":3}}}
+    3 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":2},"result":"InvocationId"}}
+    4 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486115912,"completion_id":4}}}
+    5 Notification: Signal {"Notification":{"ty":"Signal","id":{"SignalIndex":1},"result":"Void"}}
+    6 Command: SendSignal {"Command":{"SendSignal":{"target_invocation_id":"inv_1iRQ4jwjMq2y2JfNT17imGGpEMES9AVa01","signal_id":{"Index":1},"result":"Void"}}}
+    7 Command: Output {"Command":{"Output":{"result":"Success"}}}
+  cancel request to journaled cancel notification: 2390 ms
+  status {"id":"inv_1cyOVf2Z6NH42fbprNy77j6ueBSqYzDwk8","target":"CxLive/deadCombinator","status":"completed","pinned_service_protocol_version":7,"completion_result":"success"}
+  child {"id":"inv_1iRQ4jwjMq2y2JfNT17imGGpEMES9AVa01","target":"CxChild/slow","status":"completed","completion_result":"failure","completion_failure":"[409] Cancelled"}
+  event {"attempt":1,"step":"k:start","at":1795486100912}
+  event {"attempt":1,"step":"k","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":3494,"at":1795486104406}
+  event {"attempt":1,"step":"kAgain:start","at":1795486104406}
+  event {"attempt":1,"step":"kAgain","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":0,"at":1795486104406}
+CONTROL F13-deadCombinator FAILS AS REQUIRED: re-await of the rejected race {"attempt":1,"step":"kAgain","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":0,"at":1795486104406}
+
+-- F13 singleCancelled (CxLive/singleCancelled)
+  cancel HTTP 202, sent at 1795486105787
+  journal F13-singleCancelled-final (inv_11AKG4VuZVRa4MZiEsax3VpXrK9y7L1b2Q), queried at 2026-11-24T02:08:28.691Z in 2 ms:
+    0 Command: Input {"Command":{"Input":{}}}
+    1 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486164683,"completion_id":1}}}
+    2 Notification: Signal {"Notification":{"ty":"Signal","id":{"SignalIndex":1},"result":"Void"}}
+    3 Command: Output {"Command":{"Output":{"result":"Success"}}}
+  cancel request to journaled cancel notification: 2627 ms
+  status {"id":"inv_11AKG4VuZVRa4MZiEsax3VpXrK9y7L1b2Q","target":"CxLive/singleCancelled","status":"completed","pinned_service_protocol_version":7,"completion_result":"success"}
+  event {"attempt":1,"step":"single:start","at":1795486104683}
+  event {"attempt":1,"step":"single","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":3734,"at":1795486108417}
+  event {"attempt":1,"step":"singleAgain:start","at":1795486108418}
+  event {"attempt":1,"step":"singleAgain","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":0,"at":1795486108418}
+CONTROL F13-singleCancelled FAILS AS REQUIRED: re-await of the cancelled sleep {"attempt":1,"step":"singleAgain","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":0,"at":1795486108418}
+
+-- F14 live (CxLive/compensate)
+  cancel HTTP 202, sent at 1795486109809
+  journal F14-live-final (inv_1gXy0I8CFJ1M3zHja1YcZpXHojnDg1gwrb), queried at 2026-11-24T02:08:36.439Z in 2 ms:
+    0 Command: Input {"Command":{"Input":{}}}
+    1 Command: Call {"Command":{"Call":{"invocation_id":"inv_15j1Bl0YgiYb6a5a5MT2Pgd3ISw1K9nDt7","invocation_target":{"Service":{"name":"CxChild","handler":"slow","scope":null}},"invocation_id_completion_id":1,"result_completion_id":2}}}
+    2 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":1},"result":"InvocationId"}}
+    3 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486168707,"completion_id":3}}}
+    4 Notification: Signal {"Notification":{"ty":"Signal","id":{"SignalIndex":1},"result":"Void"}}
+    5 Command: SendSignal {"Command":{"SendSignal":{"target_invocation_id":"inv_15j1Bl0YgiYb6a5a5MT2Pgd3ISw1K9nDt7","signal_id":{"Index":1},"result":"Void"}}}
+    6 Command: Call {"Command":{"Call":{"invocation_id":"inv_1jKIdxU5K85l11oyDzVWV7iMyAW3JaSpvb","invocation_target":{"Service":{"name":"CxChild","handler":"fast","scope":null}},"invocation_id_completion_id":4,"result_completion_id":5}}}
+    7 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":4},"result":"InvocationId"}}
+    8 Notification: Call {"Notification":{"ty":{"Completion":"Call"},"id":{"CompletionId":2},"result":"Failure"}}
+    9 Notification: Call {"Notification":{"ty":{"Completion":"Call"},"id":{"CompletionId":5},"result":"Success"}}
+    10 Command: Run "compRun" {"Command":{"Run":{"completion_id":6,"name":"compRun"}}}
+    11 Notification: Run {"Notification":{"ty":{"Completion":"Run"},"id":{"CompletionId":6},"result":"Success"}}
+    12 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486113465,"completion_id":7}}}
+    13 Notification: Sleep {"Notification":{"ty":{"Completion":"Sleep"},"id":{"CompletionId":7},"result":"Void"}}
+    14 Command: Output {"Command":{"Output":{"result":"Success"}}}
+  cancel request to journaled cancel notification: 2616 ms
+  status {"id":"inv_1gXy0I8CFJ1M3zHja1YcZpXHojnDg1gwrb","target":"CxLive/compensate","status":"completed","pinned_service_protocol_version":7,"completion_result":"success"}
+  child {"id":"inv_15j1Bl0YgiYb6a5a5MT2Pgd3ISw1K9nDt7","target":"CxChild/slow","status":"completed","completion_result":"failure","completion_failure":"[409] Cancelled"}
+  child {"id":"inv_1jKIdxU5K85l11oyDzVWV7iMyAW3JaSpvb","target":"CxChild/fast","status":"completed","completion_result":"success"}
+  event {"attempt":1,"step":"x:start","at":1795486108707}
+  event {"attempt":1,"step":"x","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":3723,"at":1795486112430}
+  event {"attempt":1,"step":"comp-start","at":1795486112430}
+  event {"attempt":1,"step":"refund:start","at":1795486112430}
+  event {"attempt":1,"step":"refund","settled":"resolved","value":"fast:refund","ms":28,"at":1795486112458}
+  event {"attempt":1,"step":"compRun:start","at":1795486112458}
+  event {"attempt":1,"step":"compRun","settled":"resolved","value":"ran","ms":7,"at":1795486112465}
+  event {"attempt":1,"step":"compSleep:start","at":1795486112465}
+  event {"attempt":1,"step":"compSleep","settled":"resolved","value":"slept","ms":1004,"at":1795486113469}
+RESULT F14-live PASS: pre-cancel race {"attempt":1,"step":"x","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":3723,"at":1795486112430}; refund call {"attempt":1,"step":"refund","settled":"resolved","value":"fast:refund","ms":28,"at":1795486112458}; run {"attempt":1,"step":"compRun","settled":"resolved","value":"ran","ms":7,"at":1795486112465}; sleep {"attempt":1,"step":"compSleep","settled":"resolved","value":"slept","ms":1004,"at":1795486113469}; SendSignal targets ["inv_15j1Bl0YgiYb6a5a5MT2Pgd3ISw1K9nDt7"], refund child inv_1jKIdxU5K85l11oyDzVWV7iMyAW3JaSpvb; cancel notifications 1; outcome success; mismatch lines 0, attempts 1
+CONTROL F14-live-preCancelCall FAILS AS REQUIRED: pre-cancel call inv_15j1Bl0YgiYb6a5a5MT2Pgd3ISw1K9nDt7, SendSignal targets ["inv_15j1Bl0YgiYb6a5a5MT2Pgd3ISw1K9nDt7"]
+
+-- F14 replay (CxReplay/compensate)
+  cancel HTTP 202, sent at 1795486117555
+  journal F14-replay-final (inv_1gNYQBViK44465hRsfK7RHacsfznSse74i), queried at 2026-11-24T02:08:44.453Z in 1 ms:
+    0 Command: Input {"Command":{"Input":{}}}
+    1 Command: Call {"Command":{"Call":{"invocation_id":"inv_1cECHJXOsRSm2SdmaY0Qxo6tR81GUjFRWV","invocation_target":{"Service":{"name":"CxChild","handler":"slow","scope":null}},"invocation_id_completion_id":1,"result_completion_id":2}}}
+    2 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":1},"result":"InvocationId"}}
+    3 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486176456,"completion_id":3}}}
+    4 Notification: Signal {"Notification":{"ty":"Signal","id":{"SignalIndex":1},"result":"Void"}}
+    5 Command: SendSignal {"Command":{"SendSignal":{"target_invocation_id":"inv_1cECHJXOsRSm2SdmaY0Qxo6tR81GUjFRWV","signal_id":{"Index":1},"result":"Void"}}}
+    6 Command: Call {"Command":{"Call":{"invocation_id":"inv_1je8VzSV77We3Qh9tn5sueoQsj8WFYgwEN","invocation_target":{"Service":{"name":"CxChild","handler":"fast","scope":null}},"invocation_id_completion_id":4,"result_completion_id":5}}}
+    7 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":4},"result":"InvocationId"}}
+    8 Notification: Call {"Notification":{"ty":{"Completion":"Call"},"id":{"CompletionId":2},"result":"Failure"}}
+    9 Notification: Call {"Notification":{"ty":{"Completion":"Call"},"id":{"CompletionId":5},"result":"Success"}}
+    10 Command: Run "compRun" {"Command":{"Run":{"completion_id":6,"name":"compRun"}}}
+    11 Notification: Run {"Notification":{"ty":{"Completion":"Run"},"id":{"CompletionId":6},"result":"Success"}}
+    12 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486121487,"completion_id":7}}}
+    13 Notification: Sleep {"Notification":{"ty":{"Completion":"Sleep"},"id":{"CompletionId":7},"result":"Void"}}
+    14 Command: Output {"Command":{"Output":{"result":"Success"}}}
+  cancel request to journaled cancel notification: 2886 ms
+  status {"id":"inv_1gNYQBViK44465hRsfK7RHacsfznSse74i","target":"CxReplay/compensate","status":"completed","pinned_service_protocol_version":7,"completion_result":"success"}
+  child {"id":"inv_1cECHJXOsRSm2SdmaY0Qxo6tR81GUjFRWV","target":"CxChild/slow","status":"completed","completion_result":"failure","completion_failure":"[409] Cancelled"}
+  child {"id":"inv_1je8VzSV77We3Qh9tn5sueoQsj8WFYgwEN","target":"CxChild/fast","status":"completed","completion_result":"success"}
+  event {"attempt":1,"step":"x:start","at":1795486116456}
+  event {"attempt":2,"step":"x:start","at":1795486120451}
+  event {"attempt":2,"step":"x","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":0,"at":1795486120451}
+  event {"attempt":2,"step":"comp-start","at":1795486120451}
+  event {"attempt":2,"step":"refund:start","at":1795486120451}
+  event {"attempt":2,"step":"refund","settled":"resolved","value":"fast:refund","ms":31,"at":1795486120482}
+  event {"attempt":2,"step":"compRun:start","at":1795486120482}
+  event {"attempt":2,"step":"compRun","settled":"resolved","value":"ran","ms":5,"at":1795486120487}
+  event {"attempt":2,"step":"compSleep:start","at":1795486120487}
+  event {"attempt":3,"step":"x:start","at":1795486120695}
+  event {"attempt":3,"step":"x","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":0,"at":1795486120695}
+  event {"attempt":3,"step":"comp-start","at":1795486120695}
+  event {"attempt":3,"step":"refund:start","at":1795486120695}
+  event {"attempt":3,"step":"refund","settled":"resolved","value":"fast:refund","ms":0,"at":1795486120695}
+  event {"attempt":3,"step":"compRun:start","at":1795486120695}
+  event {"attempt":3,"step":"compRun","settled":"resolved","value":"ran","ms":1,"at":1795486120696}
+  event {"attempt":3,"step":"compSleep:start","at":1795486120696}
+  event {"attempt":4,"step":"x:start","at":1795486120905}
+  event {"attempt":4,"step":"x","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":0,"at":1795486120905}
+  event {"attempt":4,"step":"comp-start","at":1795486120905}
+  event {"attempt":4,"step":"refund:start","at":1795486120905}
+  event {"attempt":4,"step":"refund","settled":"resolved","value":"fast:refund","ms":0,"at":1795486120905}
+  event {"attempt":4,"step":"compRun:start","at":1795486120906}
+  event {"attempt":4,"step":"compRun","settled":"resolved","value":"ran","ms":0,"at":1795486120906}
+  event {"attempt":4,"step":"compSleep:start","at":1795486120906}
+  event {"attempt":5,"step":"x:start","at":1795486121115}
+  event {"attempt":5,"step":"x","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":0,"at":1795486121115}
+  event {"attempt":5,"step":"comp-start","at":1795486121115}
+  event {"attempt":5,"step":"refund:start","at":1795486121115}
+  event {"attempt":5,"step":"refund","settled":"resolved","value":"fast:refund","ms":1,"at":1795486121116}
+  event {"attempt":5,"step":"compRun:start","at":1795486121116}
+  event {"attempt":5,"step":"compRun","settled":"resolved","value":"ran","ms":0,"at":1795486121116}
+  event {"attempt":5,"step":"compSleep:start","at":1795486121116}
+  event {"attempt":6,"step":"x:start","at":1795486121327}
+  event {"attempt":6,"step":"x","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":0,"at":1795486121327}
+  event {"attempt":6,"step":"comp-start","at":1795486121327}
+  event {"attempt":6,"step":"refund:start","at":1795486121327}
+  event {"attempt":6,"step":"refund","settled":"resolved","value":"fast:refund","ms":0,"at":1795486121327}
+  event {"attempt":6,"step":"compRun:start","at":1795486121327}
+  event {"attempt":6,"step":"compRun","settled":"resolved","value":"ran","ms":0,"at":1795486121327}
+  event {"attempt":6,"step":"compSleep:start","at":1795486121327}
+  event {"attempt":6,"step":"compSleep","settled":"resolved","value":"slept","ms":166,"at":1795486121493}
+RESULT F14-replay PASS: pre-cancel race {"attempt":6,"step":"x","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":0,"at":1795486121327}; refund call {"attempt":6,"step":"refund","settled":"resolved","value":"fast:refund","ms":0,"at":1795486121327}; run {"attempt":6,"step":"compRun","settled":"resolved","value":"ran","ms":0,"at":1795486121327}; sleep {"attempt":6,"step":"compSleep","settled":"resolved","value":"slept","ms":166,"at":1795486121493}; SendSignal targets ["inv_1cECHJXOsRSm2SdmaY0Qxo6tR81GUjFRWV"], refund child inv_1je8VzSV77We3Qh9tn5sueoQsj8WFYgwEN; cancel notifications 1; outcome success; mismatch lines 0, attempts 6
+CONTROL F14-replay-preCancelCall FAILS AS REQUIRED: pre-cancel call inv_1cECHJXOsRSm2SdmaY0Qxo6tR81GUjFRWV, SendSignal targets ["inv_1cECHJXOsRSm2SdmaY0Qxo6tR81GUjFRWV"]
+
+-- F15 secondCancel twoCancels
+  first cancel HTTP 202, sent at 1795486125570
+  second cancel HTTP 202, sent at 1795486129966, during the 10 s compensation call
+  journal F15-twoCancels-final (inv_1k7OlRFKSXGm3eu7OQeRDB53qleEgsNKZM), queried at 2026-11-24T02:08:52.968Z in 2 ms:
+    0 Command: Input {"Command":{"Input":{}}}
+    1 Command: Call {"Command":{"Call":{"invocation_id":"inv_1f0f2RsHVafA6nZApxHNKqaaqStA8WPFMR","invocation_target":{"Service":{"name":"CxChild","handler":"slow","scope":null}},"invocation_id_completion_id":1,"result_completion_id":2}}}
+    2 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":1},"result":"InvocationId"}}
+    3 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486184469,"completion_id":3}}}
+    4 Notification: Signal {"Notification":{"ty":"Signal","id":{"SignalIndex":1},"result":"Void"}}
+    5 Command: SendSignal {"Command":{"SendSignal":{"target_invocation_id":"inv_1f0f2RsHVafA6nZApxHNKqaaqStA8WPFMR","signal_id":{"Index":1},"result":"Void"}}}
+    6 Command: Call {"Command":{"Call":{"invocation_id":"inv_1f40Z05mkfqf1MDSo1v7FfKBvLbCozzXgt","invocation_target":{"Service":{"name":"CxChild","handler":"slow","scope":null}},"invocation_id_completion_id":4,"result_completion_id":5}}}
+    7 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":4},"result":"InvocationId"}}
+    8 Notification: Call {"Notification":{"ty":{"Completion":"Call"},"id":{"CompletionId":2},"result":"Failure"}}
+    9 Notification: Signal {"Notification":{"ty":"Signal","id":{"SignalIndex":1},"result":"Void"}}
+    10 Command: SendSignal {"Command":{"SendSignal":{"target_invocation_id":"inv_1f40Z05mkfqf1MDSo1v7FfKBvLbCozzXgt","signal_id":{"Index":1},"result":"Void"}}}
+    11 Command: Run "after" {"Command":{"Run":{"completion_id":6,"name":"after"}}}
+    12 Notification: Run {"Notification":{"ty":{"Completion":"Run"},"id":{"CompletionId":6},"result":"Success"}}
+    13 Command: Output {"Command":{"Output":{"result":"Success"}}}
+  cancel request to journaled cancel notification: 2885 ms, 2500 ms
+  status {"id":"inv_1k7OlRFKSXGm3eu7OQeRDB53qleEgsNKZM","target":"CxLive/secondCancel","status":"completed","pinned_service_protocol_version":7,"completion_result":"success"}
+  child {"id":"inv_1f0f2RsHVafA6nZApxHNKqaaqStA8WPFMR","target":"CxChild/slow","status":"completed","completion_result":"failure","completion_failure":"[409] Cancelled"}
+  child {"id":"inv_1f40Z05mkfqf1MDSo1v7FfKBvLbCozzXgt","target":"CxChild/slow","status":"completed","completion_result":"failure","completion_failure":"[409] Cancelled"}
+  event {"attempt":1,"step":"x:start","at":1795486124469}
+  event {"attempt":1,"step":"x","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":3994,"at":1795486128463}
+  event {"attempt":1,"step":"comp-start","at":1795486128463}
+  event {"attempt":1,"step":"y:start","at":1795486128463}
+  event {"attempt":1,"step":"y","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":4006,"at":1795486132469}
+  event {"attempt":1,"step":"after:start","at":1795486132469}
+  event {"attempt":1,"step":"after","settled":"resolved","value":"after","ms":9,"at":1795486132478}
+  OBSERVED twoCancels {"cancelNotifications":2,"sendSignalTargets":["x","y"],"y":{"settled":"rejected","error":"CancelledError","code":409},"after":"resolved","outcome":"success","attempts":1}
+RESULT F15 PASS: observed {"cancelNotifications":2,"sendSignalTargets":["x","y"],"y":{"settled":"rejected","error":"CancelledError","code":409},"after":"resolved","outcome":"success","attempts":1} vs pinned {"cancelNotifications":2,"sendSignalTargets":["x","y"],"y":{"settled":"rejected","error":"CancelledError","code":409},"after":"resolved","outcome":"success","attempts":1}
+
+-- F15 secondCancel oneCancel
+  first cancel HTTP 202, sent at 1795486134081
+  journal F15-oneCancel-final (inv_1hDtqcBYc2pC2ORBmeamCtRNRqEjtSERK4), queried at 2026-11-24T02:09:06.603Z in 2 ms:
+    0 Command: Input {"Command":{"Input":{}}}
+    1 Command: Call {"Command":{"Call":{"invocation_id":"inv_15MWBb630hQh4vZrRTWo3IwmvGpiomMxDH","invocation_target":{"Service":{"name":"CxChild","handler":"slow","scope":null}},"invocation_id_completion_id":1,"result_completion_id":2}}}
+    2 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":1},"result":"InvocationId"}}
+    3 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486192982,"completion_id":3}}}
+    4 Notification: Signal {"Notification":{"ty":"Signal","id":{"SignalIndex":1},"result":"Void"}}
+    5 Command: SendSignal {"Command":{"SendSignal":{"target_invocation_id":"inv_15MWBb630hQh4vZrRTWo3IwmvGpiomMxDH","signal_id":{"Index":1},"result":"Void"}}}
+    6 Command: Call {"Command":{"Call":{"invocation_id":"inv_1jpMY6mWhFsq28TvB7L38MPr02KNs5LBIJ","invocation_target":{"Service":{"name":"CxChild","handler":"slow","scope":null}},"invocation_id_completion_id":4,"result_completion_id":5}}}
+    7 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":4},"result":"InvocationId"}}
+    8 Notification: Call {"Notification":{"ty":{"Completion":"Call"},"id":{"CompletionId":2},"result":"Failure"}}
+    9 Notification: Call {"Notification":{"ty":{"Completion":"Call"},"id":{"CompletionId":5},"result":"Success"}}
+    10 Command: Run "after" {"Command":{"Run":{"completion_id":6,"name":"after"}}}
+    11 Notification: Run {"Notification":{"ty":{"Completion":"Run"},"id":{"CompletionId":6},"result":"Success"}}
+    12 Command: Output {"Command":{"Output":{"result":"Success"}}}
+  cancel request to journaled cancel notification: 2389 ms
+  status {"id":"inv_1hDtqcBYc2pC2ORBmeamCtRNRqEjtSERK4","target":"CxLive/secondCancel","status":"completed","pinned_service_protocol_version":7,"completion_result":"success"}
+  child {"id":"inv_15MWBb630hQh4vZrRTWo3IwmvGpiomMxDH","target":"CxChild/slow","status":"completed","completion_result":"failure","completion_failure":"[409] Cancelled"}
+  child {"id":"inv_1jpMY6mWhFsq28TvB7L38MPr02KNs5LBIJ","target":"CxChild/slow","status":"completed","completion_result":"success"}
+  event {"attempt":1,"step":"x:start","at":1795486132982}
+  event {"attempt":1,"step":"x","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":3495,"at":1795486136477}
+  event {"attempt":1,"step":"comp-start","at":1795486136477}
+  event {"attempt":1,"step":"y:start","at":1795486136477}
+  event {"attempt":1,"step":"y","settled":"resolved","value":"slow:10000","ms":10025,"at":1795486146502}
+  event {"attempt":1,"step":"after:start","at":1795486146502}
+  event {"attempt":1,"step":"after","settled":"resolved","value":"after","ms":7,"at":1795486146509}
+  OBSERVED oneCancel {"cancelNotifications":1,"sendSignalTargets":["x"],"y":{"settled":"resolved","value":"slow:10000"},"after":"resolved","outcome":"success","attempts":1}
+CONTROL F15-oneCancel FAILS AS REQUIRED: one cancel {"cancelNotifications":1,"sendSignalTargets":["x"],"y":{"settled":"resolved","value":"slow:10000"},"after":"resolved","outcome":"success","attempts":1}; matches the two-cancel pin: false
+
+-- F16 cancelAtAwait
+  cancel HTTP 202, sent at 1795486148218 during the busy turn
+  journal F16-cancelAtAwait-final (inv_1hg6G6Ci2xKz4Vw3TVXB49iI4Nvy23WOB7), queried at 2026-11-24T02:09:15.630Z in 875 ms:
+    0 Command: Input {"Command":{"Input":{}}}
+    1 Notification: Signal {"Notification":{"ty":"Signal","id":{"SignalIndex":1},"result":"Void"}}
+    2 Command: Run "act" {"Command":{"Run":{"completion_id":1,"name":"act"}}}
+    3 Command: Output {"Command":{"Output":{"result":"Success"}}}
+  cancel request to journaled cancel notification: 270 ms
+  status {"id":"inv_1hg6G6Ci2xKz4Vw3TVXB49iI4Nvy23WOB7","target":"CxLive/cancelAtAwait","status":"completed","pinned_service_protocol_version":7,"completion_result":"success"}
+  event {"attempt":1,"step":"busy-start","at":1795486146617}
+  event {"attempt":1,"step":"busy-end","at":1795486154618}
+  event {"attempt":1,"step":"raceR:start","at":1795486154618}
+  event {"attempt":1,"step":"raceR","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":0,"at":1795486154618}
+  action "act" runs 0; Run commands 1
+RESULT F16 PASS: action runs 0; race {"attempt":1,"step":"raceR","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":0,"at":1795486154618}
+
+-- F16 rootNoAwait
+  cancel HTTP 202, sent at 1795486158117 during the busy turn
+  journal F16-rootNoAwait-final (inv_12dDt1MVIYgW0dz7zZKA1WFsuKxRONRC5F), queried at 2026-11-24T02:09:26.018Z in 2502 ms:
+    0 Command: Input {"Command":{"Input":{}}}
+    1 Notification: Signal {"Notification":{"ty":"Signal","id":{"SignalIndex":1},"result":"Void"}}
+    2 Command: Run "act" {"Command":{"Run":{"completion_id":1,"name":"act"}}}
+    3 Command: Output {"Command":{"Output":{"result":"Success"}}}
+  cancel request to journaled cancel notification: 2390 ms
+  status {"id":"inv_12dDt1MVIYgW0dz7zZKA1WFsuKxRONRC5F","target":"CxLive/rootNoAwait","status":"completed","pinned_service_protocol_version":7,"completion_result":"success"}
+  event {"attempt":1,"step":"busy-start","at":1795486156517}
+  event {"attempt":1,"step":"busy-end","at":1795486164519}
+  action "act" runs 0; Run commands 1
+RESULT F16-rootNoAwait PASS: outcome success ; action runs 0
+
+-- F16 emptyRace
+  cancel HTTP 202, sent at 1795486170133 during the busy turn
+  journal F16-emptyRace-final (inv_1gCGmaLvhuFU2WlSRB7BXn5EeRc6zTyvex), queried at 2026-11-24T02:09:39.102Z in 1429 ms:
+    0 Command: Input {"Command":{"Input":{}}}
+    1 Notification: Signal {"Notification":{"ty":"Signal","id":{"SignalIndex":1},"result":"Void"}}
+    2 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486178138,"completion_id":1}}}
+    3 Command: Output {"Command":{"Output":{"result":"Failure"}}}
+  cancel request to journaled cancel notification: 2389 ms
+  status {"id":"inv_1gCGmaLvhuFU2WlSRB7BXn5EeRc6zTyvex","target":"CxLive/emptyRace","status":"completed","pinned_service_protocol_version":7,"completion_result":"failure","completion_failure":"[409] Cancelled"}
+  event {"attempt":1,"step":"busy-start","at":1795486168535}
+  event {"attempt":1,"step":"busy-end","at":1795486176536}
+  event {"attempt":1,"step":"empty:start","at":1795486176536}
+  event {"attempt":1,"step":"empty","settled":"resolved","value":"timeout","ms":1502,"at":1795486178038}
+  event {"attempt":1,"step":"observe:start","at":1795486178038}
+  event {"attempt":1,"step":"observe","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":1,"at":1795486178039}
+  action "act" runs 0; Run commands 0
+RESULT F16-emptyRace PASS: race([]) against a 1.5 s timer {"attempt":1,"step":"empty","settled":"resolved","value":"timeout","ms":1502,"at":1795486178038}; next real await {"attempt":1,"step":"observe","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":1,"at":1795486178039}
+
+-- F16 raceFirst
+  cancel HTTP 202, sent at 1795486182144 during the busy turn
+  journal F16-raceFirst-final (inv_14zhjndsoxwE4LfJYKBO5PbLDO4xdwN1IC), queried at 2026-11-24T02:09:49.642Z in 2898 ms:
+    0 Command: Input {"Command":{"Input":{}}}
+    1 Command: Run "act" {"Command":{"Run":{"completion_id":1,"name":"act"}}}
+    2 Notification: Run {"Notification":{"ty":{"Completion":"Run"},"id":{"CompletionId":1},"result":"Success"}}
+    3 Notification: Signal {"Notification":{"ty":"Signal","id":{"SignalIndex":1},"result":"Void"}}
+    4 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486188650,"completion_id":2}}}
+    5 Command: Output {"Command":{"Output":{"result":"Success"}}}
+  cancel request to journaled cancel notification: 2387 ms
+  status {"id":"inv_14zhjndsoxwE4LfJYKBO5PbLDO4xdwN1IC","target":"CxLive/raceFirst","status":"completed","pinned_service_protocol_version":7,"completion_result":"success"}
+  event {"attempt":1,"step":"raceR:start","at":1795486180544}
+  event {"attempt":1,"step":"raceR","settled":"resolved","value":"acted","ms":5,"at":1795486180549}
+  event {"attempt":1,"step":"busy-start","at":1795486180549}
+  event {"attempt":1,"step":"busy-end","at":1795486188550}
+  event {"attempt":1,"step":"after:start","at":1795486188550}
+  event {"attempt":1,"step":"after","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":0,"at":1795486188550}
+  action "act" runs 1; Run commands 1
+  raceFirst after-turn await {"attempt":1,"step":"after","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":0,"at":1795486188550}
+CONTROL F16-raceFirst FAILS AS REQUIRED: failed: action runs 1; race {"attempt":1,"step":"raceR","settled":"resolved","value":"acted","ms":5,"at":1795486180549}
+
+-- F20 mismatch matrix
+  seen statuses running,suspended,backing-off,ready; failure codes RT0016
+
+  CxMatrix/callParam inv_1k3LTPbF150g2TLbn8Yt6EHzAbdh9h5QTQ
+  status {"id":"inv_1k3LTPbF150g2TLbn8Yt6EHzAbdh9h5QTQ","target":"CxMatrix/callParam","status":"ready","pinned_service_protocol_version":7}
+  sdk mismatch:  RestateError: (570) Found a mismatch between the code paths taken during the previous execution and the paths taken during this execution. | - The mismatch happened while executing 'call' (index '1') | - Difference:
+  sdk mismatch:  RestateError: (570) Found a mismatch between the code paths taken during the previous execution and the paths taken during this execution. | - The mismatch happened while executing 'call' (index '1') | - Difference:
+  attempts 5; children 1
+  kill HTTP 200 (stops the retries)
+  journal F20-CxMatrix-callParam-final (inv_1k3LTPbF150g2TLbn8Yt6EHzAbdh9h5QTQ), queried at 2026-11-24T02:10:01.912Z in 2 ms:
+    0 Command: Input {"Command":{"Input":{}}}
+    1 Command: Call {"Command":{"Call":{"invocation_id":"inv_11kp2DlOE3JR2j9Y2cDgHfL9CBRU0l5f0t","invocation_target":{"Service":{"name":"CxChild","handler":"fast","scope":null}},"invocation_id_completion_id":1,"result_completion_id":2}}}
+    2 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":1},"result":"InvocationId"}}
+    3 Notification: Call {"Notification":{"ty":{"Completion":"Call"},"id":{"CompletionId":2},"result":"Success"}}
+    4 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486193594,"completion_id":3}}}
+    5 Notification: Sleep {"Notification":{"ty":{"Completion":"Sleep"},"id":{"CompletionId":3},"result":"Void"}}
+RESULT F20-CxMatrix-callParam PASS: mismatch true (expected true); SDK mismatch records 4; failure codes seen RT0016; status ready ; attempts 5
+  seen statuses running,suspended,backing-off,ready; failure codes RT0016
+
+  CxMatrix/runName inv_17WidR2yzRq37CPMf4UPvURDoMujjwGc9T
+  status {"id":"inv_17WidR2yzRq37CPMf4UPvURDoMujjwGc9T","target":"CxMatrix/runName","status":"ready","pinned_service_protocol_version":7}
+  sdk mismatch:  RestateError: (570) Found a mismatch between the code paths taken during the previous execution and the paths taken during this execution. | - The mismatch happened while executing 'run' (index '1') | - Difference:
+  sdk mismatch:  RestateError: (570) Found a mismatch between the code paths taken during the previous execution and the paths taken during this execution. | - The mismatch happened while executing 'run' (index '1') | - Difference:
+  attempts 5; children 0
+  kill HTTP 200 (stops the retries)
+  journal F20-CxMatrix-runName-final (inv_17WidR2yzRq37CPMf4UPvURDoMujjwGc9T), queried at 2026-11-24T02:10:01.922Z in 1 ms:
+    0 Command: Input {"Command":{"Input":{}}}
+    1 Command: Run "r1" {"Command":{"Run":{"completion_id":1,"name":"r1"}}}
+    2 Notification: Run {"Notification":{"ty":{"Completion":"Run"},"id":{"CompletionId":1},"result":"Success"}}
+    3 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486193574,"completion_id":2}}}
+    4 Notification: Sleep {"Notification":{"ty":{"Completion":"Sleep"},"id":{"CompletionId":2},"result":"Void"}}
+RESULT F20-CxMatrix-runName PASS: mismatch true (expected true); SDK mismatch records 4; failure codes seen RT0016; status ready ; attempts 5
+  seen statuses running,suspended,completed; failure codes none
+
+  CxMatrix/sleepDuration inv_12HP3JREyyiE3nnhArAFDTXBFYNwqdyUYb
+  status {"id":"inv_12HP3JREyyiE3nnhArAFDTXBFYNwqdyUYb","target":"CxMatrix/sleepDuration","status":"completed","pinned_service_protocol_version":7,"completion_result":"success"}
+  attempts 3; children 0
+  journal F20-CxMatrix-sleepDuration-final (inv_12HP3JREyyiE3nnhArAFDTXBFYNwqdyUYb), queried at 2026-11-24T02:10:01.927Z in 1 ms:
+    0 Command: Input {"Command":{"Input":{}}}
+    1 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486193166,"completion_id":1}}}
+    2 Notification: Sleep {"Notification":{"ty":{"Completion":"Sleep"},"id":{"CompletionId":1},"result":"Void"}}
+    3 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486194179,"completion_id":2}}}
+    4 Notification: Sleep {"Notification":{"ty":{"Completion":"Sleep"},"id":{"CompletionId":2},"result":"Void"}}
+    5 Command: Output {"Command":{"Output":{"result":"Success"}}}
+RESULT F20-CxMatrix-sleepDuration PASS: mismatch false (expected false); SDK mismatch records 0; failure codes seen none; status completed success; attempts 3
+  seen statuses running,suspended,completed; failure codes none
+
+  CxMatrix/swappedAwakeables inv_1h1b5O7UfhaV6Y6q944dX3OjXyuagGUUC1
+  status {"id":"inv_1h1b5O7UfhaV6Y6q944dX3OjXyuagGUUC1","target":"CxMatrix/swappedAwakeables","status":"completed","pinned_service_protocol_version":7,"completion_result":"success"}
+  attempts 3; children 0
+  journal F20-CxMatrix-swappedAwakeables-final (inv_1h1b5O7UfhaV6Y6q944dX3OjXyuagGUUC1), queried at 2026-11-24T02:10:01.933Z in 1 ms:
+    0 Command: Input {"Command":{"Input":{}}}
+    1 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486193174,"completion_id":1}}}
+    2 Notification: Sleep {"Notification":{"ty":{"Completion":"Sleep"},"id":{"CompletionId":1},"result":"Void"}}
+    3 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486194182,"completion_id":2}}}
+    4 Notification: Sleep {"Notification":{"ty":{"Completion":"Sleep"},"id":{"CompletionId":2},"result":"Void"}}
+    5 Command: Output {"Command":{"Output":{"result":"Success"}}}
+RESULT F20-CxMatrix-swappedAwakeables PASS: mismatch false (expected false); SDK mismatch records 0; failure codes seen none; status completed success; attempts 3
+  seen statuses running,suspended,completed; failure codes none
+
+  CxMatrix/raceMembers inv_1jtfLX4FOWdd69Olc3r03Fp7gRKclwPh2d
+  status {"id":"inv_1jtfLX4FOWdd69Olc3r03Fp7gRKclwPh2d","target":"CxMatrix/raceMembers","status":"completed","pinned_service_protocol_version":7,"completion_result":"success"}
+  attempts 3; children 0
+  journal F20-CxMatrix-raceMembers-final (inv_1jtfLX4FOWdd69Olc3r03Fp7gRKclwPh2d), queried at 2026-11-24T02:10:01.939Z in 1 ms:
+    0 Command: Input {"Command":{"Input":{}}}
+    1 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486193177,"completion_id":1}}}
+    2 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486197577,"completion_id":2}}}
+    3 Notification: Sleep {"Notification":{"ty":{"Completion":"Sleep"},"id":{"CompletionId":1},"result":"Void"}}
+    4 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486194182,"completion_id":3}}}
+    5 Notification: Sleep {"Notification":{"ty":{"Completion":"Sleep"},"id":{"CompletionId":3},"result":"Void"}}
+    6 Command: Output {"Command":{"Output":{"result":"Success"}}}
+RESULT F20-CxMatrix-raceMembers PASS: mismatch false (expected false); SDK mismatch records 0; failure codes seen none; status completed success; attempts 3
+  seen statuses running,suspended,completed; failure codes none
+
+  CxMatrix/identical inv_1c0z98cm97oc5YBFsLzlTEzq2xf3PfGhbe
+  status {"id":"inv_1c0z98cm97oc5YBFsLzlTEzq2xf3PfGhbe","target":"CxMatrix/identical","status":"completed","pinned_service_protocol_version":7,"completion_result":"success"}
+  attempts 2; children 1
+  journal F20-CxMatrix-identical-final (inv_1c0z98cm97oc5YBFsLzlTEzq2xf3PfGhbe), queried at 2026-11-24T02:10:01.944Z in 1 ms:
+    0 Command: Input {"Command":{"Input":{}}}
+    1 Command: Call {"Command":{"Call":{"invocation_id":"inv_1lTVQHWFUAyI3wWxghYngVG9QFXYfzkNNL","invocation_target":{"Service":{"name":"CxChild","handler":"fast","scope":null}},"invocation_id_completion_id":1,"result_completion_id":2}}}
+    2 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":1},"result":"InvocationId"}}
+    3 Notification: Call {"Notification":{"ty":{"Completion":"Call"},"id":{"CompletionId":2},"result":"Success"}}
+    4 Command: Run "count" {"Command":{"Run":{"completion_id":3,"name":"count"}}}
+    5 Notification: Run {"Notification":{"ty":{"Completion":"Run"},"id":{"CompletionId":3},"result":"Success"}}
+    6 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486193626,"completion_id":4}}}
+    7 Notification: Sleep {"Notification":{"ty":{"Completion":"Sleep"},"id":{"CompletionId":4},"result":"Void"}}
+    8 Command: Output {"Command":{"Output":{"result":"Success"}}}
+CONTROL F20-identicalReplay-mismatches FAILS AS REQUIRED: mismatch false (expected false); SDK mismatch records 0; failure codes seen none; status completed success; attempts 2
+  seen statuses running,suspended,completed; failure codes none
+
+  CxCodec/callParam inv_195zy8QALisJ0mUliEMiwB60krMnWvkzMp
+  status {"id":"inv_195zy8QALisJ0mUliEMiwB60krMnWvkzMp","target":"CxCodec/callParam","status":"completed","pinned_service_protocol_version":7,"completion_result":"success"}
+  attempts 2; children 1
+  journal F20-CxCodec-callParam-final (inv_195zy8QALisJ0mUliEMiwB60krMnWvkzMp), queried at 2026-11-24T02:10:01.950Z in 1 ms:
+    0 Command: Input {"Command":{"Input":{}}}
+    1 Command: Call {"Command":{"Call":{"invocation_id":"inv_1dFtEZEFhvzV3kfG8S1GM3r95WKjrp38kN","invocation_target":{"Service":{"name":"CxChild","handler":"fast","scope":null}},"invocation_id_completion_id":1,"result_completion_id":2}}}
+    2 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":1},"result":"InvocationId"}}
+    3 Notification: Call {"Notification":{"ty":{"Completion":"Call"},"id":{"CompletionId":2},"result":"Success"}}
+    4 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486193616,"completion_id":3}}}
+    5 Notification: Sleep {"Notification":{"ty":{"Completion":"Sleep"},"id":{"CompletionId":3},"result":"Void"}}
+    6 Command: Output {"Command":{"Output":{"result":"Success"}}}
+RESULT F20-CxCodec-callParam PASS: mismatch false (expected false); SDK mismatch records 0; failure codes seen none; status completed success; attempts 2
+  seen statuses running,suspended,completed; failure codes none
+
+  CxCodec/identical inv_16fegqfJ1RpB4H6LRK4uPSdkm5XxUfgxIx
+  status {"id":"inv_16fegqfJ1RpB4H6LRK4uPSdkm5XxUfgxIx","target":"CxCodec/identical","status":"completed","pinned_service_protocol_version":7,"completion_result":"success"}
+  attempts 2; children 1
+  journal F20-CxCodec-identical-final (inv_16fegqfJ1RpB4H6LRK4uPSdkm5XxUfgxIx), queried at 2026-11-24T02:10:01.955Z in 2 ms:
+    0 Command: Input {"Command":{"Input":{}}}
+    1 Command: Call {"Command":{"Call":{"invocation_id":"inv_16VKzbDlzxXD1LcmEeyAJT8PPqI4uotEat","invocation_target":{"Service":{"name":"CxChild","handler":"fast","scope":null}},"invocation_id_completion_id":1,"result_completion_id":2}}}
+    2 Notification: CallInvocationId {"Notification":{"ty":{"Completion":"CallInvocationId"},"id":{"CompletionId":1},"result":"InvocationId"}}
+    3 Notification: Call {"Notification":{"ty":{"Completion":"Call"},"id":{"CompletionId":2},"result":"Success"}}
+    4 Command: Run "count" {"Command":{"Run":{"completion_id":3,"name":"count"}}}
+    5 Notification: Run {"Notification":{"ty":{"Completion":"Run"},"id":{"CompletionId":3},"result":"Success"}}
+    6 Command: Sleep {"Command":{"Sleep":{"wake_up_time":1795486193620,"completion_id":4}}}
+    7 Notification: Sleep {"Notification":{"ty":{"Completion":"Sleep"},"id":{"CompletionId":4},"result":"Void"}}
+    8 Command: Output {"Command":{"Output":{"result":"Success"}}}
+RESULT F20-CxCodec-identical PASS: mismatch false (expected false); SDK mismatch records 0; failure codes seen none; status completed success; attempts 2
+RESULT F20-A16-defaults PASS: mismatching invocation statuses seen running,suspended,backing-off,ready, attempts 5; identical case attempts 2, run action runs 1; identical case child calls 1
+
+SDK log WARN/ERROR lines: 34
+
+ALL PASS (fixtures and controls)
+
+== exit: A5 0, live 0
