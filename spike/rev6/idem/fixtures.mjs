@@ -388,3 +388,76 @@ export const G7 = async () => {
     [late.status === want.completedCancel, `cancel after retention HTTP ${late.status} (want ${want.completedCancel})`]
   ]));
 };
+
+// ---------- G8: A43, compensation issued as attached sends survives repeated cancels ----------
+// Pass criteria, written before the first run (decision of 2026-11-23 on #48, step 3):
+//   attach: parent journal has 3 cancel signal notifications and no SendSignal at all (so none to
+//   either child); each child's body ran once and its "apply" ran once; each compensation step
+//   resolves with "applied:<label>" (re-attach ticks are recorded, not limited); the parent
+//   handler absorbs the first cancel, finishes the compensation and its "after" run, and ends
+//   with outcome "success".
+//   control (same two steps as request-response calls): fails that check, and shows a SendSignal
+//   to at least one child and at least one child with no applied effect.
+//   kill (attach variant, cancel then kill during the attached compensation): parent "killed",
+//   both children "killed" (A40), no apply for either, no new parent command after the kill.
+const PREDICT_A43 = { notifications: 3, signalsAll: [], bodies: [1, 1], applies: [1, 1], finals: ["applied:c1", "applied:c2"], after: "resolved", outcome: "success", children: ["success", "success"] };
+const PREDICT_A43_KILL = { parent: "killed", children: ["killed", "killed"], applies: [0, 0], newCommandsAfterKill: 0 };
+const A43_HOLD_MS = 12000;
+const runA43 = async (variant, prefix, verb) => {
+  console.log(`\n-- G8 A43 ${variant}${verb ? ` then ${verb}` : " with three cancels"} (prefix ${prefix})`);
+  const keys = [key(`${prefix}-k1`), key(`${prefix}-k2`)];
+  const inv = await sendParent("attachThree", { prefix, variant, holdMs: A43_HOLD_MS, keys });
+  await parentEvent(inv, "x:start");
+  await sleep(1000);
+  const sent = [await d.adminTerminate(inv, "cancel")];
+  await waitLabel(`${prefix}-c1`, "hold:start");
+  await waitLabel(`${prefix}-c2`, "hold:start");
+  await sleep(1500);
+  const pre = verb === "kill" ? await d.dumpQuiet("G8", `${variant}-kill`, "before", inv) : undefined;
+  sent.push(await d.adminTerminate(inv, verb ?? "cancel"));
+  if (!verb) {
+    await sleep(3500);
+    sent.push(await d.adminTerminate(inv, "cancel"));
+  }
+  console.log(`  requests HTTP ${sent.map((s) => s.status).join(",")} at ${sent.map((s) => s.sentAt).join(",")}`);
+  if (verb) await sleep(A43_HOLD_MS + 3000);
+  const status = verb ? undefined : await d.completed(inv, 90000);
+  if (!verb) await sleep(2000);
+  const rows = await d.dumpQuiet("G8", verb ? `${variant}-${verb}` : variant, "parent", inv);
+  const kids = [];
+  for (const k of keys) kids.push((await d.byKey(k))[0]);
+  for (const [i, kid] of kids.entries()) if (kid) await d.dumpQuiet("G8", verb ? `${variant}-${verb}` : variant, `child${i + 1}`, kid.id);
+  const parentRow = await d.invocationRow(inv);
+  for (const r of [parentRow, ...kids]) console.log(`  row ${JSON.stringify(r)}`);
+  const finals = [1, 2].map((i) => d.lastEvent(inv, `a${i}:final`));
+  for (const f of finals) console.log(`  final ${JSON.stringify(f)}`);
+  for (const e of d.events(inv).filter((x) => /#|:final/.test(x.step))) console.log(`  event ${JSON.stringify(e)}`);
+  const signals = d.sendSignalsOf(rows);
+  const kidIds = kids.map((k) => k?.id);
+  const labels = [`${prefix}-c1`, `${prefix}-c2`];
+  console.log(`  SendSignal targets ${JSON.stringify(signals.map((s) => s.target))}; to children ${signals.filter((s) => kidIds.includes(s.target)).length}; cancel notifications ${d.signalNotifications(rows).length}; ticks ${JSON.stringify(finals.map((f) => f?.ticks))}; attempts ${d.attemptsOf(inv)}`);
+  for (const l of labels) console.log(`  counter ${l}: bodies ${d.bodiesOf(l).length}, apply runs ${d.appliesOf(l).length}`);
+  const re = verb ? await d.ingressCall("IdTarget/apply", { label: labels[0] }, keys[0]) : undefined;
+  if (re) console.log(`  ingress with child 1's key after ${verb}: HTTP ${re.status} ${re.body.slice(0, 100)}`);
+  return {
+    notifications: d.signalNotifications(rows).length, signalsAll: signals.map((s) => s.target), toChildren: signals.filter((s) => kidIds.includes(s.target)).length,
+    bodies: labels.map((l) => d.bodiesOf(l).length), applies: labels.map((l) => d.appliesOf(l).length),
+    finals: finals.map((f, i) => (f?.settled === "resolved" ? f.value.replace(`${prefix}-`, "") : `${f?.settled}:${f?.code}`)),
+    after: d.lastEvent(inv, "after")?.settled, outcome: status?.completion_result, children: kids.map((k) => failureOf(k)),
+    parent: failureOf(parentRow), newCommandsAfterKill: pre ? d.commands(rows).length - d.commands(pre).length : undefined
+  };
+};
+const a43Check = (got) => d.all(Object.keys(PREDICT_A43).map((k) => [JSON.stringify(got[k]) === JSON.stringify(PREDICT_A43[k]), `${k} ${JSON.stringify(got[k])} (want ${JSON.stringify(PREDICT_A43[k])})`]));
+const a43KillCheck = (got) => d.all(Object.keys(PREDICT_A43_KILL).map((k) => [JSON.stringify(got[k]) === JSON.stringify(PREDICT_A43_KILL[k]), `${k} ${JSON.stringify(got[k])} (want ${JSON.stringify(PREDICT_A43_KILL[k])})`]));
+export const G8 = async () => {
+  const attach = await runA43("attach", `a43a-${RUN}`);
+  d.verdict("A43-attachThreeCancels", a43Check(attach));
+  const calls = await runA43("call", `a43c-${RUN}`);
+  d.control("A43-asRequestResponseCalls", a43Check(calls));
+  d.verdict("A43-control-mechanism", d.all([
+    [calls.toChildren >= 1, `SendSignal to children ${calls.toChildren} (want at least 1)`],
+    [calls.applies.some((n) => n === 0), `applies ${JSON.stringify(calls.applies)} (want at least one 0)`]
+  ]));
+  const killed = await runA43("attach", `a43k-${RUN}`, "kill");
+  d.verdict("A43-kill-pinned", a43KillCheck(killed));
+};

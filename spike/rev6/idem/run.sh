@@ -6,7 +6,7 @@
 # RESTATE_SERVER_VERSION and RESTATE_SDK_VERSION choose the versions under test (defaults are the
 # pinned ones). A version other than the one in spike/node_modules is looked up in
 # $here/versions/<package>@<version>/node_modules; the script prints the install command if it is
-# missing. GROUPS limits the fixture groups (default G1,G2,G3,G4,G5,G6). The counter file the
+# missing. GROUPS limits the fixture groups (default G1 to G8). The counter file the
 # handlers append to (outside the journal) is $here/counters.txt, rewritten on every run.
 set -euo pipefail
 here=$(cd "$(dirname "$0")" && pwd)

@@ -23,7 +23,7 @@ const main = async () => {
   }
   const version = await d.json(`${ADMIN}/version`);
   console.log(`admin /version: ${JSON.stringify(version.body)}`);
-  const only = (process.env.GROUPS ?? "G1,G2,G3,G4,G5,G6,G7").split(",");
+  const only = (process.env.GROUPS ?? "G1,G2,G3,G4,G5,G6,G7,G8").split(",");
   for (const name of only) await fixtures[name]();
   await sleep(500);
   console.log(`\nSDK log WARN/ERROR lines: ${d.sdkLines().filter((l) => /WARN|ERROR/.test(l)).length}`);

@@ -169,9 +169,43 @@ const threeCancels = async (ctx, { prefix }) => {
   return { y1, y2, after };
 };
 
+// A43: a first cancel interrupts the main wait; compensation issues two steps (distinct keys) and
+// awaits each. variant "attach": one-way sends awaited with ctx.attach, one race per tick, and a
+// rejected attach is re-attached in the next tick (at most 4 ticks). variant "call": the same two
+// steps as request-response calls with the same keys, awaited once each (the negative control).
+const attachTick = async (ctx, name, childId) => {
+  let outcome;
+  for (let tick = 1; tick <= 4; tick++) {
+    outcome = await settle(ctx, tick === 1 ? name : `${name}#${tick}`, race([ctx.attach(childId)]));
+    if (outcome.settled === "resolved") return { ...outcome, ticks: tick };
+  }
+  return { ...outcome, ticks: 4 };
+};
+const callOnce = async (ctx, name, promise) => ({ ...(await settle(ctx, name, race([promise]))), ticks: 1 });
+const issueStep = (ctx, variant, step) => {
+  if (variant === "call") return { promise: callTarget(ctx, "IdTarget", step.arg, step.key) };
+  return { handle: ctx.serviceSendClient(target).apply(step.arg, rpc.sendOpts({ idempotencyKey: step.key })) };
+};
+const attachThree = async (ctx, { prefix, variant, holdMs, keys }) => {
+  begin(ctx, "attachThree");
+  await settle(ctx, "x", race([ctx.sleep(60000).map(() => "sleep60s")]));
+  event(ctx, { step: "comp-start", variant });
+  const steps = keys.map((k, i) => ({ name: `a${i + 1}`, key: k, arg: { label: `${prefix}-c${i + 1}`, preSteps: 1, holdMs } }));
+  const issued = steps.map((s) => ({ ...s, ...issueStep(ctx, variant, s) }));
+  const results = [];
+  for (const s of issued) {
+    if (s.handle) event(ctx, { step: `${s.name}:sent`, childId: await s.handle.invocationId });
+    const r = s.handle ? await attachTick(ctx, s.name, await s.handle.invocationId) : await callOnce(ctx, s.name, s.promise);
+    event(ctx, { ...r, step: `${s.name}:final` });
+    results.push(r);
+  }
+  const after = await settle(ctx, "after", race([ctx.run("after", counted(ctx, `${prefix}-parent`, "after"))]));
+  return { results, after };
+};
+
 const parent = sdk.service({
   name: "IdParent",
-  handlers: { callWithKey, compensate, killDuring, threeCancels },
+  handlers: { callWithKey, compensate, killDuring, threeCancels, attachThree },
   options: { journalRetention: 3600_000 }
 });
 

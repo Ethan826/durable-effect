@@ -1,0 +1,71 @@
+== versions: restate-server 1.8.1, restate-sdk 1.18.4, node v26.6.0
+== started 2026-11-24T03:33:53Z
+
+== live fixtures
+deployment: HTTP 201 protocol versions 5..8 services IdShort,IdTarget,IdParent,IdLeaf,IdObject
+service IdTarget: idempotency_retention 1d, journal_retention 1h
+service IdShort: idempotency_retention 4s, journal_retention 4s
+admin /version: {"version":"1.8.1","min_admin_api_version":2,"max_admin_api_version":5,"ingress_endpoint":"http://127.0.0.1:19921/","features":{"scoped_state_table_migration":false,"gcp_workload_identity_federation":false,"inconsistent_state_mutation_cleanup":false,"preflight_signal_recording":false,"invocation_source_ingestion":false,"scoped_promise_table_migration":false,"vqueue_obsolete_cleanup":false,"schema_bilrost_encoding":false,"preflight_invocation_termination_retention":false,"vqueues_async_refill":false,"kafka_scope":false}}
+
+-- G8 A43 attach with three cancels (prefix a43a-mwu54eao)
+  requests HTTP 202,202,202 at 1795491236103,1795491239915,1795491245825
+  journal G8-attach-parent (inv_18y1viuA1id416lDXrDPvmyrXfw7tozxCg): 0:Input 1:Sleep 2:Signal 3:OneWayCall 4:CallInvocationId 5:OneWayCall 6:CallInvocationId 7:AttachInvocation 8:Signal 9:AttachInvocation 10:Signal 11:AttachInvocation 12:AttachInvocation 13:AttachInvocation 14:AttachInvocation 15:AttachInvocation 16:AttachInvocation 17:Run(after) 18:Run 19:Output
+  journal G8-attach-child1 (inv_15nUAVMEGLu60zCVsNA8DeS4lNoXdtzt8f): 0:Input 1:Run(pre0) 2:Run 3:Sleep 4:Sleep 5:Run(apply) 6:Run 7:Output
+  journal G8-attach-child2 (inv_11OKP8PkfM6N5kol6NLPGd5k7qM4LFAibC): 0:Input 1:Run(pre0) 2:Run 3:Sleep 4:Sleep 5:Run(apply) 6:Run 7:Output
+  row {"id":"inv_18y1viuA1id416lDXrDPvmyrXfw7tozxCg","target":"IdParent/attachThree","status":"completed","idempotency_key":"01M85SW0N53EEDGMB0PSGTH4JW","completion_result":"success","completed_at":"2026-11-24T03:34:10.409Z"}
+  row {"id":"inv_15nUAVMEGLu60zCVsNA8DeS4lNoXdtzt8f","target":"IdTarget/apply","status":"completed","idempotency_key":"a43a-mwu54eao-k1-mwu54eao","invoked_by":"service","invoked_by_id":"inv_18y1viuA1id416lDXrDPvmyrXfw7tozxCg","completion_result":"success","created_at":"2026-11-24T03:33:58.320Z","completed_at":"2026-11-24T03:34:10.375Z"}
+  row {"id":"inv_11OKP8PkfM6N5kol6NLPGd5k7qM4LFAibC","target":"IdTarget/apply","status":"completed","idempotency_key":"a43a-mwu54eao-k2-mwu54eao","invoked_by":"service","invoked_by_id":"inv_18y1viuA1id416lDXrDPvmyrXfw7tozxCg","completion_result":"success","created_at":"2026-11-24T03:33:58.320Z","completed_at":"2026-11-24T03:34:10.375Z"}
+  final {"attempt":1,"step":"a1:final","settled":"resolved","value":"applied:a43a-mwu54eao-c1","ms":4058,"ticks":3,"at":1795491250390}
+  final {"attempt":1,"step":"a2:final","settled":"resolved","value":"applied:a43a-mwu54eao-c2","ms":10,"ticks":1,"at":1795491250400}
+  event {"attempt":1,"step":"a1#2:start","at":1795491242324}
+  event {"attempt":1,"step":"a1#2","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":4007,"at":1795491246331}
+  event {"attempt":1,"step":"a1#3:start","at":1795491246331}
+  event {"attempt":1,"step":"a1#3","settled":"resolved","value":"applied:a43a-mwu54eao-c1","ms":4058,"at":1795491250389}
+  event {"attempt":1,"step":"a1:final","settled":"resolved","value":"applied:a43a-mwu54eao-c1","ms":4058,"ticks":3,"at":1795491250390}
+  event {"attempt":1,"step":"a2:final","settled":"resolved","value":"applied:a43a-mwu54eao-c2","ms":10,"ticks":1,"at":1795491250400}
+  SendSignal targets []; to children 0; cancel notifications 3; ticks [3,1]; attempts 1
+  counter a43a-mwu54eao-c1: bodies 1, apply runs 1
+  counter a43a-mwu54eao-c2: bodies 1, apply runs 1
+RESULT A43-attachThreeCancels PASS: notifications 3 (want 3); signalsAll [] (want []); bodies [1,1] (want [1,1]); applies [1,1] (want [1,1]); finals ["applied:c1","applied:c2"] (want ["applied:c1","applied:c2"]); after "resolved" (want "resolved"); outcome "success" (want "success"); children ["success","success"] (want ["success","success"])
+
+-- G8 A43 call with three cancels (prefix a43c-mwu54eao)
+  requests HTTP 202,202,409 at 1795491255493,1795491259975,1795491265887
+  journal G8-call-parent (inv_1lnvGcU6J3B50HoH8i7KKc96fG1ArZDdk9): 0:Input 1:Sleep 2:Signal 3:Call 4:CallInvocationId 5:Call 6:CallInvocationId 7:Signal 8:SendSignal 9:SendSignal 10:Call 11:Call 12:Run(after) 13:Run 14:Output
+  journal G8-call-child1 (inv_18DyZK0ZEW9K4WlaXiX6BDbTx4vmUGcRPr): 0:Input 1:Run(pre0) 2:Run 3:Sleep 4:Signal 5:Output
+  journal G8-call-child2 (inv_1acS9mSfbKJ258XMM7NEZCVrJZPu0pJecd): 0:Input 1:Run(pre0) 2:Run 3:Sleep 4:Signal 5:Output
+  row {"id":"inv_1lnvGcU6J3B50HoH8i7KKc96fG1ArZDdk9","target":"IdParent/attachThree","status":"completed","idempotency_key":"01M85SWM3HD67AHQGD9YYP0AEB","completion_result":"success","completed_at":"2026-11-24T03:34:22.429Z"}
+  row {"id":"inv_18DyZK0ZEW9K4WlaXiX6BDbTx4vmUGcRPr","target":"IdTarget/apply","status":"completed","idempotency_key":"a43c-mwu54eao-k1-mwu54eao","invoked_by":"service","invoked_by_id":"inv_1lnvGcU6J3B50HoH8i7KKc96fG1ArZDdk9","completion_result":"failure","completion_failure":"[409] Cancelled","created_at":"2026-11-24T03:34:18.379Z","completed_at":"2026-11-24T03:34:22.400Z"}
+  row {"id":"inv_1acS9mSfbKJ258XMM7NEZCVrJZPu0pJecd","target":"IdTarget/apply","status":"completed","idempotency_key":"a43c-mwu54eao-k2-mwu54eao","invoked_by":"service","invoked_by_id":"inv_1lnvGcU6J3B50HoH8i7KKc96fG1ArZDdk9","completion_result":"failure","completion_failure":"[409] Cancelled","created_at":"2026-11-24T03:34:18.379Z","completed_at":"2026-11-24T03:34:22.400Z"}
+  final {"attempt":1,"step":"a1:final","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":4010,"ticks":1,"at":1795491262386}
+  final {"attempt":1,"step":"a2:final","settled":"rejected","error":"TerminalError","code":409,"message":"Cancelled","ms":33,"ticks":1,"at":1795491262420}
+  event {"attempt":1,"step":"a1:final","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":4010,"ticks":1,"at":1795491262386}
+  event {"attempt":1,"step":"a2:final","settled":"rejected","error":"TerminalError","code":409,"message":"Cancelled","ms":33,"ticks":1,"at":1795491262420}
+  SendSignal targets ["inv_18DyZK0ZEW9K4WlaXiX6BDbTx4vmUGcRPr","inv_1acS9mSfbKJ258XMM7NEZCVrJZPu0pJecd"]; to children 2; cancel notifications 2; ticks [1,1]; attempts 1
+  counter a43c-mwu54eao-c1: bodies 1, apply runs 0
+  counter a43c-mwu54eao-c2: bodies 1, apply runs 0
+CONTROL A43-asRequestResponseCalls FAILS AS REQUIRED: failed: notifications 2 (want 3); signalsAll ["inv_18DyZK0ZEW9K4WlaXiX6BDbTx4vmUGcRPr","inv_1acS9mSfbKJ258XMM7NEZCVrJZPu0pJecd"] (want []); applies [0,0] (want [1,1]); finals ["rejected:409","rejected:409"] (want ["applied:c1","applied:c2"]); children ["completed:[409] Cancelled","completed:[409] Cancelled"] (want ["success","success"])
+RESULT A43-control-mechanism PASS: SendSignal to children 2 (want at least 1); applies [0,0] (want at least one 0)
+
+-- G8 A43 attach then kill (prefix a43k-mwu54eao)
+  journal G8-attach-kill-before (inv_1e5xe0ehPAmZ6lKrAcdXn7EnXlOeNT013K): 0:Input 1:Sleep 2:Signal 3:OneWayCall 4:CallInvocationId 5:OneWayCall 6:CallInvocationId 7:AttachInvocation
+  requests HTTP 202,200 at 1795491271538,1795491274412
+  journal G8-attach-kill-parent (inv_1e5xe0ehPAmZ6lKrAcdXn7EnXlOeNT013K): 0:Input 1:Sleep 2:Signal 3:OneWayCall 4:CallInvocationId 5:OneWayCall 6:CallInvocationId 7:AttachInvocation
+  journal G8-attach-kill-child1 (inv_13qNqxyrSNYd2cT0X8eKiYWkkFaBSdILz3): 0:Input 1:Run(pre0) 2:Run 3:Sleep
+  journal G8-attach-kill-child2 (inv_1hSBuyBubmOB3MDtINUwNsJjmGqbjm5WJI): 0:Input 1:Run(pre0) 2:Run 3:Sleep
+  row {"id":"inv_1e5xe0ehPAmZ6lKrAcdXn7EnXlOeNT013K","target":"IdParent/attachThree","status":"completed","idempotency_key":"01M85SX3RXSJM007NK3VT61NRC","completion_result":"failure","completion_failure":"[409] killed","completed_at":"2026-11-24T03:34:34.414Z"}
+  row {"id":"inv_13qNqxyrSNYd2cT0X8eKiYWkkFaBSdILz3","target":"IdTarget/apply","status":"completed","idempotency_key":"a43k-mwu54eao-k1-mwu54eao","invoked_by":"service","invoked_by_id":"inv_1e5xe0ehPAmZ6lKrAcdXn7EnXlOeNT013K","completion_result":"failure","completion_failure":"[409] killed","created_at":"2026-11-24T03:34:31.634Z","completed_at":"2026-11-24T03:34:34.417Z"}
+  row {"id":"inv_1hSBuyBubmOB3MDtINUwNsJjmGqbjm5WJI","target":"IdTarget/apply","status":"completed","idempotency_key":"a43k-mwu54eao-k2-mwu54eao","invoked_by":"service","invoked_by_id":"inv_1e5xe0ehPAmZ6lKrAcdXn7EnXlOeNT013K","completion_result":"failure","completion_failure":"[409] killed","created_at":"2026-11-24T03:34:31.634Z","completed_at":"2026-11-24T03:34:34.417Z"}
+  final undefined
+  final undefined
+  SendSignal targets []; to children 0; cancel notifications 1; ticks [null,null]; attempts 1
+  counter a43k-mwu54eao-c1: bodies 1, apply runs 0
+  counter a43k-mwu54eao-c2: bodies 1, apply runs 0
+  ingress with child 1's key after kill: HTTP 409 {"code":409,"message":"killed","source":"invocation"}
+RESULT A43-kill-pinned PASS: parent "killed" (want "killed"); children ["killed","killed"] (want ["killed","killed"]); applies [0,0] (want [0,0]); newCommandsAfterKill 0 (want 0)
+
+SDK log WARN/ERROR lines: 10
+
+ALL PASS (fixtures and controls)
+
+== exit: live 0
+done
