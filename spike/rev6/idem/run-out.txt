@@ -1,0 +1,241 @@
+== versions: restate-server 1.8.1, restate-sdk 1.18.4, node v26.6.0
+== started 2026-11-24T02:55:04Z
+
+== live fixtures
+deployment: HTTP 201 protocol versions 5..8 services IdLeaf,IdShort,IdObject,IdTarget,IdParent
+service IdTarget: idempotency_retention 1d, journal_retention 1h
+service IdShort: idempotency_retention 4s, journal_retention 4s
+admin /version: {"version":"1.8.1","min_admin_api_version":2,"max_admin_api_version":5,"ingress_endpoint":"http://127.0.0.1:19921/","features":{"schema_bilrost_encoding":false,"vqueue_obsolete_cleanup":false,"scoped_promise_table_migration":false,"preflight_invocation_termination_retention":false,"kafka_scope":false,"invocation_source_ingestion":false,"scoped_state_table_migration":false,"gcp_workload_identity_federation":false,"vqueues_async_refill":false,"inconsistent_state_mutation_cleanup":false,"preflight_signal_recording":false}}
+  hold the object key: inv_18Oe5Ypo99LR7tJapfdQhgxBjJLSadPJEr
+
+-- G1 case a (key g1a-mwu3qhfv, label g1a-mwu3qhfv)
+  target invocation inv_18Oe5Ypo99LR75vK8ABB7ChWJAjtECnVfz; cancel HTTP 200 
+  reissue at +0 ms: applied {"status":200,"body":"\"applied:g1a-mwu3qhfv\"","id":"inv_18Oe5Ypo99LR75vK8ABB7ChWJAjtECnVfz","ms":3928}
+  reissue at +3000 ms: applied {"status":200,"body":"\"applied:g1a-mwu3qhfv\"","id":"inv_18Oe5Ypo99LR75vK8ABB7ChWJAjtECnVfz","ms":62}
+  reissue at +10000 ms: applied {"status":200,"body":"\"applied:g1a-mwu3qhfv\"","id":"inv_18Oe5Ypo99LR75vK8ABB7ChWJAjtECnVfz","ms":8}
+  first caller: 409
+  row {"id":"inv_18Oe5Ypo99LR75vK8ABB7ChWJAjtECnVfz","target":"IdObject/g1obj-mwu3qhfv/apply","status":"completed","idempotency_key":"g1a-mwu3qhfv","invoked_by":"ingress","completion_result":"success","created_at":"2026-11-24T02:55:10.369Z","completed_at":"2026-11-24T02:55:13.804Z"}
+  journal G1-a-target (inv_18Oe5Ypo99LR75vK8ABB7ChWJAjtECnVfz): 0:Input 1:Run(apply) 2:Run 3:Output
+  counter: bodies 1, apply runs 1, distinct invocation ids 1; pre steps 0
+RESULT A39-G1-ingress-a PASS: first 409 (want 409); cancel HTTP 200; reissues applied,applied,applied (want applied,applied,applied); bodies 1 (want 1); apply runs 1 (want 1); invocation ids 1 (want 1)
+
+-- G1 case b (key g1b-mwu3qhfv, label g1b-mwu3qhfv)
+  target invocation inv_1db0KgAvy8c23wzxrdN4OP9PNKULvFbLu0; cancel HTTP 202 
+  reissue at +0 ms: 409 {"status":409,"body":"{\"code\":409,\"message\":\"Cancelled\",\"source\":\"invocation\"}","id":"inv_1db0KgAvy8c23wzxrdN4OP9PNKULvFbLu0","ms":4519}
+  reissue at +3000 ms: 409 {"status":409,"body":"{\"code\":409,\"message\":\"Cancelled\",\"source\":\"invocation\"}","id":"inv_1db0KgAvy8c23wzxrdN4OP9PNKULvFbLu0","ms":471}
+  reissue at +10000 ms: 409 {"status":409,"body":"{\"code\":409,\"message\":\"Cancelled\",\"source\":\"invocation\"}","id":"inv_1db0KgAvy8c23wzxrdN4OP9PNKULvFbLu0","ms":5}
+  first caller: 409
+  row {"id":"inv_1db0KgAvy8c23wzxrdN4OP9PNKULvFbLu0","target":"IdTarget/apply","status":"completed","idempotency_key":"g1b-mwu3qhfv","invoked_by":"ingress","completion_result":"failure","completion_failure":"[409] Cancelled","created_at":"2026-11-24T02:55:19.891Z","completed_at":"2026-11-24T02:55:25.900Z"}
+  journal G1-b-target (inv_1db0KgAvy8c23wzxrdN4OP9PNKULvFbLu0): 0:Input 1:Signal 2:Run(apply) 3:Output
+  counter: bodies 1, apply runs 0, distinct invocation ids 1; pre steps 0
+RESULT A39-G1-ingress-b PASS: first 409 (want 409); cancel HTTP 202; reissues 409,409,409 (want 409,409,409); bodies 1 (want 1); apply runs 0 (want 0); invocation ids 1 (want 1)
+
+-- G1 case c (key g1c-mwu3qhfv, label g1c-mwu3qhfv)
+  target invocation inv_1iFjL0nGG2P62JmcT0VOWKHiiBxDqHfEyz; cancel HTTP 202 
+  reissue at +0 ms: 409 {"status":409,"body":"{\"code\":409,\"message\":\"Cancelled\",\"source\":\"invocation\"}","id":"inv_1iFjL0nGG2P62JmcT0VOWKHiiBxDqHfEyz","ms":4}
+  reissue at +3000 ms: 409 {"status":409,"body":"{\"code\":409,\"message\":\"Cancelled\",\"source\":\"invocation\"}","id":"inv_1iFjL0nGG2P62JmcT0VOWKHiiBxDqHfEyz","ms":1010}
+  reissue at +10000 ms: 409 {"status":409,"body":"{\"code\":409,\"message\":\"Cancelled\",\"source\":\"invocation\"}","id":"inv_1iFjL0nGG2P62JmcT0VOWKHiiBxDqHfEyz","ms":6}
+  first caller: 409
+  row {"id":"inv_1iFjL0nGG2P62JmcT0VOWKHiiBxDqHfEyz","target":"IdTarget/apply","status":"completed","idempotency_key":"g1c-mwu3qhfv","invoked_by":"ingress","completion_result":"failure","completion_failure":"[409] Cancelled","created_at":"2026-11-24T02:55:31.394Z","completed_at":"2026-11-24T02:55:32.889Z"}
+  journal G1-c-target (inv_1iFjL0nGG2P62JmcT0VOWKHiiBxDqHfEyz): 0:Input 1:Run(pre0) 2:Run 3:Run(pre1) 4:Run 5:Sleep 6:Signal 7:Output
+  counter: bodies 1, apply runs 0, distinct invocation ids 1; pre steps 2
+RESULT A39-G1-ingress-c PASS: first 409 (want 409); cancel HTTP 202; reissues 409,409,409 (want 409,409,409); bodies 1 (want 1); apply runs 0 (want 0); invocation ids 1 (want 1)
+  different-key reissue: HTTP 200 "applied:g1c-mwu3qhfv"
+CONTROL A39-G1-differentKey FAILS AS REQUIRED: bodies for g1c-mwu3qhfv: 1 before, 2 after a reissue with a different key
+
+-- G1 case d (key g1d-mwu3qhfv, label g1d-mwu3qhfv)
+  target invocation inv_1a1FENiCaN907aCHfv9UxuXxznFpsgoGN4; cancel HTTP 409 {"message":"The invocation 'inv_1a1FENiCaN907aCHfv9UxuXxznFpsgoGN4' was already completed.","restate_code":null}
+  reissue at +0 ms: applied {"status":200,"body":"\"applied:g1d-mwu3qhfv\"","id":"inv_1a1FENiCaN907aCHfv9UxuXxznFpsgoGN4","ms":441}
+  reissue at +3000 ms: applied {"status":200,"body":"\"applied:g1d-mwu3qhfv\"","id":"inv_1a1FENiCaN907aCHfv9UxuXxznFpsgoGN4","ms":951}
+  reissue at +10000 ms: applied {"status":200,"body":"\"applied:g1d-mwu3qhfv\"","id":"inv_1a1FENiCaN907aCHfv9UxuXxznFpsgoGN4","ms":6}
+  first caller: applied
+  row {"id":"inv_1a1FENiCaN907aCHfv9UxuXxznFpsgoGN4","target":"IdTarget/apply","status":"completed","idempotency_key":"g1d-mwu3qhfv","invoked_by":"ingress","completion_result":"success","created_at":"2026-11-24T02:55:42.922Z","completed_at":"2026-11-24T02:55:42.939Z"}
+  journal G1-d-target (inv_1a1FENiCaN907aCHfv9UxuXxznFpsgoGN4): 0:Input 1:Run(pre0) 2:Run 3:Run(apply) 4:Run 5:Output
+  counter: bodies 1, apply runs 1, distinct invocation ids 1; pre steps 1
+RESULT A39-G1-ingress-d PASS: first applied (want applied); cancel HTTP 409; reissues applied,applied,applied (want applied,applied,applied); bodies 1 (want 1); apply runs 1 (want 1); invocation ids 1 (want 1)
+
+-- G1 case expired (key g1e-mwu3qhfv, label g1e-mwu3qhfv)
+  target invocation inv_1ezmoY6blh831FVeaWX17zAcnHk8fweQuH; cancel HTTP 202 
+  reissue at +0 ms: 409 {"status":409,"body":"{\"code\":409,\"message\":\"Cancelled\",\"source\":\"invocation\"}","id":"inv_1ezmoY6blh831FVeaWX17zAcnHk8fweQuH","ms":7}
+  reissue at +1500 ms: 409 {"status":409,"body":"{\"code\":409,\"message\":\"Cancelled\",\"source\":\"invocation\"}","id":"inv_1ezmoY6blh831FVeaWX17zAcnHk8fweQuH","ms":2011}
+  reissue at +14000 ms: 409 {"status":409,"body":"{\"code\":409,\"message\":\"Cancelled\",\"source\":\"invocation\"}","id":"inv_1ezmoY6blh831FVeaWX17zAcnHk8fweQuH","ms":8}
+  first caller: 409
+  row {"id":"inv_1ezmoY6blh831FVeaWX17zAcnHk8fweQuH","target":"IdShort/apply","status":"completed","idempotency_key":"g1e-mwu3qhfv","invoked_by":"ingress","completion_result":"failure","completion_failure":"[409] Cancelled","created_at":"2026-11-24T02:55:52.960Z","completed_at":"2026-11-24T02:55:53.457Z"}
+  journal G1-expired-target (inv_1ezmoY6blh831FVeaWX17zAcnHk8fweQuH): 0:Input 1:Run(pre0) 2:Run 3:Sleep 4:Signal 5:Output
+  counter: bodies 1, apply runs 0, distinct invocation ids 1; pre steps 1
+RESULT A39-G1-ingress-afterRetention FAIL: failed: reissues 409,409,409 (want 409,409,applied); bodies 1 (want 2); apply runs 0 (want 1)
+  hold the object key: inv_16fipjVYGWPt7uT7yxGl1x8aeDwbVYHPtx
+
+-- G2 case a (key g2a-mwu3qhfv, label g2a-mwu3qhfv)
+  target invocation inv_16fipjVYGWPt6EiDOw4Fkl8bWlDzk3KwYh; cancel HTTP 200 
+  reissue at +0 ms: applied {"parent":"inv_146MtJ1tEauM0TlgR0pX1BTxIvfAYbIhIY","settled":"resolved","value":"applied:g2a-mwu3qhfv"}
+  reissue at +3000 ms: applied {"parent":"inv_1hdXyVPdOaZN2vgXTebzIhlDnV6cgK4w1d","settled":"resolved","value":"applied:g2a-mwu3qhfv"}
+  reissue at +10000 ms: applied {"parent":"inv_12gmui3sR5rD3G8WOldCLIFBP54c2QjihN","settled":"resolved","value":"applied:g2a-mwu3qhfv"}
+  first caller: 409
+  row {"id":"inv_16fipjVYGWPt6EiDOw4Fkl8bWlDzk3KwYh","target":"IdObject/g2obj-mwu3qhfv/apply","status":"completed","idempotency_key":"g2a-mwu3qhfv","invoked_by":"service","invoked_by_id":"inv_146MtJ1tEauM0TlgR0pX1BTxIvfAYbIhIY","completion_result":"success","created_at":"2026-11-24T02:56:12.482Z","completed_at":"2026-11-24T02:56:15.506Z"}
+  journal G2-a-target (inv_16fipjVYGWPt6EiDOw4Fkl8bWlDzk3KwYh): 0:Input 1:Run(apply) 2:Run 3:Output
+  counter: bodies 1, apply runs 1, distinct invocation ids 1; pre steps 0
+RESULT A39-G2-handler-a PASS: first 409 (want 409); cancel HTTP 200; reissues applied,applied,applied (want applied,applied,applied); bodies 1 (want 1); apply runs 1 (want 1); invocation ids 1 (want 1)
+
+-- G2 case b (key g2b-mwu3qhfv, label g2b-mwu3qhfv)
+  target invocation inv_1auDmprU5wTI0CWkWbM1ODEQZ3uYLOjlTH; cancel HTTP 202 
+  reissue at +0 ms: 409 {"parent":"inv_1dvZX1HSqQkt1ji5rDAzFcTEGGX81Oo3oy","settled":"rejected","error":"TerminalError","code":409,"message":"Cancelled"}
+  reissue at +3000 ms: 409 {"parent":"inv_12wYA6OEws2f2cdF1Gnssk19Uf2twrnhsP","settled":"rejected","error":"TerminalError","code":409,"message":"Cancelled"}
+  reissue at +10000 ms: 409 {"parent":"inv_1cGP0zAawMcB0s4cdVF5tM5LsNSVaJONxF","settled":"rejected","error":"TerminalError","code":409,"message":"Cancelled"}
+  first caller: 409
+  row {"id":"inv_1auDmprU5wTI0CWkWbM1ODEQZ3uYLOjlTH","target":"IdTarget/apply","status":"completed","idempotency_key":"g2b-mwu3qhfv","invoked_by":"service","invoked_by_id":"inv_1hynRzd6YTn205dFd9ckaivLIJyBngeY7N","completion_result":"failure","completion_failure":"[409] Cancelled","created_at":"2026-11-24T02:56:22.100Z","completed_at":"2026-11-24T02:56:28.112Z"}
+  journal G2-b-target (inv_1auDmprU5wTI0CWkWbM1ODEQZ3uYLOjlTH): 0:Input 1:Signal 2:Run(apply) 3:Output
+  counter: bodies 1, apply runs 0, distinct invocation ids 1; pre steps 0
+RESULT A39-G2-handler-b PASS: first 409 (want 409); cancel HTTP 202; reissues 409,409,409 (want 409,409,409); bodies 1 (want 1); apply runs 0 (want 0); invocation ids 1 (want 1)
+
+-- G2 case c (key g2c-mwu3qhfv, label g2c-mwu3qhfv)
+  target invocation inv_1eobVlbZn7Wr79FVXRs6Oi5VisoOoWbtck; cancel HTTP 202 
+  reissue at +0 ms: 409 {"parent":"inv_16MF2B76BpBU4tU37EEpWoHTcoIv0iBkTK","settled":"rejected","error":"TerminalError","code":409,"message":"Cancelled"}
+  reissue at +3000 ms: 409 {"parent":"inv_1lBa6dkRtwzg1XctLn6D8Qf3W1dakIkgvF","settled":"rejected","error":"TerminalError","code":409,"message":"Cancelled"}
+  reissue at +10000 ms: 409 {"parent":"inv_1iil4rh63KeL1geVpXUggLMf0DHFBgkDtL","settled":"rejected","error":"TerminalError","code":409,"message":"Cancelled"}
+  first caller: 409
+  row {"id":"inv_1eobVlbZn7Wr79FVXRs6Oi5VisoOoWbtck","target":"IdTarget/apply","status":"completed","idempotency_key":"g2c-mwu3qhfv","invoked_by":"service","invoked_by_id":"inv_19LUcG4uOfl322CKpaTXw78XsefGEmL9Gg","completion_result":"failure","completion_failure":"[409] Cancelled","created_at":"2026-11-24T02:56:33.500Z","completed_at":"2026-11-24T02:56:37.395Z"}
+  journal G2-c-target (inv_1eobVlbZn7Wr79FVXRs6Oi5VisoOoWbtck): 0:Input 1:Run(pre0) 2:Run 3:Run(pre1) 4:Run 5:Sleep 6:Signal 7:Output
+  counter: bodies 1, apply runs 0, distinct invocation ids 1; pre steps 2
+RESULT A39-G2-handler-c PASS: first 409 (want 409); cancel HTTP 202; reissues 409,409,409 (want 409,409,409); bodies 1 (want 1); apply runs 0 (want 0); invocation ids 1 (want 1)
+  ingress request with the handler's key: HTTP 409 {"code":409,"message":"Cancelled","source":"invocation"} x-restate-id inv_1eobVlbZn7Wr79FVXRs6Oi5VisoOoWbtck
+RESULT A39-G2-crossCaller PASS: status 409; x-restate-id inv_1eobVlbZn7Wr79FVXRs6Oi5VisoOoWbtck vs the handler's child inv_1eobVlbZn7Wr79FVXRs6Oi5VisoOoWbtck; bodies 1
+  different-key reissue from a handler: applied
+CONTROL A39-G2-differentKey FAILS AS REQUIRED: bodies for g2c-mwu3qhfv: 1 before, 2 after a reissue with a different key
+
+-- G2 case d (key g2d-mwu3qhfv, label g2d-mwu3qhfv)
+  target invocation inv_1i86miRR2qEe7zePnwBoKkXMeGmHHtQ30A; cancel HTTP 409 {"message":"The invocation 'inv_1i86miRR2qEe7zePnwBoKkXMeGmHHtQ30A' was already completed.","restate_code":null}
+  reissue at +0 ms: applied {"parent":"inv_131ZT5IsQLzl4MBkWSc5gqGM4EXIN5B7WW","settled":"resolved","value":"applied:g2d-mwu3qhfv"}
+  reissue at +3000 ms: applied {"parent":"inv_10fKa13twmlh2BZpoJT7SunVXhyljH6SkL","settled":"resolved","value":"applied:g2d-mwu3qhfv"}
+  reissue at +10000 ms: applied {"parent":"inv_1dccag98PUC00bKygScQqZUzlR0N4EL9dE","settled":"resolved","value":"applied:g2d-mwu3qhfv"}
+  first caller: applied
+  row {"id":"inv_1i86miRR2qEe7zePnwBoKkXMeGmHHtQ30A","target":"IdTarget/apply","status":"completed","idempotency_key":"g2d-mwu3qhfv","invoked_by":"service","invoked_by_id":"inv_1amLY984dDYX3SRrFcb3Ebv9YO2zCIgge3","completion_result":"success","created_at":"2026-11-24T02:57:17.620Z","completed_at":"2026-11-24T02:57:17.643Z"}
+  journal G2-d-target (inv_1i86miRR2qEe7zePnwBoKkXMeGmHHtQ30A): 0:Input 1:Run(pre0) 2:Run 3:Run(apply) 4:Run 5:Output
+  counter: bodies 1, apply runs 1, distinct invocation ids 1; pre steps 1
+RESULT A39-G2-handler-d PASS: first applied (want applied); cancel HTTP 409; reissues applied,applied,applied (want applied,applied,applied); bodies 1 (want 1); apply runs 1 (want 1); invocation ids 1 (want 1)
+
+-- G3 sameKey (key g3s-mwu3qhfv, reissue key g3s-mwu3qhfv)
+  first cancel HTTP 202
+  second cancel HTTP 202
+  journal G3-sameKey-parent (inv_1ang43kHVy0423NvhlKAVq7SINZYmjKlS5): 0:Input 1:Sleep 2:Signal 3:Call 4:CallInvocationId 5:Signal 6:SendSignal 7:Sleep 8:Call 9:Sleep 10:Call 11:CallInvocationId 12:Call 13:Sleep 14:Sleep 15:Call 16:CallInvocationId 17:Call 18:Output
+  y: {"attempt":1,"step":"y","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":4005,"at":1795489055739}
+  re: {"attempt":1,"step":"re","settled":"rejected","error":"TerminalError","code":409,"message":"Cancelled","ms":13,"at":1795489058759}
+  re2: {"attempt":1,"step":"re2","settled":"rejected","error":"TerminalError","code":409,"message":"Cancelled","ms":13,"at":1795489061780}
+  row {"id":"inv_1bkZNbOdwabJ0Gc5185ErLlyISe16jkPNd","target":"IdTarget/apply","status":"completed","idempotency_key":"g3s-mwu3qhfv","invoked_by":"service","invoked_by_id":"inv_1ang43kHVy0423NvhlKAVq7SINZYmjKlS5","completion_result":"failure","completion_failure":"[409] Cancelled","created_at":"2026-11-24T02:57:31.736Z","completed_at":"2026-11-24T02:57:35.746Z"}
+  SendSignal targets ["inv_1bkZNbOdwabJ0Gc5185ErLlyISe16jkPNd"]; cancel notifications 2; parent success
+  counter: bodies 1, apply runs 0, ids 1
+RESULT A7-A39-G3-sameKey PASS: y CancelledError (want CancelledError); re 409 (want 409); re2 409 (want 409); bodies 1 (want 1); applies 0 (want 0); rows 1 (want 1); signalToChild true (want true)
+
+-- G3 freshKey (key g3f-mwu3qhfv, reissue key g3f-2-mwu3qhfv)
+  first cancel HTTP 202
+  second cancel HTTP 202
+  journal G3-freshKey-parent (inv_1hpAld4rVVzp7Dzu8X8mnQ0OB72htIUbDN): 0:Input 1:Sleep 2:Signal 3:Call 4:CallInvocationId 5:Signal 6:SendSignal 7:Sleep 8:Call 9:Sleep 10:Call 11:CallInvocationId 12:Call 13:Sleep 14:Sleep 15:Call 16:CallInvocationId 17:Call 18:Output
+  y: {"attempt":1,"step":"y","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":2516,"at":1795489066265}
+  re: {"attempt":1,"step":"re","settled":"resolved","value":"applied:g3freshKey-mwu3qhfv","ms":10034,"at":1795489079306}
+  re2: {"attempt":1,"step":"re2","settled":"resolved","value":"applied:g3freshKey-mwu3qhfv","ms":10,"at":1795489082322}
+  row {"id":"inv_1kTQe0zESBIM1p6uZCvtx8TQqddqgx0nU7","target":"IdTarget/apply","status":"completed","idempotency_key":"g3f-mwu3qhfv","invoked_by":"service","invoked_by_id":"inv_1hpAld4rVVzp7Dzu8X8mnQ0OB72htIUbDN","completion_result":"failure","completion_failure":"[409] Cancelled","created_at":"2026-11-24T02:57:43.752Z","completed_at":"2026-11-24T02:57:46.273Z"}
+  row {"id":"inv_166OW7D7EhsH0p2hdBGUEvucmHXeT8BLWg","target":"IdTarget/apply","status":"completed","idempotency_key":"g3f-2-mwu3qhfv","invoked_by":"service","invoked_by_id":"inv_1hpAld4rVVzp7Dzu8X8mnQ0OB72htIUbDN","completion_result":"success","created_at":"2026-11-24T02:57:49.276Z","completed_at":"2026-11-24T02:57:59.298Z"}
+  SendSignal targets ["inv_1kTQe0zESBIM1p6uZCvtx8TQqddqgx0nU7"]; cancel notifications 2; parent success
+  counter: bodies 2, apply runs 1, ids 2
+RESULT A7-A39-G3-freshKey PASS: y CancelledError (want CancelledError); re applied (want applied); re2 applied (want applied); bodies 2 (want 2); applies 1 (want 1); rows 2 (want 2); signalToChild true (want true)
+
+-- G3 objectSameKey (key g3o-mwu3qhfv, reissue key g3o-mwu3qhfv)
+  hold the object key 14 s: inv_1kWjp0fX3DTW22KB7c3xLhRVqyuJwzQzhr
+  first cancel HTTP 202
+  second cancel HTTP 202
+  journal G3-objectSameKey-parent (inv_1fvcPJ2mx7AX3ZBWbs30YNzJFiVH8D7fGI): 0:Input 1:Sleep 2:Signal 3:Call 4:CallInvocationId 5:Signal 6:SendSignal 7:Sleep 8:Call 9:Sleep 10:Call 11:CallInvocationId 12:Call 13:Sleep 14:Sleep 15:Call 16:CallInvocationId 17:Call 18:Output
+  y: {"attempt":1,"step":"y","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":2410,"at":1795489088695}
+  re: {"attempt":1,"step":"re","settled":"resolved","value":"applied:g3objectSameKey-mwu3qhfv","ms":4853,"at":1795489096554}
+  re2: {"attempt":1,"step":"re2","settled":"resolved","value":"applied:g3objectSameKey-mwu3qhfv","ms":10,"at":1795489099570}
+  row {"id":"inv_1kWjp0fX3DTW0Ay7QxpyDD9Ox7hs0YRDQB","target":"IdObject/g3obj-mwu3qhfv/apply","status":"completed","idempotency_key":"g3o-mwu3qhfv","invoked_by":"service","invoked_by_id":"inv_1fvcPJ2mx7AX3ZBWbs30YNzJFiVH8D7fGI","completion_result":"success","created_at":"2026-11-24T02:58:11.703Z","completed_at":"2026-11-24T02:58:16.545Z"}
+  SendSignal targets ["inv_1kWjp0fX3DTW0Ay7QxpyDD9Ox7hs0YRDQB"]; cancel notifications 2; parent success
+  counter: bodies 1, apply runs 1, ids 1
+RESULT A7-A39-G3-objectSameKey PASS: y CancelledError (want CancelledError); re applied (want applied); re2 applied (want applied); bodies 1 (want 1); applies 1 (want 1); rows 1 (want 1); signalToChild true (want true)
+
+-- G3 sendAttach (key g3a-mwu3qhfv, reissue key g3a-mwu3qhfv)
+  first cancel HTTP 202
+  second cancel HTTP 202
+  journal G3-sendAttach-parent (inv_1cq4Xl1eaDHr6G4l4fzGJU6jQaFbTjkGni): 0:Input 1:Sleep 2:Signal 3:OneWayCall 4:CallInvocationId 5:AttachInvocation 6:Signal 7:Sleep 8:Sleep 9:AttachInvocation 10:AttachInvocation 11:AttachInvocation 12:Output
+  y: {"attempt":1,"step":"y","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":3998,"at":1795489108718}
+  re: {"attempt":1,"step":"re","settled":"resolved","value":"applied:g3sendAttach-mwu3qhfv","ms":1021,"at":1795489112743}
+  row {"id":"inv_11OKP8PkfM6N44YIGWlr38nkdS2paHn0tb","target":"IdTarget/apply","status":"completed","idempotency_key":"g3a-mwu3qhfv","invoked_by":"service","invoked_by_id":"inv_1cq4Xl1eaDHr6G4l4fzGJU6jQaFbTjkGni","completion_result":"success","created_at":"2026-11-24T02:58:24.718Z","completed_at":"2026-11-24T02:58:32.737Z"}
+  SendSignal targets []; cancel notifications 2; parent success
+  counter: bodies 1, apply runs 1, ids 1
+RESULT A7-A39-G3-sendAttach PASS: y CancelledError (want CancelledError); re applied (want applied); bodies 1 (want 1); applies 1 (want 1); rows 1 (want 1); signalToChild false (want false)
+CONTROL A39-G3-freshKeyUnderSameKeyCheck FAILS AS REQUIRED: failed: re applied (want 409); re2 applied (want 409); bodies 2 (want 1); applies 1 (want 0); rows 2 (want 1)
+
+-- G4 kill during compensation (prefix g4k)
+  first cancel HTTP 202
+  journal G4-kill-before (inv_1k1LWdgMeXwN3PN9mZ6pYzlCV534fojTlh): 0:Input 1:Call 2:CallInvocationId 3:Call 4:Sleep 5:Signal 6:SendSignal 7:OneWayCall 8:CallInvocationId 9:Call 10:CallInvocationId
+  kill HTTP 200 
+  journal G4-kill-after (inv_1k1LWdgMeXwN3PN9mZ6pYzlCV534fojTlh): 0:Input 1:Call 2:CallInvocationId 3:Call 4:Sleep 5:Signal 6:SendSignal 7:OneWayCall 8:CallInvocationId 9:Call 10:CallInvocationId
+  row {"id":"inv_1k1LWdgMeXwN3PN9mZ6pYzlCV534fojTlh","target":"IdParent/killDuring","status":"completed","idempotency_key":"01M85QV8X9TCQBD3K4KERRN6DV","completion_result":"failure","completion_failure":"[409] killed","completed_at":"2026-11-24T02:58:40.730Z"}
+  row {"id":"inv_14kM9krFlGTn739YLzQiY73zsz1pIzDVRf","target":"IdTarget/apply","status":"completed","completion_result":"success"}
+  row {"id":"inv_19iEkmdyTHbe0C1gbFMC4GV5mabJa8vbEt","target":"IdLeaf/hold","status":"completed","completion_result":"failure","completion_failure":"[409] killed"}
+  row {"id":"inv_1bwowXPzt4To7uqLggqDTy221zGvJTKX5k","target":"IdTarget/apply","status":"completed","completion_result":"failure","completion_failure":"[409] killed"}
+  row {"id":"inv_1coF9s90l2fz5yUuPbAEYotueRtB49hVMR","target":"IdLeaf/hold","status":"completed","completion_result":"failure","completion_failure":"[409] killed"}
+  journal G4-kill-child (inv_1bwowXPzt4To7uqLggqDTy221zGvJTKX5k): 0:Input 1:Run(pre0) 2:Run 3:Call 4:CallInvocationId
+  counter g4k-call: bodies 1, apply runs 0
+  counter g4k-call-leaf: bodies 1, apply runs 0
+  counter g4k-send: bodies 1, apply runs 0
+  ingress reissue with the child's key: HTTP 409 {"code":409,"message":"killed","source":"invocation"}; bodies 1 -> 1
+RESULT A40-kill PASS: parent killed (want killed); child killed (want killed); grandchild killed (want killed); c0 success (want success); newCommandsAfterKill 0 (want 0); reissue 409 (want 409)
+RESULT A40-kill-oneWaySend PASS: one-way send child killed (source predicts killed; the docs say sends are not killed)
+
+-- G4 cancel during compensation (prefix g4c)
+  first cancel HTTP 202
+  journal G4-cancel-before (inv_1crIP5BCDLOM2ShRHXMTQCtcrvFbZXO1Yb): 0:Input 1:Call 2:CallInvocationId 3:Call 4:Sleep 5:Signal 6:SendSignal 7:OneWayCall 8:CallInvocationId 9:Call 10:CallInvocationId
+  cancel HTTP 202 
+  journal G4-cancel-after (inv_1crIP5BCDLOM2ShRHXMTQCtcrvFbZXO1Yb): 0:Input 1:Call 2:CallInvocationId 3:Call 4:Sleep 5:Signal 6:SendSignal 7:OneWayCall 8:CallInvocationId 9:Call 10:CallInvocationId 11:Signal 12:SendSignal 13:Run(after) 14:Run 15:Output
+  row {"id":"inv_1crIP5BCDLOM2ShRHXMTQCtcrvFbZXO1Yb","target":"IdParent/killDuring","status":"completed","idempotency_key":"01M85QW6YBW7KWSR5CDQVMFEH8","completion_result":"success","completed_at":"2026-11-24T02:59:07.756Z"}
+  row {"id":"inv_16zGNeKdg1mY4TmHUE0O0AjoeCBSXLAOMF","target":"IdTarget/apply","status":"completed","completion_result":"success"}
+  row {"id":"inv_12vTDtuDHTaX06JaQov2MbLIc1W0ApcnNn","target":"IdLeaf/hold","status":"completed","completion_result":"success"}
+  row {"id":"inv_10c1uS6gzGLn3tfq2Eq6IIPqNGeDZWcSm3","target":"IdTarget/apply","status":"completed","completion_result":"failure","completion_failure":"[409] Cancelled"}
+  row {"id":"inv_182Qc2qAWPRF58lX1kZqUKl1X6EkZF2jIJ","target":"IdLeaf/hold","status":"completed","completion_result":"failure","completion_failure":"[409] Cancelled"}
+  journal G4-cancel-child (inv_10c1uS6gzGLn3tfq2Eq6IIPqNGeDZWcSm3): 0:Input 1:Run(pre0) 2:Run 3:Call 4:CallInvocationId 5:Signal 6:SendSignal 7:Output
+  counter g4c-call: bodies 1, apply runs 0
+  counter g4c-call-leaf: bodies 1, apply runs 0
+  counter g4c-send: bodies 1, apply runs 1
+  ingress reissue with the child's key: HTTP 409 {"code":409,"message":"Cancelled","source":"invocation"}; bodies 1 -> 1
+CONTROL A40-cancelInsteadOfKill FAILS AS REQUIRED: failed: parent success (want killed); child completed:[409] Cancelled (want killed); grandchild completed:[409] Cancelled (want killed); newCommandsAfterKill 3 (want 0)
+
+-- G5 cancel and kill after completion
+  completed inv_18w6iqrIg0qN3IFdAriL7AjcvSFsrZYNzv: cancel HTTP 409 {"message":"The invocation 'inv_18w6iqrIg0qN3IFdAriL7AjcvSFsrZYNzv' was already completed.","restate_code":null}; kill HTTP 409 {"message":"The invocation 'inv_18w6iqrIg0qN3IFdAriL7AjcvSFsrZYNzv' was already completed.","restate_code":null}
+  journal G5-completed-after (inv_18w6iqrIg0qN3IFdAriL7AjcvSFsrZYNzv): 0:Input 1:Run(pre0) 2:Run 3:Run(apply) 4:Run 5:Output
+  status row and journal unchanged: true; reissue HTTP 200 "applied:g5-mwu3qhfv"; bodies 1
+  IdShort inv_1hrn2a8jKhar3VhxttbYPXFmjT5wvWsQpD 12 s after completion (retention 4 s): cancel HTTP 409 {"message":"The invocation 'inv_1hrn2a8jKhar3VhxttbYPXFmjT5wvWsQpD' was already completed.","restate_code":null}; rows 1
+RESULT A41 FAIL: failed: cancel after retention 409
+  cancel of a running invocation: HTTP 202; its caller got HTTP 409
+CONTROL A41-runningCancel FAILS AS REQUIRED: cancel of a running invocation HTTP 202
+
+-- G6 three cancels (prefix g6t)
+  cancels HTTP 202,202,202
+  journal G6-three-parent (inv_11ayhQM9iVs75z3G72TXmhKIVbCG7HuNyz): 0:Input 1:Sleep 2:Signal 3:Call 4:CallInvocationId 5:Signal 6:SendSignal 7:Call 8:CallInvocationId 9:Call 10:Signal 11:SendSignal 12:Run(after) 13:Run 14:Output
+  y1: {"attempt":1,"step":"y1","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":3212,"at":1795489194005}
+  y2: {"attempt":1,"step":"y2","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":4006,"at":1795489198011}
+  after: {"attempt":1,"step":"after","settled":"resolved","value":"after","ms":9,"at":1795489198021}
+  SendSignal targets ["y1","y2"]; cancel notifications 3; attempts 1
+RESULT A42 PASS: notifications 3 (want 3); signals ["y1","y2"] (want ["y1","y2"]); y1 "CancelledError" (want "CancelledError"); y2 "CancelledError" (want "CancelledError"); after "resolved" (want "resolved"); outcome "success" (want "success")
+
+-- G6 two cancels (prefix g6w)
+  cancels HTTP 202,202
+  journal G6-two-parent (inv_19q0yV7AKcOU5dn1lml3h5M1VV6MGCwdRg): 0:Input 1:Sleep 2:Signal 3:Call 4:CallInvocationId 5:Signal 6:SendSignal 7:Call 8:CallInvocationId 9:Call 10:Call 11:Run(after) 12:Run 13:Output
+  y1: {"attempt":1,"step":"y1","settled":"rejected","error":"CancelledError","code":409,"message":"Cancelled","ms":4006,"at":1795489206022}
+  y2: {"attempt":1,"step":"y2","settled":"resolved","value":"applied:g6w-y2","ms":10042,"at":1795489216065}
+  after: {"attempt":1,"step":"after","settled":"resolved","value":"after","ms":5,"at":1795489216071}
+  SendSignal targets ["y1"]; cancel notifications 2; attempts 1
+CONTROL A42-twoCancels FAILS AS REQUIRED: failed: notifications 2 (want 3); signals ["y1"] (want ["y1","y2"]); y2 "applied" (want "CancelledError")
+
+-- G7 retention with cleanup interval default (1h); prediction written after the first run (post hoc)
+  cancel HTTP 202; first caller HTTP 409
+  reissue at +1500 ms: HTTP 409 {"code":409,"message":"Cancelled","source":"invocation"} x-restate-id inv_1l7L5szmJNgp0ZFxFLZ5Ukd5rP58u4blJu
+  reissue at +14000 ms: HTTP 409 {"code":409,"message":"Cancelled","source":"invocation"} x-restate-id inv_1l7L5szmJNgp0ZFxFLZ5Ukd5rP58u4blJu
+  row {"id":"inv_1l7L5szmJNgp0ZFxFLZ5Ukd5rP58u4blJu","target":"IdShort/apply","status":"completed","idempotency_key":"g7-mwu3qhfv","invoked_by":"ingress","completion_result":"failure","completion_failure":"[409] Cancelled","created_at":"2026-11-24T03:00:16.536Z","completed_at":"2026-11-24T03:00:18.037Z"}
+  cancel 12 s after completion (retention 4 s): HTTP 409 {"message":"The invocation 'inv_1jE7xP4a1ueg0g0KQkcnFYj2sUJiZCIt3v' was already completed.","restate_code":null}
+RESULT A39-A41-G7-defaultCleanup-posthoc PASS: reissues 409,409 (want 409,409); bodies 1, ids 1 (want 1, 1); cancel after retention HTTP 409 (want 409)
+
+SDK log WARN/ERROR lines: 24
+
+2 FAILURE(S) (fixtures and controls)
+
+== exit: live 1

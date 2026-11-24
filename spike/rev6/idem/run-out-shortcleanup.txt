@@ -1,0 +1,22 @@
+== versions: restate-server 1.8.1, restate-sdk 1.18.4, node v26.6.0
+== started 2026-11-24T03:00:44Z
+
+== live fixtures
+deployment: HTTP 201 protocol versions 5..8 services IdTarget,IdObject,IdShort,IdLeaf,IdParent
+service IdTarget: idempotency_retention 1d, journal_retention 1h
+service IdShort: idempotency_retention 4s, journal_retention 4s
+admin /version: {"version":"1.8.1","min_admin_api_version":2,"max_admin_api_version":5,"ingress_endpoint":"http://127.0.0.1:19921/","features":{"kafka_scope":false,"gcp_workload_identity_federation":false,"schema_bilrost_encoding":false,"invocation_source_ingestion":false,"vqueues_async_refill":false,"scoped_promise_table_migration":false,"vqueue_obsolete_cleanup":false,"scoped_state_table_migration":false,"preflight_invocation_termination_retention":false,"inconsistent_state_mutation_cleanup":false,"preflight_signal_recording":false}}
+
+-- G7 retention with cleanup interval 2s; prediction stated before the first run
+  cancel HTTP 202; first caller HTTP 409
+  reissue at +1500 ms: HTTP 409 {"code":409,"message":"Cancelled","source":"invocation"} x-restate-id inv_1lEW6LpCflvf1hkVIaQsEBp2kjFx13QVOY
+  reissue at +14000 ms: HTTP 200 "applied:g7-mwu3xs2y" x-restate-id inv_1lEW6LpCflvf1hkVIaQsEBp2kjFx13QVOY
+  row {"id":"inv_1lEW6LpCflvf1hkVIaQsEBp2kjFx13QVOY","target":"IdShort/apply","status":"completed","idempotency_key":"g7-mwu3xs2y","invoked_by":"ingress","completion_result":"success","created_at":"2026-11-24T03:01:01.284Z","completed_at":"2026-11-24T03:01:01.303Z"}
+  cancel 12 s after completion (retention 4 s): HTTP 404 {"message":"The requested invocation 'inv_1eLQWsRfz3cX2Su1YjdzE0ubRYMjX4GwMd' does not exist","restate_code":null}
+RESULT A39-A41-G7-shortCleanup PASS: reissues 409,applied (want 409,applied); bodies 2, ids 1 (want 2, 1); cancel after retention HTTP 404 (want 404)
+
+SDK log WARN/ERROR lines: 3
+
+ALL PASS (fixtures and controls)
+
+== exit: live 0
