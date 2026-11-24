@@ -1,0 +1,39 @@
+== rev6-rerun fixtures R5 and R6, issue #48 step 3
+requested SDK 1.18.4, server 1.8.1
+loaded SDK_VERSION 1.18.4 /Users/ethan/Desktop/durable-effect/spike/node_modules/@restatedev/restate-sdk/dist/index.cjs
+server binary: restate-server 1.8.1
+node v26.6.0
+
+== Driver
+R5 main 1 inv_1811gkvGOnDa2jfIdWQSVpfGhTJMrLx9UN completed success 
+R5 main 2 inv_1h13w7N1XQNV1UZMzdWjWqkEIiY3hOhoiu completed success 
+R5 fresh 1 inv_1fwLTVXas3O75jaDJdTWs6sJhDfw9Izx8E running  1
+R5 fresh 1 kill HTTP 200
+R6 main 1 inv_1dvrghuP1VkC5mZ0C28wWvxHov87v4wwQH completed success 
+R6 main 2 inv_15yTlLsZCNu22QcUUtzsWgtI6AFOsxH5Y1 completed success 
+R6 fromsend 1 inv_1gPnkW71Ysyl0Wq5geBSDDXFwUJI2vWvyE completed success 
+
+== Checks
+VERSIONS PASS: SDK requested 1.18.4 loaded 1.18.4; server requested 1.8.1 reports "restate-server 1.8.1"
+R5 reabortOnReplay (rule 1 mitigation 2): PASS on 2 invocations (main)
+  control: FAILED as required on 1 invocations (fresh)
+    main inv_1811gkvGOnDa2jfIdWQSVpfGhTJMrLx9UN attempts=2 status=completed/success rEffects=1 rResults=[{"index":4,"result":"Failure"}]
+      attempt 1: r-start=5:live tick-first=106:s abort-point=106:abort r-settle=3109:aborted-wound-down
+      attempt 2: r-start=1:aborted tick-first=1:s abort-point=1:abort r-settle=1:aborted-at-start
+    main inv_1h13w7N1XQNV1UZMzdWjWqkEIiY3hOhoiu attempts=2 status=completed/success rEffects=1 rResults=[{"index":4,"result":"Failure"}]
+      attempt 1: r-start=0:live tick-first=108:s abort-point=108:abort r-settle=3110:aborted-wound-down
+      attempt 2: r-start=1:aborted tick-first=1:s abort-point=1:abort r-settle=1:aborted-at-start
+    fresh inv_1fwLTVXas3O75jaDJdTWs6sJhDfw9Izx8E attempts=4 status=running/undefined rEffects=4 rResults=[]
+      attempt 1: r-start=1:live tick-first=107:s abort-point=107:abort r-settle=3109:aborted-wound-down
+      attempt 2: r-start=1:live tick-first=1:s abort-point=1:none r-settle=-
+      attempt 3: r-start=1:live tick-first=1:s abort-point=1:none r-settle=2560:ok
+      attempt 4: r-start=1:live tick-first=1:s abort-point=1:none r-settle=800:ok|10004:ok
+R6 secondWarningAtInactivity (rule 1 mitigation 3): PASS on 2 invocations (main)
+  control: FAILED as required on 1 invocations (fromsend)
+    main inv_1dvrghuP1VkC5mZ0C28wWvxHov87v4wwQH attempts=2 status=completed/success
+      abort=1006|10018 grace=2009 inactivity=6510 i-settle=10003 probes: p1500@1506 p2500@2507 p3500@3508 p7000@10019 p8000@10019
+    main inv_15yTlLsZCNu22QcUUtzsWgtI6AFOsxH5Y1 attempts=2 status=completed/success
+      abort=1007|10017 grace=2007 inactivity=6509 i-settle=10002 probes: p1500@1508 p2500@2504 p3500@3508 p7000@10019 p8000@10019
+    fromsend inv_1gPnkW71Ysyl0Wq5geBSDDXFwUJI2vWvyE attempts=2 status=completed/success
+      abort=1010|10021 grace=2010 inactivity=3002 i-settle=10002 probes: p1500@1507 p2500@2506 p3500@3508 p7000@10022 p8000@10023
+SUMMARY all PASS
