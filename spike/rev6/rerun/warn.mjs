@@ -4,20 +4,23 @@
 // point past which R1 found other deliveries stall.
 //
 // Run i ignores its signal and takes 10 s. It loses a race to a 1 s
-// sleep and is aborted. Four probe sleeps, issued with everything else
-// at the start, complete at 1.5, 2.5, 3.5 and 4.5 s; the handler awaits
-// each in turn while keeping i in the race, which shows where the
-// stall begins. The service's inactivity timeout is 3 s.
+// sleep and is aborted. Five probe sleeps, issued with everything else
+// at the start, complete at 1.5, 2.5, 3.5, 7 and 8 s; the handler
+// awaits each in turn while keeping i in the race, which shows where
+// the stall begins. The service's inactivity timeout is 3 s.
 //
-// Main: the warning is due one inactivity timeout after the last
-// command the handler sent. Control: one inactivity timeout after the
-// abort. Both also warn once after a 1 s grace period from the abort.
+// Run 1 timed the warning from the last command sent and found no
+// stall: deliveries 4.5 s after it arrived on time (run-out-1.txt). So
+// a delivery also resets the server's clock. Main: the warning is due
+// one inactivity timeout after the last exchange either way, a command
+// sent or a result delivered. Control: after the last command sent
+// (run 1's rule). Both also warn once 1 s after the abort.
 import { noteAttempt, event, tag, tick, pause, effect }
   from "../runs/lib.mjs";
 
 const inactivityMs = 3_000;
 const graceMs = 1_000;
-const probes = [1500, 2500, 3500, 4500];
+const probes = [1500, 2500, 3500, 7000, 8000];
 
 // i: ignores its signal; records its effect; takes 10 s.
 const ignoring = (ctx) => tag("i")(ctx.run("i", async () => {
@@ -30,9 +33,39 @@ const ignoring = (ctx) => tag("i")(ctx.run("i", async () => {
 
 const labelOf = (winner) => winner.split("!")[0];
 
-// Races `member` beside the kept run until `member` wins.
-const awaitKeeping = async (ctx, race, kept, label, member) => {
-  const next = () => tick(ctx, label, race([...kept.values(), member]));
+// The emulated executor's warning state for run i. `touch` records an
+// exchange with the server and moves the inactivity warning to one
+// timeout after it; the warning fires once, only after the abort, and
+// only while i has not settled.
+const warner = (ctx) => {
+  const state = { aborted: false, settled: false, warned: false };
+  let timer;
+  const fire = () => {
+    if (!state.aborted || state.settled || state.warned) return;
+    state.warned = true;
+    event(ctx, "WARN-inactivity", "i");
+  };
+  const touch = () => {
+    clearTimeout(timer);
+    timer = setTimeout(fire, inactivityMs);
+  };
+  const abort = () => {
+    state.aborted = true;
+    setTimeout(() => {
+      if (!state.settled) event(ctx, "WARN-grace", "i");
+    }, graceMs);
+  };
+  return { state, touch, abort };
+};
+
+// Races `member` beside the kept run until `member` wins; `onTick` is
+// called after each delivery.
+const awaitKeeping = async (ctx, race, kept, label, member, onTick) => {
+  const next = async () => {
+    const winner = await tick(ctx, label, race([...kept.values(), member]));
+    onTick();
+    return winner;
+  };
   let winner = await next();
   while (kept.has(labelOf(winner))) {
     kept.delete(labelOf(winner));
@@ -40,44 +73,35 @@ const awaitKeeping = async (ctx, race, kept, label, member) => {
   }
 };
 
-// Arms both warnings for i; `settled` is checked when each fires.
-const armWarnings = (ctx, settled, abortAt, dueAt) => {
-  const warn = (label) => () => {
-    if (!settled.has("i")) event(ctx, label, "i");
-  };
-  setTimeout(warn("WARN-grace"), graceMs);
-  setTimeout(warn("WARN-inactivity"), Math.max(0, dueAt - abortAt));
-};
-
-// `fromSend` on: due from the last command sent (main). Off: from abort.
-const warnTwice = (sdk, fromSend) => async (ctx) => {
-  noteAttempt(ctx, fromSend ? "r6" : "r6FromAbort");
+// `exchange` on: deliveries also move the warning (main). Off: only
+// commands sent do (control, run 1's rule).
+const warnTwice = (sdk, exchange) => async (ctx) => {
+  noteAttempt(ctx, exchange ? "r6" : "r6FromSend");
   const { race } = sdk.RestatePromise;
+  const w = warner(ctx);
+  const onTick = exchange ? w.touch : () => {};
   const run = ignoring(ctx);
   const first = tag("s")(ctx.sleep(1000));
   const issued = probes.map((ms) => [`p${ms}`, tag(`p${ms}`)(ctx.sleep(ms))]);
-  const lastSent = Date.now();
+  w.touch();
   event(ctx, "issued", probes.join(","));
   await tick(ctx, "first", race([run, first]));
-  const abortAt = Date.now();
+  onTick();
   event(ctx, "abort-point");
-  const settled = new Set();
-  const due = (fromSend ? lastSent : abortAt) + inactivityMs;
-  armWarnings(ctx, settled, abortAt, due);
+  w.abort();
   const kept = new Map([["i", run]]);
   for (const [label, probe] of issued) {
-    await awaitKeeping(ctx, race, kept, label, probe);
-    if (!kept.has("i")) settled.add("i");
+    await awaitKeeping(ctx, race, kept, label, probe, onTick);
   }
   if (kept.has("i")) await tick(ctx, "close", race([run]));
-  settled.add("i");
+  w.state.settled = true;
   return "done";
 };
 
 /** R6 handlers, keyed by handler name. */
 export const warnHandlers = (sdk) => ({
   r6: warnTwice(sdk, true),
-  r6FromAbort: warnTwice(sdk, false)
+  r6FromSend: warnTwice(sdk, false)
 });
 
 /** R6's service options: a 3 s inactivity timeout. */

@@ -11,7 +11,7 @@ const fixtures = [
   ["R5", "reabortOnReplay", "rule 1 mitigation 2", r5Holds,
     ["main"], ["fresh"], r5Evidence],
   ["R6", "secondWarningAtInactivity", "rule 1 mitigation 3", r6Holds,
-    ["main"], ["fromabort"], r6Evidence]
+    ["main"], ["fromsend"], r6Evidence]
 ];
 
 const [sdkWanted, serverWanted, serverReported] = process.argv.slice(2);

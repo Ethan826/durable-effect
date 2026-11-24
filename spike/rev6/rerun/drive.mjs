@@ -15,7 +15,7 @@ const plan = [
   ["R5", "main", "Rerun", "r5", 2, 30_000],
   ["R5", "fresh", "Rerun", "r5Fresh", 1, 20_000],
   ["R6", "main", "Warn", "r6", 2, 30_000],
-  ["R6", "fromabort", "Warn", "r6FromAbort", 1, 30_000]
+  ["R6", "fromsend", "Warn", "r6FromSend", 1, 30_000]
 ];
 
 const manifest = [];
