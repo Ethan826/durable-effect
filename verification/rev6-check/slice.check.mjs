@@ -6,15 +6,19 @@
 //     that carries a reading (sample.reading, clock.L, and each sample
 //     notification's value wherever an entry appears).
 //   ticks: ticks kept against none, with readings {0} on both sides,
-//     projecting away sample.trueTime and the warnings.
+//     projecting away sample.trueTime and the warnings. Only programs
+//     with no run statement, the programs tier.mjs runs without ticks:
+//     ticks are read only by R1's stall, which needs a run's closure.
 // A program whose tree passes the leaf cap is retried with narrower
 // limits (no ticks for the readings check, then one cancel, then one
 // attempt); the narrowing used is reported. Exits non-zero if any
 // program's sets differ.
 // "readings-control" compares without the projection and must fail,
-// which shows the check can.
-// Usage: node slice.check.mjs readings|ticks|readings-control [leafCap]
-//        [randomCount]
+// which shows the check can. "ticks-control" runs the ticks comparison on
+// the named programs that have a run, where ticks are observable, and
+// must fail.
+// Usage: node slice.check.mjs readings|ticks|readings-control|ticks-control
+//        [leafCap] [randomCount]
 
 import { createHash } from "node:crypto";
 import * as M from "./model.mjs";
@@ -51,9 +55,20 @@ const NAMED = {
     { s: "await", op: "r1" }])],
 };
 
-// Twenty programs of three statements, picked with a fixed seed.
-const randomPrograms = () => {
-  const all = [...M.programs({ fibers: 2, statements: 3, ops: 3 })];
+const statementsOf = (stmts) => stmts.flatMap((s) =>
+  [s, ...statementsOf(s.body ?? []), ...statementsOf(s.finalizer ?? [])]);
+const hasRun = (fibers) => fibers
+  .some((f) => statementsOf(f.body).some((s) => s.s === "run"));
+const withoutRun = (fibers) => !hasRun(fibers);
+const any = () => true;
+const pick = (named, filter) => Object.fromEntries(
+  Object.entries(named).filter(([, fibers]) => filter(fibers)));
+
+// Twenty programs of three statements, picked with a fixed seed from those
+// that pass the filter.
+const randomPrograms = (filter) => {
+  const all = [...M.programs({ fibers: 2, statements: 3, ops: 3 })]
+    .filter((p) => filter(p.fibers));
   let seed = 3;
   const out = {};
   for (let k = 0; k < randomCount; k += 1) {
@@ -108,19 +123,25 @@ const SETTINGS = {
     project: (history) => history,
     sides: [{ readings: [0, 2, 3] }, { readings: [0] }],
     ladder: [{ ticks: 0, cancels: 1 }],
+    programs: () => ({ ...NAMED, ...randomPrograms(any) }),
   },
   readings: {
     project: projectReadings,
     sides: [{ readings: [0, 2, 3] }, { readings: [0] }],
     ladder: [{}, { ticks: 0 }, { ticks: 0, cancels: 1 },
       { ticks: 0, cancels: 1, attempts: 1 }],
+    programs: () => ({ ...NAMED, ...randomPrograms(any) }),
   },
   ticks: {
     project: projectTicks,
     sides: [{ readings: [0] }, { readings: [0], ticks: 0 }],
     ladder: [{}, { cancels: 1 }, { cancels: 1, attempts: 1 }],
+    programs: () => ({ ...pick(NAMED, withoutRun),
+      ...randomPrograms(withoutRun) }),
   },
 };
+SETTINGS["ticks-control"] = { ...SETTINGS.ticks,
+  programs: () => pick(NAMED, hasRun) };
 
 // ---- enumeration ----
 
@@ -183,7 +204,7 @@ const compare = (name, fibers, setting) => {
 
 const setting = SETTINGS[which];
 let failed = false;
-const programs = { ...NAMED, ...randomPrograms() };
+const programs = setting.programs();
 for (const [name, fibers] of Object.entries(programs)) {
   const t0 = Date.now();
   const row = compare(name, fibers, setting);
@@ -195,7 +216,7 @@ for (const [name, fibers] of Object.entries(programs)) {
   if (row.skipped) failed = true;
   console.log(JSON.stringify(row));
 }
-if (which === "readings-control") {
+if (which.endsWith("-control")) {
   console.log(failed ? "control failed, as it must"
     : "CONTROL PASSED: the check cannot fail");
   process.exit(failed ? 0 : 1);

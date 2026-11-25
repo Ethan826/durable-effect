@@ -37,7 +37,7 @@ The three parts import nothing from one another.
 | Predicates accept correct and reject violating histories | `node predicates.test.mjs` | each predicate has its counterexample |
 | Monitors agree with predicates | `node monitors.test.mjs` | blind S7, P2 and S12 monitors must disagree |
 | Equal state keys have identical futures | `node statekey.check.mjs` | `... broken` drops true time and must fail |
-| Clock readings and ticks change nothing else | `node slice.check.mjs readings` / `ticks` | `readings-control` must fail |
+| Clock readings and ticks change nothing else | `node slice.check.mjs readings` / `ticks` | `readings-control` and `ticks-control` must fail |
 | Merging hides nothing | `FREEZE=1 node merged.check.mjs 4 150000` | `UNSOUND_KEY=1 ...` must exit 1 |
 | Every mutant differs from the base model | `witnesses.mjs` (`replayWitness`) | each witness differs by construction |
 
@@ -47,7 +47,10 @@ The three parts import nothing from one another.
 - No ticks while only clock samples execute: a premise, "a clock reading completes within the
   inactivity timeout" (owner, 2026-11-24; register entry to be filed).
 - No ticks for programs without a run: ticks are read only by R1's stall, which needs an
-  executing run's closure; `slice.check.mjs ticks` holds on the 24 of 28 programs without one.
+  executing run's closure. `slice.check.mjs ticks` holds on 23 programs without a run (3 named,
+  20 drawn from the 1,882 such programs at 2 fibers, 3 statements and 3 operations). Until
+  2026-11-25 it also ran programs with a run, where ticks are observable, and so exited 1; those
+  programs now form `ticks-control`, in which 4 of 5 differ.
 - Fewer ticks while nothing can observe them (`observableTicks`): a coverage reduction, not
   exact, documented in `env.mjs`.
 
