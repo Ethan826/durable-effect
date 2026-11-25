@@ -11,7 +11,8 @@ The three parts import nothing from one another.
 - `env.mjs`, `rules.mjs`, `model.mjs`: the model of Restate and the SDK (from the assumptions
   register) and of revision 6's executor, as a nondeterministic state machine: `initial`,
   `choices`, `step`, `history`, `streamOf`, `stateKey`, `programs`, `MUTANTS`, `limits` (reduced)
-  and `fullLimits`. Written by one author.
+  and `fullLimits`. Written by one author. The executor's code is in `rules/`, split into
+  modules by section; `rules.mjs` re-exports its interface from them.
 - `predicates.mjs`: one predicate per statement over a whole history; `monitors.mjs`: the same
   claims as online folds over the event stream. Written by a second author who never read the
   model. `HISTORY.md` fixes the history and stream format between the two.
