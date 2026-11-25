@@ -19,6 +19,16 @@ The three parts import nothing from one another.
   match one already explored. `tier.mjs` runs it over every program within bounds on worker
   threads. `check.mjs` is the first, unmerged gate and is superseded by `tier.mjs`.
 
+## Tools (`tools/`, run from this directory)
+
+- `judge-witnesses.mjs`: judges every mutant's witness; the base must pass and the mutant fail.
+  On 2026-11-24, 19 of 20 mutants are caught; `handlerScheduler` (M8) is not.
+- `estimate-tier.mjs`: estimates a tier's cost from a seeded sample of programs. Run it before
+  the 3-statement tier.
+- `random-walks.mjs`, `smallest-witness.mjs`, `replay-path.mjs`: random walks through the
+  predicates, the smallest rejected history for one predicate, and replaying a path that
+  `tier.mjs` printed.
+
 ## Self-checks (each shown able to fail)
 
 | Check | Command | Its control |
