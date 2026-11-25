@@ -1,0 +1,2 @@
+compared 92 (program, model) pairs, 23 with failures, skipped 12 over the cap, 0 different
+exit=0

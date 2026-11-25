@@ -1,0 +1,10 @@
+== tier main, bounds {"fibers":2,"statements":2,"ops":2}: 1052 programs, 10182158 nodes, 4938562 leaves, 1274 s on 8 workers
+FAIL S6 in 2 programs: executor acted while frozen
+  program {"fibers":[{"id":"f0","daemon":false,"body":[{"s":"run","op":"r1","behaviour":"mapAbort","deadline":1},{"s":"await","op":"r1"}]}]}
+  path ["ended","sample:0:0","tick","cancel","tick","cancel","tick","sample:5:0","end"]
+FAIL S16b in 2 programs: executor acted while frozen
+  program {"fibers":[{"id":"f0","daemon":false,"body":[{"s":"run","op":"r1","behaviour":"mapAbort","deadline":1},{"s":"await","op":"r1"}]}]}
+  path ["ended","sample:0:0","tick","cancel","tick","cancel","tick","sample:5:0","end"]
+over the node cap: 0
+boundaries: {"end:ended":4382540,"end:killed":1080617,"end:crashed":906488,"cancel:duringSample":1670070,"cancel:twice":3542575,"end:output":1080323,"outcome:success":1039167,"replay":3693843,"end:suspended":1116514,"run:retained":4843076,"run:unstartedRetained":4825968,"closing:wait":4779807,"cancel:afterRootExit":3957688,"outcome:terminal":26232,"outcome:cancelled":14924,"end:retry":4768,"deadline:fired":34451,"freeze":2873,"sleep:overlap":144,"uninterruptible:issued":11047,"sleep:chain":419}
+TIER FAILS

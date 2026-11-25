@@ -1,0 +1,4 @@
+== tier main, bounds {"fibers":2,"statements":2,"ops":2}: 1052 programs, 10181831 nodes, 4938235 leaves, 1427 s on 8 workers
+over the node cap: 0
+boundaries: {"end:ended":4382213,"end:killed":1080554,"end:crashed":906425,"cancel:duringSample":1669974,"cancel:twice":3542329,"end:output":1080248,"outcome:success":1038924,"replay":3693516,"end:suspended":1116451,"run:retained":4842749,"run:unstartedRetained":4825641,"closing:wait":4779536,"cancel:afterRootExit":3957538,"outcome:terminal":26232,"outcome:cancelled":14849,"end:retry":4768,"deadline:fired":34451,"freeze":2873,"sleep:overlap":144,"violation:refusedAtClosing":243,"outcome:defect":243,"uninterruptible:issued":11047,"sleep:chain":419}
+TIER PASSES

@@ -1,0 +1,6 @@
+DIFFERENT gateHoldsSamples {"fibers":[{"id":"f0","daemon":false,"body":[]}]} unmerged: S20 merged: none
+DIFFERENT gateHoldsSamples {"fibers":[{"id":"f0","daemon":false,"body":[{"s":"run","op":"r1","behaviour":"retryable","deadline":1},{"s":"fail","kind":"terminal"}]}]} unmerged: S20 merged: none
+DIFFERENT gateHoldsSamples {"fibers":[{"id":"f0","daemon":false,"body":[{"s":"run","op":"r1","behaviour":"ignoreRetryable"},{"s":"draw"}]}]} unmerged: S20 merged: none
+DIFFERENT gateHoldsSamples {"fibers":[{"id":"f0","daemon":false,"body":[{"s":"sleep","op":"s1","ms":2},{"s":"clock"}]}]} unmerged: S20 merged: none
+compared 92 (program, model) pairs, 23 with failures, skipped 12 over the cap, 4 different
+exit=1
