@@ -40,17 +40,51 @@ The three parts import nothing from one another.
 | Clock readings and ticks change nothing else | `node slice.check.mjs readings` / `ticks` | `readings-control` and `ticks-control` must fail |
 | Merging hides nothing | `FREEZE=1 node merged.check.mjs 4 150000` | `UNSOUND_KEY=1 ...` must exit 1 |
 | Every mutant differs from the base model | `witnesses.mjs` (`replayWitness`) | each witness differs by construction |
+| Verdicts | `node tick.check.mjs 2 2 2` | `node tick.check.mjs control 1 3 1` |
 
 ## Reductions in force, each with its justification
 
 - One clock reading except in the clock tier: `slice.check.mjs readings` holds on 28 programs.
 - No ticks while only clock samples execute: a premise, "a clock reading completes within the
   inactivity timeout" (owner, 2026-11-24; register entry to be filed).
-- No ticks for programs without a run: ticks are read only by R1's stall, which needs an
-  executing run's closure. `slice.check.mjs ticks` holds on 23 programs without a run (3 named,
-  20 drawn from the 1,882 such programs at 2 fibers, 3 statements and 3 operations). Until
-  2026-11-25 it also ran programs with a run, where ticks are observable, and so exited 1; those
-  programs now form `ticks-control`, in which 4 of 5 differ.
+- No ticks for programs without a run: only R1's stall reads ticks, and it
+  needs an executing run's closure. Ticks still move true time, which the
+  predicates read (S8's P5), so the check is by verdicts: `tick.check.mjs`
+  explores every program without a run under the base model and every
+  mutant, with ticks and without, and requires the same failing statements.
+  - At 2 fibers, 2 statements and 2 operations it holds: 128 programs,
+    ticks change the leaf count in 840 runs, none is over the cap, and in
+    every comparison the failure sets are equal. This is a bounded result
+    only. Samples record true time even without a clock read:
+    `[sleep s1 0ms, await s1]` can sample true times 0 to 3 with ticks
+    and only 0 without.
+  - At 1 fiber, 3 statements and 1 operation (460 programs) it fails: the
+    reduction is not exact. Ticks change the leaf count in 1,828 runs, and
+    3 runs differ, all under the `deliveryAnchor` mutant with readings
+    {0, 2, 3} on `[sleep s1 (1, 2 or 3 ms), await s1, clock]`. With ticks
+    they fail S8.P5 and S8.P6, without ticks only S8.P6, so dropping ticks
+    hides an S8.P5 failure. 20 runs are over the cap: one program
+    (`sleep s1 3ms`, then `await s1` inside `uninterruptible`) under the
+    base model and 19 mutants. The base model shows no difference in the
+    comparisons that completed; its run of that program is unchecked.
+  - The control, `hostTime` (a clock statement adds the host clock to L),
+    needs 3 statements: a turn is atomic, so reading the clock after time
+    has passed takes `sleep`, `await`, `clock`. At 1-3-1 it finds 24 runs
+    that differ, all in programs with a clock read. With its hunk in
+    `rules/statements.mjs` reverted, it finds none and exits 1.
+
+  So the check supports the reduction at 2-2-2 only. The owner has
+  decided that the 3-statement tier will keep ticks for programs without a
+  run that have both a `sleep` and a `clock`; that change to `tier.mjs` is
+  not made yet.
+
+  `slice.check.mjs ticks` compares the executor's histories on the same
+  reduction, with `sample.trueTime` and the warnings projected away, on 3
+  named programs and 20 drawn from the 1,882 such programs at 2 fibers, 3
+  statements and 3 operations. A drawn program is kept only if ticks add
+  leaves to its tree; too few draws, or a row with equal leaf counts,
+  fails. It holds with no vacuous row. `ticks-control` runs it on programs
+  with a run, where ticks are observable; 4 of 5 differ.
 - Fewer ticks while nothing can observe them (`observableTicks`): a coverage reduction, not
   exact, documented in `env.mjs`.
 

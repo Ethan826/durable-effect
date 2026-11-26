@@ -5,13 +5,13 @@
 // The history format is HISTORY.md.
 //
 // API for the enumerator:
-//   initial(program, options) -> state      options.mutant: a MUTANTS key
+//   initial(program, options) -> state      options.mutant: a mutant name
 //   choices(state) -> string[]              empty when terminal
 //   step(state, choice) -> state            pure; the old state is kept
 //   history(state) -> History               for a terminal state
 //   programs(bounds) -> generator           bounds {fibers, statements, ops}
 //   limits                                  the schedule's bounds
-//   MUTANTS                                 name -> one-line description
+//   MUTANTS, CONTROL_MUTANTS                name -> one-line description
 
 import * as env from "./env.mjs";
 import * as rules from "./rules.mjs";
@@ -93,6 +93,14 @@ export const MUTANTS = {
   handlerScheduler:
     "a run's Effect needs a turn to finish, so it cannot settle during the " +
     "freeze (M8)",
+};
+
+/** Mutants that are a control for one check. They stay out of MUTANTS,
+ * which merged.check.mjs and check.mjs iterate. hostTime is the control
+ * of tick.check.mjs: its failure needs time to pass. */
+export const CONTROL_MUTANTS = {
+  hostTime: "a clock statement adds the host clock to L (time read " +
+    "outside the durable services)",
 };
 
 // ---- the state machine ----

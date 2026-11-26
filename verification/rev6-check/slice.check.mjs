@@ -6,9 +6,9 @@
 //     that carries a reading (sample.reading, clock.L, and each sample
 //     notification's value wherever an entry appears).
 //   ticks: ticks kept against none, with readings {0} on both sides,
-//     projecting away sample.trueTime and the warnings. Only programs
-//     with no run statement, the programs tier.mjs runs without ticks:
-//     ticks are read only by R1's stall, which needs a run's closure.
+//     projecting away sample.trueTime and the warnings, on programs with
+//     no run (tick.check.mjs checks verdicts). Random picks must add leaves
+//     with ticks; too few picks, or a row with equal leaves, fails.
 // A program whose tree passes the leaf cap is retried with narrower
 // limits (no ticks for the readings check, then one cancel, then one
 // attempt); the narrowing used is reported. Exits non-zero if any
@@ -78,6 +78,26 @@ const randomPrograms = (filter) => {
   return out;
 };
 
+// The ticks draws: the same seeded walk keeps a pick only if ticks add
+// leaves to its unnarrowed tree (over the cap: NaN), at most all.length.
+const offersTicks = (fibers) => {
+  const [a, b] = SETTINGS.ticks.sides.map((side) => enumerate({ fibers },
+    { ...M.limits, ...side }, () => null)?.leaves ?? NaN);
+  return a > b;
+};
+const tickPrograms = () => {
+  const all = [...M.programs({ fibers: 2, statements: 3, ops: 3 })]
+    .filter((p) => withoutRun(p.fibers));
+  const out = {};
+  for (let k = 0, seed = 3; k < all.length; k += 1) {
+    if (Object.keys(out).length >= randomCount) break;
+    seed = (Math.imul(seed, 1103515245) + 12345) >>> 0;
+    const fibers = all[(seed >>> 8) % all.length].fibers;
+    if (offersTicks(fibers)) out[`random${k}`] = fibers;
+  }
+  return out;
+};
+
 // ---- projections ----
 
 const sampleCmds = (history) => {
@@ -137,10 +157,11 @@ const SETTINGS = {
     sides: [{ readings: [0] }, { readings: [0], ticks: 0 }],
     ladder: [{}, { cancels: 1 }, { cancels: 1, attempts: 1 }],
     programs: () => ({ ...pick(NAMED, withoutRun),
-      ...randomPrograms(withoutRun) }),
+      ...tickPrograms() }),
+    vacuity: true,
   },
 };
-SETTINGS["ticks-control"] = { ...SETTINGS.ticks,
+SETTINGS["ticks-control"] = { ...SETTINGS.ticks, vacuity: false,
   programs: () => pick(NAMED, hasRun) };
 
 // ---- enumeration ----
@@ -203,8 +224,10 @@ const compare = (name, fibers, setting) => {
 };
 
 const setting = SETTINGS[which];
-let failed = false;
 const programs = setting.programs();
+const drawn = Object.keys(programs).filter((n) => n.startsWith("random"));
+let failed = setting.vacuity === true && drawn.length < randomCount;
+if (failed) console.log(`too few draws offer ticks: ${drawn.length}`);
 for (const [name, fibers] of Object.entries(programs)) {
   const t0 = Date.now();
   const row = compare(name, fibers, setting);
@@ -213,7 +236,9 @@ for (const [name, fibers] of Object.entries(programs)) {
     failed = true;
     row.example = row.example.slice(0, 4000);
   }
-  if (row.skipped) failed = true;
+  const same = row.leaves && row.leaves[0] === row.leaves[1];
+  if (setting.vacuity && same) row.vacuous = "ticks never offered";
+  if (row.skipped || row.vacuous) failed = true;
   console.log(JSON.stringify(row));
 }
 if (which.endsWith("-control")) {

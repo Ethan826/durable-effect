@@ -1,9 +1,9 @@
 // The exhaustive tier of the step 7 check (issue #48), run in parallel.
 // Every program within the bounds is explored with merged.mjs under the
-// published schedule, with two reductions each justified by
-// slice.check.mjs: one clock reading except in the clock tier, and no ticks
-// for programs with no run (ticks are read only by R1's stall, which needs
-// an executing run's closure).
+// published schedule, with two reductions: one clock reading except in
+// the clock tier (slice.check.mjs readings), and no ticks for programs
+// with no run (only R1's stall reads ticks). tick.check.mjs finds no
+// verdict changed at 2 statements but some at 3: see README.md.
 //
 //   node tier.mjs <fibers> <statements> <ops> [workers] [nodeCap] [tier]
 //   tier: "main" (readings {0}) or "clock" (readings {0, 2, 3}, programs

@@ -35,7 +35,9 @@ const STATEMENTS = {
     return true;
   },
   clock: (exec, io, fiber) => {
-    io.emit({ t: "clock", fiber: fiber.id, L: exec.L });
+    // hostTime, a control mutant: the executor reads the host clock.
+    const L = mutant(exec, "hostTime") ? exec.L + io.now() : exec.L;
+    io.emit({ t: "clock", fiber: fiber.id, L });
     return true;
   },
   draw: (exec, io, fiber) => {
