@@ -80,14 +80,16 @@ const randomPrograms = (filter) => {
 
 // The ticks draws: the same seeded walk keeps a pick only if ticks add
 // leaves to its unnarrowed tree (over the cap: NaN), at most all.length.
+const leavesUnder = (fibers) => function leavesOf(side) { return enumerate(
+  { fibers }, { ...M.limits, ...side }, () => null)?.leaves ?? NaN; };
 const offersTicks = (fibers) => {
-  const [a, b] = SETTINGS.ticks.sides.map((side) => enumerate({ fibers },
-    { ...M.limits, ...side }, () => null)?.leaves ?? NaN);
+  const [a, b] = SETTINGS.ticks.sides.map(leavesUnder(fibers));
   return a > b;
 };
+const runFree = (program) => withoutRun(program.fibers);
 const tickPrograms = () => {
   const all = [...M.programs({ fibers: 2, statements: 3, ops: 3 })]
-    .filter((p) => withoutRun(p.fibers));
+    .filter(runFree);
   const out = {};
   for (let k = 0, seed = 3; k < all.length; k += 1) {
     if (Object.keys(out).length >= randomCount) break;
@@ -223,9 +225,21 @@ const compare = (name, fibers, setting) => {
   return { name, skipped: "over the leaf cap at every narrowing" };
 };
 
+// A ticks row is vacuous when ticks add no leaf to the program's tree.
+const markVacuous = (row, setting) => {
+  const same = row.leaves && row.leaves[0] === row.leaves[1];
+  if (setting.vacuity && same) row.vacuous = "ticks never offered";
+};
+const isDrawn = (name) => name.startsWith("random");
+const verdictLine = (control, failed) => {
+  if (!control) return failed ? `${which}: FAILED` : `${which}: holds`;
+  return failed ? "control failed, as it must"
+    : "CONTROL PASSED: the check cannot fail";
+};
+
 const setting = SETTINGS[which];
 const programs = setting.programs();
-const drawn = Object.keys(programs).filter((n) => n.startsWith("random"));
+const drawn = Object.keys(programs).filter(isDrawn);
 let failed = setting.vacuity === true && drawn.length < randomCount;
 if (failed) console.log(`too few draws offer ticks: ${drawn.length}`);
 for (const [name, fibers] of Object.entries(programs)) {
@@ -236,15 +250,11 @@ for (const [name, fibers] of Object.entries(programs)) {
     failed = true;
     row.example = row.example.slice(0, 4000);
   }
-  const same = row.leaves && row.leaves[0] === row.leaves[1];
-  if (setting.vacuity && same) row.vacuous = "ticks never offered";
+  markVacuous(row, setting);
   if (row.skipped || row.vacuous) failed = true;
   console.log(JSON.stringify(row));
 }
-if (which.endsWith("-control")) {
-  console.log(failed ? "control failed, as it must"
-    : "CONTROL PASSED: the check cannot fail");
-  process.exit(failed ? 0 : 1);
-}
-console.log(failed ? `${which}: FAILED` : `${which}: holds`);
-process.exit(failed ? 1 : 0);
+// A control passes when the comparison fails.
+const control = which.endsWith("-control");
+console.log(verdictLine(control, failed));
+process.exitCode = (control ? failed : !failed) ? 0 : 1;

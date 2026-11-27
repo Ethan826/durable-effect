@@ -35,9 +35,7 @@ const STATEMENTS = {
     return true;
   },
   clock: (exec, io, fiber) => {
-    // hostTime, a control mutant: the executor reads the host clock.
-    const L = mutant(exec, "hostTime") ? exec.L + io.now() : exec.L;
-    io.emit({ t: "clock", fiber: fiber.id, L });
+    io.emit({ t: "clock", fiber: fiber.id, L: exec.L });
     return true;
   },
   draw: (exec, io, fiber) => {
@@ -135,6 +133,10 @@ const splitLinks = (ms) => {
 // §4: each link records its anchor, the L of the turn that issues it.
 export const issueLink = (exec, io, op) => {
   op.linkMs = op.links.shift();
+  // hostTimeLink, a control mutant: the link reads the host clock.
+  if (mutant(exec, "hostTimeLink")) {
+    op.linkMs = Math.max(0, op.linkMs - io.now());
+  }
   op.anchor = exec.L;
   op.consumed = false;
   const cmd = { c: "sleep", op: op.op, ms: op.linkMs };

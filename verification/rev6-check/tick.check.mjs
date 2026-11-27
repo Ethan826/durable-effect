@@ -1,5 +1,6 @@
 // tick.check.mjs: checks by verdicts the reduction that tier.mjs explores
-// programs without a run with no ticks. For every program without a run
+// some programs with no ticks: those ticks.mjs's dropsTicks accepts, with
+// no run and not both a sleep and a clock read. For every such program
 // within the bounds, under the base model and every mutant, it explores
 // the program with merged.mjs with ticks and without, and requires the
 // sets of failing statement ids to be equal. Readings follow tier.mjs:
@@ -11,26 +12,24 @@
 //     the base model and every MUTANTS key; exits 0 only if no run
 //     differs and no run passes the cap.
 //   node tick.check.mjs control <fibers> <statements> <ops> [workers] [cap]
-//     only CONTROL_MUTANTS.hostTime, whose clock statement reads host
-//     time; exits 0 only if some run differs, which shows the check can
-//     fail. It needs 3 statements: seeing time pass needs a sleep, an
-//     await and a clock read, since a turn is atomic.
+//     every CONTROL_MUTANTS key: hostTimeLink, which shortens a sleep
+//     link by the host clock; exits 0 only if some run differs, which
+//     shows the check can fail. Run it at 1 fiber, 2 statements, 1
+//     operation: a sleep and its await are enough.
 //
-// As in tier.mjs, program i of the generator (counting programs with a
-// run) goes to worker i % workers, and i names it in the output. Results
-// are merged in worker order and then sorted by program, so stdout does
-// not depend on scheduling. Progress goes to stderr.
+// Workers take the selected programs round-robin by their position among
+// the selected programs, so the shares stay even. The output names a
+// program by its generator index (counting every program, as tier.mjs
+// does). Results are sorted by that index before printing, so stdout
+// depends on neither scheduling nor the worker count. Progress goes to
+// stderr.
 import {
   Worker, isMainThread, parentPort, workerData,
 } from "node:worker_threads";
 import { availableParallelism } from "node:os";
 import * as model from "./model.mjs";
 import { explore } from "./merged.mjs";
-
-const statementsOf = (stmts) => stmts.flatMap((s) =>
-  [s, ...statementsOf(s.body ?? []), ...statementsOf(s.finalizer ?? [])]);
-const kinds = (program) => new Set(program.fibers
-  .flatMap((f) => statementsOf(f.body)).map((s) => s.s));
+import { dropsTicks, kinds } from "./ticks.mjs";
 
 // The readings sets tier.mjs explores the program with, across its tiers.
 const readingsFor = (has) =>
@@ -77,14 +76,24 @@ const checkProgram = (out, program, index, { control, cap }) => {
   }
 };
 
-// A worker's share: generator index i with i % count === index, and no
-// run. The index counts programs with a run too, as tier.mjs does.
-const share = function* ({ bounds, count, index }) {
-  let i = -1;
+// The programs the tier explores without ticks, each with its generator
+// index, which counts every program.
+const selected = function* (bounds) {
+  let index = -1;
   for (const program of model.programs(bounds)) {
-    i += 1;
-    if (i % count !== index || kinds(program).has("run")) continue;
-    yield [i, program];
+    index += 1;
+    if (dropsTicks(program)) yield [index, program];
+  }
+};
+
+// A worker's share: the selected programs whose position among the
+// selected is congruent to the worker's index. Sharing by generator
+// index instead left most of the slow programs on a few workers.
+const share = function* ({ bounds, count, index }) {
+  let position = -1;
+  for (const entry of selected(bounds)) {
+    position += 1;
+    if (position % count === index) yield entry;
   }
 };
 
@@ -110,30 +119,58 @@ const merge = (a, b) => ({
   diffs: [...a.diffs, ...b.diffs],
 });
 
-const startWorker = (job) => new Promise((resolve, reject) => {
-  const worker = new Worker(new URL(import.meta.url), { workerData: job,
-    resourceLimits: { maxOldGenerationSizeMb: 6144 } });
-  const onMessage = (message) => message.progress === undefined
-    ? resolve(message.result) : process.stderr.write(message.progress);
-  worker.on("message", onMessage);
-  worker.on("error", reject);
-});
-
-const parseArgs = (argv) => {
-  const control = argv[0] === "control";
-  const rest = control ? argv.slice(1) : argv;
-  const [fibers, statements, ops] = rest.slice(0, 3).map(Number);
-  return { control, bounds: { fibers, statements, ops },
-    count: Number(rest[3] ?? availableParallelism()),
-    cap: Number(rest[4] ?? 300_000) };
+const startWorker = (job) => {
+  const runWorker = (resolve, reject) => {
+    const worker = new Worker(new URL(import.meta.url), { workerData: job,
+      resourceLimits: { maxOldGenerationSizeMb: 6144 } });
+    const onMessage = (message) => message.progress === undefined
+      ? resolve(message.result) : process.stderr.write(message.progress);
+    worker.on("message", onMessage);
+    worker.on("error", reject);
+  };
+  return new Promise(runWorker);
 };
 
-// A fractional count would start fewer workers than the share's modulus
-// assumes, and the programs in between would go unexplored.
-const positive = (n) => Number.isInteger(n) && n > 0;
+const startWorkers = (args) => {
+  const jobs = [];
+  for (let index = 0; index < args.count; index += 1) {
+    jobs.push(startWorker({ ...args, index }));
+  }
+  return Promise.all(jobs);
+};
+
+// The arguments as typed, with the defaults for workers and cap.
+const rawArgs = (argv) => {
+  const control = argv[0] === "control";
+  const rest = control ? argv.slice(1) : argv;
+  const [fibers, statements, ops, count, cap] = rest;
+  return { control, fibers, statements, ops,
+    count: count ?? String(availableParallelism()),
+    cap: cap ?? "300000" };
+};
+
+const parseArgs = (raw) => ({ control: raw.control,
+  bounds: { fibers: Number(raw.fibers),
+    statements: Number(raw.statements), ops: Number(raw.ops) },
+  count: Number(raw.count), cap: Number(raw.cap) });
+
+// The strings, not their coercion: Number("") and Number(" ") are 0. A
+// fractional count would start fewer workers than the share's modulus
+// assumes, and the programs in between would go unexplored. Long digit
+// strings convert to Infinity or round, so the value must be safe too.
+const natural = (s) => typeof s === "string" && /^[0-9]+$/.test(s) &&
+  Number.isSafeInteger(Number(s));
+const positive = (s) => natural(s) && Number(s) > 0;
+
+// Malformed bounds would make the generator yield nothing, or one empty
+// program, and the check would hold vacuously.
+const valid = (raw) => positive(raw.fibers) &&
+  positive(raw.statements) && natural(raw.ops) &&
+  positive(raw.count) && positive(raw.cap);
 
 const USAGE = "usage: node tick.check.mjs [control] <fibers> <statements>" +
-  " <ops> [workers] [cap]\n  workers and cap must be positive integers\n";
+  " <ops> [workers] [cap]\n  fibers, statements, workers and cap must" +
+  " be positive integers; ops a non-negative integer\n";
 
 const show = (value) => JSON.stringify(value);
 
@@ -147,6 +184,7 @@ const printCapped = (c) => console.log(`OVER THE CAP ${c.model} ` +
   `readings ${show(c.readings)}: program ${c.index} ${show(c.program)}`);
 
 const byProgram = (a, b) => a.index - b.index;
+const inClockProgram = (d) => d.clock;
 
 const verdictLine = (control, total) => {
   const differs = total.diffs.length > 0;
@@ -161,12 +199,12 @@ const verdictLine = (control, total) => {
 const report = (args, total) => {
   total.diffs.sort(byProgram).forEach(printDiff);
   total.capped.sort(byProgram).forEach(printCapped);
-  const clocked = total.diffs.filter((d) => d.clock).length;
+  const clocked = total.diffs.filter(inClockProgram).length;
   console.log(`== bounds ${show(args.bounds)}: ${total.programs} ` +
-    `programs without a run, ticks changed the leaf count in ` +
-    `${total.leavesChanged} runs, ${total.capped.length} runs over the ` +
-    `cap, ${total.diffs.length} runs different (${clocked} in programs ` +
-    `with a clock read)`);
+    `programs without ticks in the tier, ticks changed the leaf count ` +
+    `in ${total.leavesChanged} runs, ${total.capped.length} runs over ` +
+    `the cap, ${total.diffs.length} runs different (${clocked} in ` +
+    `programs with a clock read)`);
   const line = verdictLine(args.control, total);
   console.log(line);
   const ok = args.control ? total.diffs.length > 0 : line === "ticks: holds";
@@ -174,16 +212,15 @@ const report = (args, total) => {
 };
 
 const main = async () => {
-  const args = parseArgs(process.argv.slice(2));
-  if (!positive(args.count) || !positive(args.cap)) {
+  const raw = rawArgs(process.argv.slice(2));
+  if (!valid(raw)) {
     process.stderr.write(USAGE);
     process.exitCode = 2;
     return;
   }
+  const args = parseArgs(raw);
   const started = Date.now();
-  const shares = await Promise.all(Array.from({ length: args.count },
-    (_, index) => startWorker({ ...args, index })));
-  const code = report(args, shares.reduce(merge));
+  const code = report(args, (await startWorkers(args)).reduce(merge));
   const secs = Math.round((Date.now() - started) / 1000);
   process.stderr.write(`${secs} s on ${args.count} workers\n`);
   // Not process.exit: it would cut off stdout still draining into a pipe.

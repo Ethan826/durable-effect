@@ -96,10 +96,11 @@ export const MUTANTS = {
 };
 
 /** Mutants that are a control for one check. They stay out of MUTANTS,
- * which merged.check.mjs and check.mjs iterate. hostTime is the control
- * of tick.check.mjs: its failure needs time to pass. */
+ * which merged.check.mjs and check.mjs iterate. hostTimeLink is the
+ * control of tick.check.mjs: it needs a sleep but no clock read, so it
+ * can fail among the programs the tier explores without ticks. */
 export const CONTROL_MUTANTS = {
-  hostTime: "a clock statement adds the host clock to L (time read " +
+  hostTimeLink: "a sleep link is shortened by the host clock (time read " +
     "outside the durable services)",
 };
 

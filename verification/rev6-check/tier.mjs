@@ -2,8 +2,8 @@
 // Every program within the bounds is explored with merged.mjs under the
 // published schedule, with two reductions: one clock reading except in
 // the clock tier (slice.check.mjs readings), and no ticks for programs
-// with no run (only R1's stall reads ticks). tick.check.mjs finds no
-// verdict changed at 2 statements but some at 3: see README.md.
+// with no run that lack a sleep or a clock read (ticks.mjs, issue #49).
+// tick.check.mjs checks that reduction by verdicts: see README.md.
 //
 //   node tier.mjs <fibers> <statements> <ops> [workers] [nodeCap] [tier]
 //   tier: "main" (readings {0}) or "clock" (readings {0, 2, 3}, programs
@@ -17,6 +17,7 @@ import { availableParallelism } from "node:os";
 import * as model from "./model.mjs";
 import { explore } from "./merged.mjs";
 import { boundaries } from "./predicates.mjs";
+import { dropsTicks } from "./ticks.mjs";
 
 const statementsOf = (stmts) => stmts.flatMap((s) =>
   [s, ...statementsOf(s.body ?? []), ...statementsOf(s.finalizer ?? [])]);
@@ -25,7 +26,7 @@ const kinds = (program) => new Set(program.fibers
 
 const limitsFor = (program, tier) => ({
   readings: tier === "clock" ? [0, 2, 3] : [0],
-  ...(kinds(program).has("run") ? {} : { ticks: 0 }),
+  ...(dropsTicks(program) ? { ticks: 0 } : {}),
 });
 
 const inTier = (program, tier) => tier !== "clock" ||
